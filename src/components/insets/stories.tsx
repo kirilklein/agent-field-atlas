@@ -11,6 +11,8 @@ import { Card, Chip, Mark, Note, Station, Token } from './parts';
  */
 export type Story = {
   title: string;
+  /** Which step each concept stop is about. */
+  concepts: Record<string, number>;
   steps: Step[];
   draw: (step: number, t: number) => ReactNode;
 };
@@ -34,6 +36,7 @@ const live = (s: number, t: number, k1: number, k2: number, a = 0, b = 0.3) => {
 
 const oneCall: Story = {
   title: 'One round trip',
+  concepts: { 'the-request': 1, 'structured-output': 5, 'parse-a-reply': 3, checkpoint: 6 },
   steps: [
     { caption: 'Your code builds the request: a system message and the question.', move: 900 },
     { caption: 'One call sends the whole list. The model knows nothing else.' },
@@ -109,6 +112,7 @@ const oneCall: Story = {
 
 const toolCalling: Story = {
   title: 'Propose, check, run',
+  concepts: { 'declare-a-tool': 0, 'inspect-a-call': 2, 'errors-are-results': 6, checkpoint: 3 },
   steps: [
     { caption: 'Your code describes one tool: a name, a description and an argument schema.', move: 1200 },
     { caption: 'The model proposes a call: a tool name and arguments. It cannot run anything.' },
@@ -206,6 +210,7 @@ const STACK: { label: string; tone: 'msg' | 'model' | 'tool' | 'ok'; k: number; 
 
 const agentLoop: Story = {
   title: 'The loop',
+  concepts: { 'the-loop': 4, 'watch-a-run': 5, 'stop-conditions': 6, checkpoint: 7 },
   steps: [
     { caption: 'The message list starts with two messages: the instructions and the question.', move: 1000 },
     { caption: 'Step 1: the model reads the whole list and proposes a search.' },
@@ -318,6 +323,7 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
 
 const evaluation: Story = {
   title: 'Replay and score',
+  concepts: { 'replay-set': 0, 'score-a-replay': 2, 'trust-the-numbers': 3, checkpoint: 5 },
   steps: [
     { caption: 'Replay 5 fixed questions. The answers make 12 cited claims.', move: 1100 },
     { caption: 'The judge checks each claim: was the paper retrieved, and does it support the claim?', move: 4200, ms: 5000 },
@@ -416,6 +422,7 @@ const evaluation: Story = {
 
 const permissions: Story = {
   title: 'Text can’t grant permission',
+  concepts: { 'read-only-tools': 3, 'untrusted-results': 2, 'run-it': 6 },
   steps: [
     { caption: 'A search result contains an instruction, planted in the text.', move: 900 },
     { caption: 'It is only text. It joins the messages and the model reads it.', move: 1300 },
@@ -502,6 +509,7 @@ const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
 
 const contextMemory: Story = {
   title: 'What every call resends',
+  concepts: { 'run-state': 1, 'cost-of-history': 2, 'saved-memory': 5, 'run-it': 4 },
   steps: [
     { caption: 'Call 1 sends the instructions and the question: 104 tokens.' },
     { caption: 'Every later call resends the whole history, so each call is bigger than the last.', move: 3000, ms: 3800 },
@@ -605,6 +613,7 @@ const ROWS = [
 
 const multiAgent: Story = {
   title: 'Writer and reviewer',
+  concepts: { 'add-a-reviewer': 2, 'compare-on-evals': 5, 'run-it': 3 },
   steps: [
     { caption: 'The writer drafts an answer with search, as before.', move: 900 },
     { caption: 'A second call with a different job and no tools reviews the draft.', move: 1300 },

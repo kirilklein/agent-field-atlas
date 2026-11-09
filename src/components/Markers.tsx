@@ -26,14 +26,11 @@ type Props = {
   minX: number;
   onHot: (id: RegionId | null) => void;
   progress: Progress;
-  /** The landmark whose field inset is open, if any. */
-  inset: RegionId | null;
-  onWatch: (id: RegionId) => void;
 };
 
 const at = (x: number, y: number) => ({ transform: `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)` });
 
-export function Markers({ cam, stage, route, focus, revealed, compact, onLandmark, selected, onSelect, onOpen, onHoverConcept, minX, onHot, progress, inset, onWatch }: Props) {
+export function Markers({ cam, stage, route, focus, revealed, compact, onLandmark, selected, onSelect, onOpen, onHoverConcept, minX, onHot, progress }: Props) {
   const inRegion = route.region !== null;
   const th = toScreen(cam, stage, TRAILHEAD);
 
@@ -57,7 +54,7 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
   };
 
   return (
-    <div className={`markers ${inset ? 'has-inset' : ''}`}>
+    <div className="markers">
       {/* Place names belong to the overview scale and fade as you descend. */}
       <div className={`terrain-names ${inRegion ? 'is-hidden' : ''}`} aria-hidden="true">
         {TERRAIN_NAMES.map((n) => {
@@ -102,7 +99,6 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
               `side-${side}`,
               selected ? 'is-selected' : '',
               dimmed ? 'is-dimmed' : '',
-              inset === l.id ? 'has-inset' : '',
             ].join(' ')}
             style={at(p.x, p.y)}
             aria-current={selected && !route.concept ? 'location' : undefined}
@@ -131,22 +127,6 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
           </button>
         );
       })}
-
-      {route.region && !route.concept && revealed && inset !== route.region && (() => {
-        const l = landmarkById[route.region];
-        const p = toScreen(cam, stage, l);
-        const side: LabelSide = compact && l.compactSide ? l.compactSide : l.side;
-        return (
-          <span className={`watch watch--${side}`} style={at(p.x, p.y)}>
-            <button type="button" className="watch__pill" data-watch={l.id} onClick={() => onWatch(l.id)}>
-              <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-                <path d="M3 1.8 L10 6 L3 10.2 Z" fill="currentColor" />
-              </svg>
-              Watch it work
-            </button>
-          </span>
-        );
-      })()}
 
       {focus &&
         landmarkById[focus].concepts.map((c, i) => {

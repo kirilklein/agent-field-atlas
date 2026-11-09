@@ -15,8 +15,11 @@ export type Interaction =
   | { kind: 'interval' };
 
 export type Lesson = {
-  /** One concise explanation. Backticks mark inline code. */
-  explanation: string;
+  /** One sentence: why this concept matters. Backticks mark inline code here and below. */
+  why: string;
+  /** The explanation as short steps, one idea each. */
+  steps: string[];
+  terms?: { term: string; def: string }[];
   example?: Example;
   interaction?: Interaction;
 };
@@ -30,8 +33,18 @@ type LessonKey = `${RegionId}/${string}`;
 export const LESSONS: Record<LessonKey, Lesson> = {
   /* I · One model call ------------------------------------------------ */
   'one-model-call/the-request': {
-    explanation:
-      'A model call is a function from a list of messages to one proposal. Everything the model knows about your task is in that list, and nothing carries over between calls unless you put it back. That is the idea the whole trail rests on: the model only proposes. Running tools, keeping state, checking replies and deciding when to stop all happen in your code. Wrap your provider’s SDK in one function, `call_model`, and the rest of the assistant is plain Python.',
+    why: 'Everything else on the trail builds on this one call.',
+    steps: [
+      'A model call takes a list of messages and returns one proposal.',
+      'The model knows only what is in that list. Nothing carries over between calls unless you put it back.',
+      'The model only proposes. Your code runs tools, keeps state, checks replies and decides when to stop.',
+      'Wrap your provider’s SDK in one function, `call_model`. The rest of the assistant is plain Python.',
+    ],
+    terms: [
+      { term: 'Message list', def: 'The messages you send in one call: system instructions, the question, earlier replies.' },
+      { term: 'Proposal', def: 'What the model returns: text, or a request to call a tool. Your code decides what to do with it.' },
+      { term: 'Host', def: 'Your code around the model. It checks, runs and stops things.' },
+    ],
     example: {
       label: 'assistant.py',
       language: 'python',
@@ -54,8 +67,16 @@ print(reply["text"])`,
     },
   },
   'one-model-call/structured-output': {
-    explanation:
-      'Free text is for people; your program needs fields. Describe the shape you want — two to four search queries and an optional start year — and ask for JSON in exactly that shape. Many providers can enforce a schema. Either way, the schema doubles as documentation the model reads.',
+    why: 'Your program needs fields it can use, not prose it has to guess at.',
+    steps: [
+      'Free text is for people. Your program needs fields.',
+      'Describe the shape you want: two to four search queries and an optional start year.',
+      'Ask for JSON in exactly that shape. Many providers can enforce the schema for you.',
+      'The model reads the schema too, so it doubles as documentation.',
+    ],
+    terms: [
+      { term: 'JSON schema', def: 'A description of the fields a JSON object must have and their types.' },
+    ],
     example: {
       label: 'plan.py',
       language: 'python',
@@ -79,8 +100,17 @@ reply = call_model(
     },
   },
   'one-model-call/parse-a-reply': {
-    explanation:
-      'The reply is a proposal, not a value. Parse it, check every field you rely on, and decide what happens when it is wrong: here, retry once with the error message, then fail loudly. This is the first appearance of the pattern the whole trail is built on — the model proposes, the host checks.',
+    why: 'A reply can be wrong. Your code has to notice before anything relies on it.',
+    steps: [
+      'The reply is a proposal, not a value.',
+      'Parse it, and check every field you rely on.',
+      'Decide what happens when it is wrong. Here: retry once with the error message, then fail loudly.',
+      'This is the pattern for the whole trail: the model proposes, the host checks.',
+    ],
+    terms: [
+      { term: 'Parse', def: 'Turn the reply text into data, for example with `json.loads`.' },
+      { term: 'Retry', def: 'Call the model again, with the error added to the message list.' },
+    ],
     interaction: {
       kind: 'trace',
       traceId: 'parse-a-reply',
@@ -90,8 +120,18 @@ reply = call_model(
 
   /* II · Tool calling ------------------------------------------------- */
   'tool-calling/declare-a-tool': {
-    explanation:
-      'A tool is a name, a description, and a JSON schema for its arguments. You send these declarations with the request, and the model may answer with a tool call instead of text: a request that your code run `search_papers` with some arguments. The model never runs anything. The declaration is all it knows about the tool, so the description is part of your prompt.',
+    why: 'The model can only ask for tools it has been told about. The declaration is that telling.',
+    steps: [
+      'A tool is a name, a description and a JSON schema for its arguments.',
+      'You send these declarations with the request.',
+      'The model may then answer with a tool call: a request that your code run `search_papers` with some arguments.',
+      'The model never runs anything itself.',
+      'The declaration is all the model knows about the tool, so the description is part of your prompt.',
+    ],
+    terms: [
+      { term: 'Tool call', def: 'A proposal to run a named tool with given arguments. Only your code can run it.' },
+      { term: 'Argument schema', def: 'The JSON schema that says which arguments the tool accepts.' },
+    ],
     example: {
       label: 'tools.py',
       language: 'python',
@@ -113,8 +153,17 @@ reply["tool_calls"]
     },
   },
   'tool-calling/inspect-a-call': {
-    explanation:
-      'Between the model’s proposal and the tool sits one function you own: `handle_tool_call`. It checks the tool name against an allowlist and the arguments against what the tool really accepts — a schema guides the model but doesn’t bind it. Only a call that passes every check executes, and every outcome, success or rejection, goes back to the model as a structured message.',
+    why: 'This one function is where your code says yes or no to everything the model asks for.',
+    steps: [
+      'Between the model’s proposal and the tool sits one function you own: `handle_tool_call`.',
+      'It checks the tool name against an allowlist.',
+      'It checks the arguments against what the tool really accepts. A schema guides the model but doesn’t bind it.',
+      'Only a call that passes every check runs.',
+      'Every outcome, success or rejection, goes back to the model as a structured message.',
+    ],
+    terms: [
+      { term: 'Allowlist', def: 'The set of tool names your code is willing to run. Anything else is refused.' },
+    ],
     interaction: {
       kind: 'trace',
       traceId: 'inspect-a-call',
@@ -122,8 +171,16 @@ reply["tool_calls"]
     },
   },
   'tool-calling/errors-are-results': {
-    explanation:
-      'When a check fails or the tool raises, don’t crash the loop and don’t drop the call silently. Return a structured error with a stable code and a message written for the model. Models recover well from specific errors — an empty query becomes a real one on the next turn — and your logs get one uniform record of what went wrong.',
+    why: 'A clear error lets the model fix its mistake on the next turn instead of crashing the run.',
+    steps: [
+      'When a check fails or the tool raises, don’t crash the loop. Don’t drop the call silently either.',
+      'Return a structured error: a stable code and a message written for the model.',
+      'Models recover well from specific errors. An empty query becomes a real one on the next turn.',
+      'Your logs also get one uniform record of what went wrong.',
+    ],
+    terms: [
+      { term: 'Structured error', def: 'An error returned as data, with a fixed code and a short message.' },
+    ],
     example: {
       label: 'host.py',
       language: 'python',
@@ -142,8 +199,18 @@ except TimeoutError:
 
   /* III · Agent loop -------------------------------------------------- */
   'agent-loop/the-loop': {
-    explanation:
-      'An agent is a loop around the model call. The first message carries the question and the searches `plan_queries` suggested. Each turn sends the whole history. If the reply contains tool calls, run each through `handle_tool_call`, append the results and go again. If it contains only text, that text is the answer. The model decides what to try next; the loop decides whether it is allowed and when it stops.',
+    why: 'This is what turns one model call into an agent.',
+    steps: [
+      'An agent is a loop around the model call.',
+      'The first message carries the question and the searches `plan_queries` suggested.',
+      'Each turn sends the whole history.',
+      'If the reply has tool calls, run each through `handle_tool_call`, add the results and go again.',
+      'If the reply has only text, that text is the answer. The model decides what to try next; the loop decides what is allowed and when to stop.',
+    ],
+    terms: [
+      { term: 'Turn', def: 'One pass of the loop: one model call, plus any tool calls it proposed.' },
+      { term: 'History', def: 'The growing message list: question, proposals and results so far.' },
+    ],
     example: {
       label: 'checkpoint_3.py',
       language: 'python',
@@ -151,8 +218,17 @@ except TimeoutError:
     },
   },
   'agent-loop/watch-a-run': {
-    explanation:
-      'Two runs of `run_agent` from checkpoint 3, exactly as the fake model plays them. In the first, two searches are enough and the model answers on step 3. In the second, the budget is two steps and the model still wants to search, so the loop stops it and says why.',
+    why: 'Seeing the loop turn by turn makes it concrete.',
+    steps: [
+      'Here are two runs of `run_agent` from checkpoint 3, played by the fake model.',
+      'Run one: two searches are enough, and the model answers on step 3.',
+      'Run two: the budget is two steps, and the model still wants to search.',
+      'So the loop stops it, and says why.',
+    ],
+    terms: [
+      { term: 'Fake model', def: 'A scripted stand-in for a real model, so every run is the same and needs no key.' },
+      { term: 'Budget', def: 'A limit your code sets, here on the number of steps.' },
+    ],
     interaction: {
       kind: 'trace',
       traceId: 'watch-a-run',
@@ -160,8 +236,16 @@ except TimeoutError:
     },
   },
   'agent-loop/stop-conditions': {
-    explanation:
-      'There are two honest ways to stop: the model returns text without tool calls, or the host runs out of budget. Budgets can count steps, tokens, seconds or money; steps are simplest and roughly bound the rest. When the budget ends a run, say so in the result rather than passing off a half-finished draft as an answer — callers and your evaluation need to tell the two apart.',
+    why: 'A loop without a clear stop can run forever, or return half an answer as if it were done.',
+    steps: [
+      'There are two honest ways to stop.',
+      'One: the model returns text with no tool calls.',
+      'Two: the host runs out of budget. Budgets can count steps, tokens, seconds or money. Steps are simplest and roughly bound the rest.',
+      'When the budget ends a run, say so in the result. Don’t pass off a half-finished draft as an answer: callers and your evaluation need to tell the two apart.',
+    ],
+    terms: [
+      { term: 'Stop condition', def: 'The rule that ends the loop: an answer, or the budget running out.' },
+    ],
     example: {
       label: 'cli.py',
       language: 'python',
@@ -177,13 +261,30 @@ else:
 
   /* IV · Evaluation --------------------------------------------------- */
   'evaluation/replay-set': {
-    explanation:
-      'You can’t eyeball whether a change helped. Write down a handful of real questions with papers a good answer could cite. With a fixed paper index, replays are deterministic apart from the model: same questions, same search results, so only the model’s behaviour can change between runs. Five questions is enough to find bugs and far too few to measure small improvements, as Trust the numbers shows.',
+    why: 'You can’t tell by eye whether a change helped. You need fixed questions to rerun.',
+    steps: [
+      'Write down a handful of real questions, with papers a good answer could cite.',
+      'With a fixed paper index, replays give the same questions and the same search results.',
+      'So only the model’s behaviour can change between runs.',
+      'Five questions is enough to find bugs. It is far too few to measure small improvements (see Trust the numbers).',
+    ],
+    terms: [
+      { term: 'Replay set', def: 'A fixed list of questions you run again after every change.' },
+    ],
     example: { label: 'replay_set.jsonl', language: 'json', code: REPLAY_SET },
   },
   'evaluation/score-a-replay': {
-    explanation:
-      'Check every claim in two steps. First: is the cited paper one the assistant actually retrieved? That is a set lookup, and it catches invented IDs. Second: does the paper support the claim? That needs judgement, usually a separate model call that sees one claim and one paper summary. Offline, checkpoint 4 uses a cheap word-overlap judge instead, and measures how often it is wrong.',
+    why: 'A score is only useful if you know how each claim was checked.',
+    steps: [
+      'Check every claim in two steps.',
+      'First: is the cited paper one the assistant actually retrieved? That is a set lookup. It catches invented IDs.',
+      'Second: does the paper support the claim? That needs judgement, usually a separate model call that sees one claim and one paper summary.',
+      'Offline, checkpoint 4 uses a cheap word-overlap judge instead, and measures how often it is wrong.',
+    ],
+    terms: [
+      { term: 'Claim', def: 'One statement in the answer, with the paper it cites.' },
+      { term: 'Judge', def: 'Whatever decides if a paper supports a claim: a model call, or here a word-overlap rule.' },
+    ],
     interaction: {
       kind: 'trace',
       traceId: 'score-a-replay',
@@ -191,55 +292,111 @@ else:
     },
   },
   'evaluation/trust-the-numbers': {
-    explanation:
-      'Checkpoint 4 reports 11 of 12 claims supported. Two things limit what that means. First, size: with 12 claims the 95% interval runs from 65% to 99%, and one more failure would move the score by 8 points. Second, the judge: checked against twelve claims a person labelled, the offline judge agreed on 10 and passed two overstatements, and one of those is in this replay, so the real figure is 10 of 12. Check the judge before trusting it, report intervals, and keep the failing claims, because they tell you what to fix.',
+    why: 'A score from a few claims, checked by an imperfect judge, says less than it seems.',
+    steps: [
+      'Checkpoint 4 reports 11 of 12 claims supported. Two things limit what that means.',
+      'Size: with 12 claims, the 95% interval runs from 65% to 99%. One more failure moves the score by 8 points.',
+      'The judge: on twelve claims a person labelled, it agreed on 10 and passed two overstatements. One of those is in this replay, so the real figure is 10 of 12.',
+      'So: check the judge before trusting it, report intervals, and keep the failing claims. They tell you what to fix.',
+    ],
+    terms: [
+      { term: '95% interval', def: 'The range the true rate likely falls in, given how few claims you checked.' },
+      { term: 'Overstatement', def: 'A claim that says more than the paper does.' },
+    ],
     example: { label: 'python checkpoint_4.py', language: 'text', code: CHECKPOINT_4_OUTPUT },
     interaction: { kind: 'interval' },
   },
 
   /* Checkpoints ------------------------------------------------------ */
   'one-model-call/checkpoint': {
-    explanation:
-      'You now have `plan_queries`: one model call whose reply is parsed and checked before the rest of the program uses it. Copy the checkpoint and the three shared files into one folder and run it with plain Python. It needs no key, because a scripted fake model answers. Try `--sloppy` to watch the retry, then the two exercises below.',
+    why: 'Running the code yourself is how the idea sticks.',
+    steps: [
+      'You now have `plan_queries`: one model call whose reply is parsed and checked before anything uses it.',
+      'Copy the checkpoint and the three shared files into one folder. Run it with plain Python.',
+      'It needs no key: a scripted fake model answers.',
+      'Try `--sloppy` to watch the retry, then do the two exercises below.',
+    ],
     interaction: { kind: 'checkpoint', id: 1 },
   },
   'tool-calling/checkpoint': {
-    explanation:
-      'New here: a tool declaration, an allowlist and `handle_tool_call`. The model proposes a call, and `search_papers` runs only after every check passes. Run the three scenarios and compare what the model receives in each. They are the same three cases as Inspect a call. Then extend the tool in the exercises below.',
+    why: 'Running the code yourself is how the idea sticks.',
+    steps: [
+      'New here: a tool declaration, an allowlist and `handle_tool_call`.',
+      'The model proposes a call. `search_papers` runs only after every check passes.',
+      'Run the three scenarios and compare what the model receives in each. They are the same three cases as Inspect a call.',
+      'Then extend the tool in the exercises below.',
+    ],
     interaction: { kind: 'checkpoint', id: 2 },
   },
   'agent-loop/checkpoint': {
-    explanation:
-      'New here: the agent prompt, `brief`, which reuses `plan_queries` to suggest searches, and `run_agent`. The loop itself is a dozen lines; everything else is code you already have. Run it with `--max-steps 2` to see the budget end a run. The exercises add two more ways for the host to say no.',
+    why: 'Running the code yourself is how the idea sticks.',
+    steps: [
+      'New here: the agent prompt, `brief` (which reuses `plan_queries` to suggest searches), and `run_agent`.',
+      'The loop itself is a dozen lines. Everything else is code you already have.',
+      'Run it with `--max-steps 2` to see the budget end a run.',
+      'The exercises add two more ways for the host to say no.',
+    ],
     interaction: { kind: 'checkpoint', id: 3 },
   },
   'evaluation/checkpoint': {
-    explanation:
-      'New here: claim splitting, two judges, `score`, a Wilson interval and `check_judge`. Read the output closely. The replay says 11 of 12 claims are supported, but the judge check shows the offline judge passing two overstatements, one of them in this replay. Exercise 4a fixes that.',
+    why: 'Running the code yourself is how the idea sticks.',
+    steps: [
+      'New here: claim splitting, two judges, `score`, a Wilson interval and `check_judge`.',
+      'Read the output closely. The replay says 11 of 12 claims are supported.',
+      'But the judge check shows the offline judge passing two overstatements, one of them in this replay.',
+      'Exercise 4a fixes that.',
+    ],
+    terms: [
+      { term: 'Wilson interval', def: 'A way to compute the 95% interval for a rate that works with small counts.' },
+    ],
     interaction: { kind: 'checkpoint', id: 4 },
   },
 
   /* Branch runs ------------------------------------------------------- */
   'permissions/run-it': {
-    explanation:
-      'A search source returns a record with instructions hidden in its summary, and the fake model obeys them: it asks for `delete_library`. The host never offered that tool, so nothing happens. Saving is different: `save_to_library` exists, but only runs after a person confirms. Run it with `--save --yes` and `--save --no` to see both answers.',
+    why: 'This shows the difference between a tool that doesn’t exist and one that needs a person’s yes.',
+    steps: [
+      'A search result has instructions hidden in its summary. The fake model obeys them and asks for `delete_library`.',
+      'The host never offered that tool, so nothing happens.',
+      'Saving is different: `save_to_library` exists, but runs only after a person confirms.',
+      'Run it with `--save --yes` and `--save --no` to see both answers.',
+    ],
     interaction: { kind: 'checkpoint', id: 'permissions' },
   },
   'context-memory/run-it': {
-    explanation:
-      'One question, run twice with five searches: once keeping every result, once keeping only the last two in full. The table shows tokens sent per call. Trimming saves tokens and has a price: the answer can no longer describe papers whose summaries were trimmed. Then save a preference with `--remember year_from=2023` and see the host apply it to every search.',
+    why: 'This shows what trimming saves, what it costs, and how saved memory rides along.',
+    steps: [
+      'One question, run twice with five searches: once keeping every result, once keeping only the last two in full.',
+      'The table shows tokens sent per call.',
+      'Trimming saves tokens, at a price: the answer can no longer describe papers whose summaries were trimmed.',
+      'Then save a preference with `--remember year_from=2023`, and see the host apply it to every search.',
+    ],
     interaction: { kind: 'checkpoint', id: 'memory' },
   },
   'multi-agent/run-it': {
-    explanation:
-      'The reviewer and the revision, running for real against the fake model on the five replay questions. The reviewer catches both planted problems. The paired comparison then shows extra calls and tokens as real differences, and citation support as “can’t tell yet”, partly because the word-overlap judge cannot see one of the fixes.',
+    why: 'This shows a reviewer working, and how hard it is to prove it helps.',
+    steps: [
+      'The reviewer and the revision run for real against the fake model, on the five replay questions.',
+      'The reviewer catches both planted problems.',
+      'The paired comparison shows the extra calls and tokens as real differences.',
+      'Citation support comes out as “can’t tell yet”, partly because the word-overlap judge cannot see one of the fixes.',
+    ],
     interaction: { kind: 'checkpoint', id: 'multi-agent' },
   },
 
   /* A · Permissions --------------------------------------------------- */
   'permissions/read-only-tools': {
-    explanation:
-      'The cheapest safety property is a capability you never grant. A paper-search assistant needs to read, so expose read-only tools. Anything that writes, sends, deletes or spends is either absent or behind a confirmation step a person completes. The system prompt can ask the model to behave; only the host’s allowlist can say no.',
+    why: 'The safest power is one you never hand over.',
+    steps: [
+      'A paper-search assistant needs to read, so expose read-only tools.',
+      'Anything that writes, sends, deletes or spends is either absent, or behind a confirmation a person completes.',
+      'The system prompt can ask the model to behave.',
+      'Only the host’s allowlist can say no.',
+    ],
+    terms: [
+      { term: 'Read-only tool', def: 'A tool that only looks things up and changes nothing.' },
+      { term: 'Confirmation', def: 'A step where a person, not the model, approves an action.' },
+    ],
     example: {
       label: 'permissions.py',
       language: 'python',
@@ -255,8 +412,16 @@ def allowed(name, confirmed_by_user=False):
     },
   },
   'permissions/untrusted-results': {
-    explanation:
-      'Tool results are written by strangers. An abstract or a web page can contain text that reads like instructions, and it lands in the same message list as your real ones. Assume it will sometimes work on the model. Defend where the model can’t be talked out of it: fence results as data, keep tools read-only, and validate every proposal the same way regardless of what came before.',
+    why: 'Text from the outside world ends up in front of the model. Some of it will try to steer it.',
+    steps: [
+      'Tool results are written by strangers.',
+      'An abstract or a web page can contain text that reads like instructions. It lands in the same message list as your real ones.',
+      'Assume it will sometimes work on the model.',
+      'Defend where the model can’t be talked out of it: fence results as data, keep tools read-only, and check every proposal the same way, whatever came before.',
+    ],
+    terms: [
+      { term: 'Prompt injection', def: 'Instructions hidden in data (like a search result) that try to steer the model.' },
+    ],
     interaction: {
       kind: 'trace',
       traceId: 'untrusted-results',
@@ -266,8 +431,16 @@ def allowed(name, confirmed_by_user=False):
 
   /* B · Context & memory --------------------------------------------- */
   'context-memory/run-state': {
-    explanation:
-      'Inside one run, the message list is the state: the question, every proposal, every result. Keep a little structured state beside it — the step count, paper IDs already seen — so the host can decide things without re-reading prose. All of it is discarded when the run ends; nothing from this run should reach the next by accident.',
+    why: 'The host needs facts it can check quickly, without rereading the whole conversation.',
+    steps: [
+      'Inside one run, the message list is the state: the question, every proposal, every result.',
+      'Keep a little structured state beside it: the step count, paper IDs already seen.',
+      'Then the host can decide things without re-reading prose.',
+      'All of it is thrown away when the run ends. Nothing from this run should reach the next by accident.',
+    ],
+    terms: [
+      { term: 'Run state', def: 'What the host tracks during one run, next to the messages.' },
+    ],
     example: {
       label: 'state.py',
       language: 'python',
@@ -283,8 +456,16 @@ class RunState:
     },
   },
   'context-memory/saved-memory': {
-    explanation:
-      'Memory across runs is a separate, small store you write to on purpose — not a replay of old transcripts. Save durable facts the user stated, like a year cutoff or a reading list, and load them into the system message when a run starts. Because it is explicit, the user can see it, edit it and delete it.',
+    why: 'Some facts should outlive a run, but only the ones you chose to keep.',
+    steps: [
+      'Memory across runs is a small, separate store you write to on purpose. It is not a replay of old transcripts.',
+      'Save durable facts the user stated, like a year cutoff or a reading list.',
+      'Load them into the system message when a run starts.',
+      'Because it is explicit, the user can see it, edit it and delete it.',
+    ],
+    terms: [
+      { term: 'Memory', def: 'A small saved file of facts, loaded at the start of each run.' },
+    ],
     example: {
       label: 'memory.py',
       language: 'python',
@@ -300,8 +481,19 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
     },
   },
   'context-memory/cost-of-history': {
-    explanation:
-      'Every call resends the whole message list. Say the system prompt and question are P tokens and each step adds r tokens (a proposal and its result). Call i then sends P + (i−1)·r tokens, and n calls send nP + r·n(n−1)/2 in total. The first term grows linearly with steps; the second grows with their square, so long runs are dominated by resending old results. Keeping only the last k results caps each call at P + k·r and makes the total linear again. Prompt caching lowers the price of a repeated prefix, but those tokens still fill the context window.',
+    why: 'Long runs get expensive fast, because every call resends everything before it.',
+    steps: [
+      'Every call resends the whole message list.',
+      'Say the system prompt and question are P tokens, and each step adds r tokens. Call i then sends P + (i−1)·r tokens.',
+      'n calls send nP + r·n(n−1)/2 in total. The second term grows with the square of the steps, so long runs are mostly old results being resent.',
+      'Keeping only the last k results caps each call at P + k·r, and the total grows linearly again.',
+      'Prompt caching lowers the price of a repeated prefix, but those tokens still fill the context window.',
+    ],
+    terms: [
+      { term: 'Token', def: 'A small chunk of text. Models count and charge by tokens.' },
+      { term: 'Context window', def: 'The most tokens a model can read in one call.' },
+      { term: 'Prompt caching', def: 'A provider discount for a prefix you send again unchanged.' },
+    ],
     example: {
       label: 'trim.py',
       language: 'python',
@@ -319,8 +511,16 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
 
   /* C · Multi-agent --------------------------------------------------- */
   'multi-agent/add-a-reviewer': {
-    explanation:
-      'A reviewer is a second model call with a different job and less context: the draft answer plus the abstracts it cites, asked to flag claims those abstracts don’t support. The writer revises once with that feedback. It is still one host program — the “agents” are roles with their own prompts and tools, and the reviewer gets no tools at all.',
+    why: 'A second look with a different job catches mistakes the writer can’t see in its own draft.',
+    steps: [
+      'A reviewer is a second model call with a different job and less context.',
+      'It sees the draft answer plus the abstracts it cites, and flags claims those abstracts don’t support.',
+      'The writer revises once with that feedback.',
+      'It is still one host program. The “agents” are roles with their own prompts and tools, and the reviewer gets no tools at all.',
+    ],
+    terms: [
+      { term: 'Role', def: 'One model call with its own prompt and tools. Several roles make a multi-agent setup.' },
+    ],
     example: {
       label: 'review.py',
       language: 'python',
@@ -335,8 +535,16 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
     },
   },
   'multi-agent/compare-on-evals': {
-    explanation:
-      'Both setups answered the same five replay questions, so compare them question by question: pairing removes the differences between questions from the noise. Latency and cost rise on every question by similar amounts, so those differences are real. Citation accuracy rises on two questions, falls on one and is flat on two, and its 95% interval runs from −41 to +54 points. The honest result is “can’t tell yet”. If the pattern held, telling the setups apart would take roughly 130 questions.',
+    why: 'Adding a reviewer costs more. You need evidence that it also helps.',
+    steps: [
+      'Both setups answered the same five replay questions, so compare them question by question. Pairing removes the differences between questions from the noise.',
+      'Latency and cost rise on every question by similar amounts, so those differences are real.',
+      'Citation accuracy rises on two questions, falls on one and is flat on two. Its 95% interval runs from −41 to +54 points.',
+      'The honest result is “can’t tell yet”. If the pattern held, telling the setups apart would take roughly 130 questions.',
+    ],
+    terms: [
+      { term: 'Paired comparison', def: 'Comparing two setups on the same questions, one question at a time.' },
+    ],
     interaction: { kind: 'compare' },
   },
 };

@@ -48,11 +48,11 @@ export function arcPath(cx: number, cy: number, r: number, a: number, b: number)
 /** A little shake for refusals: 0 at the ends, oscillating in between. */
 export const shake = (t: number) => Math.sin(t * Math.PI * 6) * (1 - t) * 4;
 
-export function useStory(steps: Step[], reduced: boolean) {
+export function useStory(steps: Step[], reduced: boolean, first = 0, autoplay = true) {
   const n = steps.length;
-  const [step, setStepState] = useState(0);
-  const [t, setT] = useState(reduced ? 1 : 0);
-  const [playing, setPlaying] = useState(!reduced);
+  const [step, setStepState] = useState(first);
+  const [t, setT] = useState(reduced || !autoplay ? 1 : 0);
+  const [playing, setPlaying] = useState(!reduced && autoplay);
   const [fading, setFading] = useState(false);
   const start = useRef(0);
   const raf = useRef(0);
@@ -94,6 +94,7 @@ export function useStory(steps: Step[], reduced: boolean) {
   /** Jump to a step and show it finished; pauses playback. */
   const goTo = useCallback(
     (k: number) => {
+      cancelAnimationFrame(raf.current);
       setPlaying(false);
       setFading(false);
       setStepState(Math.max(0, Math.min(n - 1, k)));

@@ -1144,7 +1144,67 @@ pre {
   line-height: 1.6;
   max-width: 64ch;
 }
+.wb__builds {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.wb__builds span {
+  font-weight: 600;
+  color: var(--pine);
+}
+.workbench .inset {
+  max-width: 440px;
+  margin: 0 0 18px;
+}
+.wb__why {
+  margin: 0 0 10px;
+  font-size: 15.5px;
+  line-height: 1.55;
+  max-width: 64ch;
+}
+.wb__steps {
+  margin: 0 0 14px;
+  padding-left: 1.4em;
+  font-size: 15.5px;
+  line-height: 1.55;
+  max-width: 64ch;
+}
+.wb__steps li + li {
+  margin-top: 6px;
+}
+.wb__terms {
+  margin: 0 0 20px;
+  max-width: 64ch;
+  font-size: 14px;
+}
+.wb__terms summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--pine);
+}
+.wb__terms dl {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+.wb__terms dt {
+  display: inline;
+  font-weight: 600;
+}
+.wb__terms dt::after {
+  content: ' — ';
+  font-weight: 400;
+}
+.wb__terms dd {
+  display: inline;
+  margin: 0;
+  color: var(--ink-soft);
+}
 .wb__explain code,
+.wb__why code,
+.wb__steps code,
+.wb__terms code,
 .blk-note code {
   font-size: 0.88em;
   padding: 1px 5px;
@@ -2617,7 +2677,7 @@ g:hover > .viz__pairline {
 }
 
 
-/* ----- Field sketches ---------------------------------------------------- */
+/* ----- Region card ------------------------------------------------------- */
 
 .region-card__builds {
   margin: 0 0 12px;
@@ -2633,188 +2693,6 @@ g:hover > .viz__pairline {
 .region-card__list-title {
   margin: 0 0 6px;
 }
-.sketch {
-  margin: 0;
-  padding: 12px 12px 8px;
-  border: 1px solid var(--rule-strong);
-  border-radius: 6px;
-  background: #fffdf8;
-}
-.sketch__nodes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 6px;
-  margin-bottom: 10px;
-}
-.snode {
-  padding: 3px 7px;
-  border: 1px solid var(--rule-strong);
-  border-radius: 5px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  transition: background-color 250ms, color 250ms, border-color 250ms, box-shadow 250ms;
-}
-.snode.is-on {
-  border-color: var(--pine);
-  background: var(--pine);
-  color: var(--card);
-  box-shadow: 0 0 0 3px rgba(30, 58, 49, 0.12);
-}
-.sketch__arrow {
-  font-size: 11px;
-  color: var(--sage-dark);
-}
-.sketch__lines {
-  display: grid;
-  gap: 5px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.sline {
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  gap: 8px;
-  align-items: baseline;
-  opacity: 0;
-  transform: translateY(3px);
-  transition: opacity 320ms ease-out, transform 320ms ease-out;
-}
-.sline.is-shown {
-  opacity: 1;
-  transform: none;
-}
-.sline.is-shown.is-dim {
-  opacity: 0.32;
-}
-.sline.is-hl .sline__text {
-  background: rgba(180, 99, 42, 0.1);
-  box-shadow: -6px 0 0 rgba(180, 99, 42, 0.1), 6px 0 0 rgba(180, 99, 42, 0.1);
-  border-radius: 2px;
-}
-.sline__label {
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  text-align: left;
-}
-.sline__text {
-  font-size: 13px;
-  line-height: 1.4;
-  font-weight: 500;
-  overflow-wrap: break-word;
-  clip-path: inset(0 100% 0 0);
-}
-/* Typing only plays forwards: hiding is a fade of the whole trace (below). */
-.sline.is-shown .sline__text {
-  clip-path: inset(0 0 0 0);
-  transition: clip-path 520ms steps(24, end) 80ms;
-}
-.sline__text code {
-  font-size: 12px;
-}
-.sline__nowrap {
-  white-space: nowrap;
-}
-.sketch__lines {
-  transition: opacity 360ms ease-in;
-}
-.sketch.is-fading .sketch__lines {
-  opacity: 0;
-}
-.sline.tone-msg .sline__text {
-  color: var(--pine);
-}
-.sline.tone-model .sline__text {
-  color: var(--viz-a);
-}
-.sline.tone-host .sline__text {
-  color: var(--pine-2);
-}
-.sline.tone-tool .sline__text {
-  color: var(--viz-b);
-}
-.sline.tone-ok .sline__text {
-  color: var(--pass);
-}
-.sline.tone-bad .sline__text {
-  color: var(--fail);
-}
-.sline.tone-warn .sline__text {
-  color: #8a5a12;
-}
-.sline__mark {
-  display: inline-block;
-  margin-left: 6px;
-  font-weight: 700;
-  transform: scale(0.4);
-  opacity: 0;
-  transition: transform 260ms cubic-bezier(0.3, 1.6, 0.5, 1) 560ms, opacity 160ms 560ms;
-}
-.sline.is-shown .sline__mark {
-  transform: none;
-  opacity: 1;
-}
-.sline__mark--ok {
-  color: var(--pass);
-}
-.sline__mark--bad {
-  color: var(--fail);
-}
-.sline__bar {
-  display: block;
-  height: 5px;
-  margin-top: 3px;
-  border-radius: 3px;
-  background: var(--sage-3);
-  overflow: hidden;
-}
-.sline__bar > span {
-  display: block;
-  height: 100%;
-  border-radius: 3px;
-  background: var(--viz-b);
-  transform-origin: left;
-  transform: scaleX(0);
-  transition: transform 700ms ease-out 200ms;
-}
-.sline.is-shown .sline__bar > span {
-  transform: scaleX(1);
-}
-.sketch__controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--rule);
-}
-.sketch__btn {
-  padding: 3px 10px;
-  border: 1px solid var(--rule-strong);
-  border-radius: 5px;
-  background: transparent;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-}
-.sketch__btn:hover {
-  border-color: var(--pine);
-}
-.sketch__count {
-  margin-left: auto;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-
 /* ----- Selectable stops and previews ------------------------------------- */
 
 .concept-list li.is-selected {
@@ -2988,180 +2866,18 @@ g:hover > .viz__pairline {
   font-size: 12px;
 }
 
-/* ----- Field insets: animated diagrams that unfold from a landmark -------- */
+/* ----- Big-picture diagrams: one per landmark ---------------------------- */
 
-.watch {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 3;
-  width: 0;
-  height: 0;
-  animation: watch-in 360ms ease-out 200ms both;
-}
-@keyframes watch-in {
-  from {
-    opacity: 0;
-  }
-}
-.watch__pill {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px 5px 9px;
-  border: 1px solid var(--copper);
-  border-radius: 999px;
-  background: var(--card);
-  color: var(--copper);
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  box-shadow: 0 6px 16px -10px rgba(30, 58, 49, 0.6);
-  transition: background-color 140ms, color 140ms;
-}
-.watch__pill::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 999px;
-  border: 1.5px solid var(--copper);
-  opacity: 0;
-  animation: watch-ping 2.4s ease-out 900ms 2;
-}
-@keyframes watch-ping {
-  0% {
-    opacity: 0.7;
-    transform: scale(0.92);
-  }
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(1.18);
-  }
-}
-.watch__pill:hover,
-.watch__pill:focus-visible {
-  background: var(--copper);
-  color: var(--card);
-}
-.watch__pill:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--copper);
-}
-/* The pill sits on the side of the landmark away from its label. */
-.watch--right .watch__pill {
-  right: 30px;
-  top: 0;
-  translate: 0 -50%;
-}
-.watch--left .watch__pill {
-  left: 30px;
-  top: 0;
-  translate: 0 -50%;
-}
-.watch--below .watch__pill {
-  bottom: 30px;
-  left: 0;
-  translate: -50% 0;
-}
-.watch--above .watch__pill {
-  top: 30px;
-  left: 0;
-  translate: -50% 0;
-}
-
-.watch-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin: 2px 0 12px;
-  padding: 4px 11px 4px 9px;
-  border: 1px solid var(--copper);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--copper);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.watch-link:hover,
-.watch-link[aria-pressed='true'] {
-  background: var(--copper-wash);
-}
-
-/* While an inset is open the stops step back; the landmark's own label is in the inset. */
-.markers.has-inset .stop.is-revealed {
-  opacity: 0.16;
-  pointer-events: none;
-  transition-delay: 0ms;
-}
-.lm.has-inset .lm__label {
-  opacity: 0;
-}
-
-.inset-leader {
-  position: absolute;
-  z-index: 4;
-  height: 0;
-  border-top: 1.5px solid var(--copper);
-  transform-origin: left center;
-  animation: leader-in 260ms ease-out both;
-}
-.inset-leader::after {
-  content: '';
-  position: absolute;
-  right: -3px;
-  top: -4.5px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--copper);
-}
-@keyframes leader-in {
-  from {
-    transform: scaleX(0);
-  }
-}
 .inset {
-  position: absolute;
-  z-index: 5;
-  padding: 12px 14px 10px;
+  margin: 0;
+  padding: 10px 12px 8px;
   border: 1px solid var(--rule-strong);
   border-top: 3px solid var(--copper);
   border-radius: 6px;
   background: var(--card);
-  box-shadow: 0 22px 44px -26px rgba(30, 58, 49, 0.6);
-  cursor: default;
-  touch-action: auto;
-  -webkit-user-select: text;
-  user-select: text;
-  transform-origin: 0 50%;
-  animation: inset-in 340ms cubic-bezier(0.2, 0.9, 0.3, 1) 120ms both;
 }
 .inset:focus {
   outline: none;
-}
-.inset:focus-visible {
-  box-shadow: 0 0 0 3px var(--copper-wash), 0 22px 44px -26px rgba(30, 58, 49, 0.6);
-}
-@keyframes inset-in {
-  from {
-    opacity: 0;
-    transform: scale(0.88);
-  }
-}
-.inset--docked {
-  transform-origin: 50% 100%;
-  animation-delay: 0ms;
-}
-.inset__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
 }
 .inset__kicker {
   margin: 0;
@@ -3170,18 +2886,6 @@ g:hover > .viz__pairline {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--copper);
-}
-.inset__title {
-  margin: 1px 0 0;
-  font-family: var(--serif);
-  font-size: 21px;
-  font-weight: 520;
-  line-height: 1.15;
-}
-.inset__close {
-  flex: none;
-  width: 30px;
-  height: 30px;
 }
 .inset__svg {
   display: block;
@@ -3222,6 +2926,7 @@ g:hover > .viz__pairline {
 }
 .inset__controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 5px;
   padding-top: 8px;

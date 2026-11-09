@@ -1,11 +1,11 @@
 import { LANDMARKS, MAIN_ROUTE, landmarkById } from '../data/map';
-import { SKETCHES, TEASERS } from '../data/sketches';
+import { TEASERS } from '../data/sketches';
 import { elevationLabel } from '../data/terrain';
 import type { RegionId } from '../data/types';
 import { TOTAL_STOPS, type Progress } from '../lib/progress';
 import { hrefFor } from '../lib/route';
 import { Hub } from './Hub';
-import { Sketch } from './Sketch';
+import { StoryPlayer } from './insets/StoryPlayer';
 
 export function Cartouche({ onStart, reduced }: { onStart: () => void; reduced: boolean }) {
   return (
@@ -36,21 +36,17 @@ type RegionCardProps = {
   reduced: boolean;
   /** Concept picked on the map or in the list (a preview, not yet opened). */
   selected: string | null;
-  /** Concept under the pointer on the map, previewed in the sketch. */
+  /** Concept under the pointer on the map, previewed in the diagram. */
   hovered: string | null;
   onSelect: (concept: string | null) => void;
   onOpen: (concept: string) => void;
-  /** Whether this landmark's animated inset is open on the map. */
-  inset: boolean;
-  onWatch: (open: boolean) => void;
 };
 
-export function RegionCard({ region, progress, reduced, selected, hovered, onSelect, onOpen, inset, onWatch }: RegionCardProps) {
+export function RegionCard({ region, progress, reduced, selected, hovered, onSelect, onOpen }: RegionCardProps) {
   const l = landmarkById[region];
   const i = MAIN_ROUTE.indexOf(region);
   const onward = l.kind === 'main' ? MAIN_ROUTE[i + 1] : l.from;
   const branches = LANDMARKS.filter((b) => b.from === region);
-  const sketch = SKETCHES[region];
   const focus = hovered ?? selected;
   const firstUnvisited = l.concepts.find((c) => !progress.has(region, c.id)) ?? l.concepts[0];
 
@@ -64,21 +60,8 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
         {l.title}
       </h2>
       <p className="region-card__builds">{l.builds}</p>
-      <button type="button" className="watch-link" onClick={() => onWatch(!inset)} aria-pressed={inset}>
-        <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-          {inset ? <path d="M3 2 H5 V10 H3 Z M7 2 H9 V10 H7 Z" fill="currentColor" /> : <path d="M3 1.8 L10 6 L3 10.2 Z" fill="currentColor" />}
-        </svg>
-        {inset ? 'Close the animation on the map' : 'Watch it work on the map'}
-      </button>
 
-      <Sketch
-        key={region}
-        hold={inset}
-        sketch={sketch}
-        highlight={focus ? sketch.concepts[focus] ?? null : null}
-        reduced={reduced}
-        label={`Field sketch: ${l.title}`}
-      />
+      <StoryPlayer key={region} region={region} concept={focus} reduced={reduced} />
       <p className="region-card__idea">{l.idea}</p>
 
       <h3 className="section-title region-card__list-title">Explore {l.concepts.length} stops</h3>
