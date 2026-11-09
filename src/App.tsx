@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { MapControls } from './components/MapControls';
-import { Markers } from './components/Markers';
+import { LiveMarkers } from './components/LiveMarkers';
 import { Scene } from './components/Scene';
 import { Cartouche, Legend, RegionCard } from './components/Sheets';
 import { Workbench } from './components/Workbench';
 import { lessonFor } from './data/lessons';
-import { LANDMARKS, landmarkById } from './data/map';
+import { LANDMARKS, TRAILHEAD, landmarkById } from './data/map';
 import type { Point, RegionId } from './data/types';
 import { CALLOUT_GAP, DiagramCallout } from './components/insets/DiagramCallout';
 import { NO_INSETS, camAt, fit, toScreen, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
 import { useMapGestures } from './lib/gestures';
+import { Relief, type Framing } from './lib/relief';
 import { useProgress } from './lib/progress';
 import { ATLAS_BOX, regionBox, stopPoint } from './lib/geometry';
 import { depthOf, hrefFor, parentOf, routeKey, useHashRoute } from './lib/route';
@@ -113,16 +114,82 @@ export default function App() {
     if (closedFor && closedFor !== route.region) setClosedFor(null);
   }, [route.region, closedFor]);
 
-  const { cam, progress, set: setFree, tweenTo, getCam } = useCamera(camTarget, anchor, stage, inset ? `${key}|diagram` : key, reduced);
-
-  /* ---------- free pan & zoom ---------- */
-  const kMin = useMemo(() => fit(ATLAS_BOX, stage, NO_INSETS, { x: 40, y: 40 }, 1.25).k * 0.6, [stage]);
-  const kMax = compact ? 3 : 3.4;
-  // Fine contours fade in between 1.35× and 1.9× the overview zoom.
+  /* ---------- the relief model (3D overview) ---------- */
+  // The flat overview's zoom; fine contours fade in between 1.35× and 1.9× it.
   const overviewK = useMemo(
     () => fit(ATLAS_BOX, stage, wide ? { ...NO_INSETS, left: SIDE_COLUMN } : NO_INSETS, compact ? { x: 74, y: 52 } : { x: 160, y: 64 }, 1.25).k,
     [stage, wide, compact],
   );
+
+  const [relief] = useState(() => new Relief());
+  const rs = useSyncExternalStore(relief.subscribe, relief.getState);
+  const flightT = useSyncExternalStore(relief.subscribe, relief.getFlight);
+  const inRelief = rs.ready && rs.phase !== 'flat';
+  // Set when the viewer hands the overview to the flat map (zooming, arrow keys):
+  // the model then waits for recenter or the next visit to the overview.
+  const [flatHold, setFlatHold] = useState(false);
+  // While the model is up (or about to lift), it animates route changes and the flat camera jumps.
+  const modelMoves = depth === 0 ? rs.ready && !reduced : inRelief;
+
+  const { cam, progress: camProgress, set: setFree, tweenTo, getCam } = useCamera(
+    camTarget,
+    anchor,
+    stage,
+    inset ? `${key}|diagram` : key,
+    reduced,
+    modelMoves,
+  );
+  const progress = rs.phase === 'down' || rs.phase === 'up' ? flightT : camProgress;
+
+  useEffect(() => {
+    relief.mount();
+    return () => relief.unmount();
+  }, [relief]);
+  useEffect(() => {
+    if (reduced) relief.shutdown();
+  }, [relief, reduced]);
+  useEffect(() => relief.setWalked(walked), [relief, walked]);
+  // Load three only for the overview, so a deep link into a lesson never pays for it.
+  useEffect(() => {
+    if (depth === 0 && !reduced && rs.available && stage.w > 1) relief.load();
+  }, [relief, depth, reduced, rs.available, stage.w]);
+  useEffect(() => {
+    if (stage.w < 2) return;
+    const framing: Framing = {
+      free: { x0: wide ? SIDE_COLUMN : 0, y0: 0, x1: stage.w, y1: stage.h },
+      // Branch labels sit to the right of their marks; the trailhead's below it.
+      pad: compact ? { l: 64, r: 84, t: 40, b: 40 } : { l: 130, r: 210, t: 56, b: 56 },
+      kMax: 1.25,
+      overviewK,
+      // A steeper look on tall phone screens, so the climb keeps its height.
+      theta: (compact ? 42 : 52) * (Math.PI / 180),
+      points: [TRAILHEAD, ...LANDMARKS],
+    };
+    relief.setLayout(stage, framing);
+  }, [relief, stage, wide, compact, overviewK]);
+
+  // Route changes: fly down out of the model, or lift back into it.
+  const lastKeyRef = useRef(key);
+  useEffect(() => {
+    if (lastKeyRef.current === key) return;
+    lastKeyRef.current = key;
+    if (depth === 0) {
+      setFlatHold(false);
+      // `cam` is still the flat camera from before this route change.
+      if (relief.getState().ready && !reduced) relief.rise(cam);
+    } else if (relief.showing) {
+      relief.descend(camTarget);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  // The flat camera's target moved during a descent (the diagram opening, a resize): land there.
+  useEffect(() => {
+    if (depth > 0) relief.retarget(camTarget);
+  }, [relief, depth, camTarget]);
+
+  /* ---------- free pan & zoom ---------- */
+  const kMin = useMemo(() => fit(ATLAS_BOX, stage, NO_INSETS, { x: 40, y: 40 }, 1.25).k * 0.6, [stage]);
+  const kMax = compact ? 3 : 3.4;
   const detail = Math.min(1, Math.max(0, (cam.k / overviewK - 1.35) / 0.55));
   const clampK = useCallback((k: number) => Math.min(kMax, Math.max(kMin, k)), [kMin, kMax]);
   const clampCam = useCallback(
@@ -149,25 +216,71 @@ export default function App() {
     clampK,
     onHint: showHint,
     onDragChange: setDragging,
+    relief: () => relief.showing,
+    onTurn: (dx, dy) => relief.turn(dx, dy),
+    onZoomIn: () => {
+      if (relief.getState().phase !== 'down') handOff(camTarget);
+    },
   });
 
   const viewCentre = {
     x: (viewInsets.left + stage.w - viewInsets.right) / 2,
     y: (viewInsets.top + stage.h - viewInsets.bottom) / 2,
   };
+  /** Leave the model for the flat map, landing on the flat camera `next`. */
+  const handOff = (next: Cam) => {
+    setFlatHold(true);
+    setFree(next);
+    relief.descend(next);
+  };
   const zoomBy = (f: number) => {
     const c = getCam();
-    tweenTo(clampCam(zoomAbout(c, stage, viewCentre, clampK(c.k * f))), 220);
+    const next = clampCam(zoomAbout(c, stage, viewCentre, clampK(c.k * f)));
+    if (inRelief) {
+      if (f > 1) handOff(next);
+      return;
+    }
+    tweenTo(next, 220);
   };
   const panBy = (dx: number, dy: number) => {
     const c = getCam();
-    tweenTo(clampCam({ ...c, cx: c.cx + dx / c.k, cy: c.cy + dy / c.k }), 160);
+    const next = clampCam({ ...c, cx: c.cx + dx / c.k, cy: c.cy + dy / c.k });
+    if (inRelief) handOff(next);
+    else tweenTo(next, 160);
   };
-  const recenter = () => tweenTo(camTarget, 420);
+  const recenter = () => {
+    if (inRelief) {
+      relief.resetTurn();
+      return;
+    }
+    if (depth === 0 && rs.ready && !reduced) {
+      // Back to the whole trail: lift into the model.
+      setFlatHold(false);
+      relief.rise(getCam());
+      setFree(camTarget);
+      return;
+    }
+    if (depth === 0 && !reduced) {
+      // The model was put away: bring it back, and it lifts once the flat map settles.
+      setFlatHold(false);
+      relief.load();
+    }
+    tweenTo(camTarget, 420);
+  };
   const offTarget =
-    progress >= 1 &&
+    camProgress >= 1 &&
     (Math.abs(cam.k / camTarget.k - 1) > 0.01 || Math.hypot(cam.cx - camTarget.cx, cam.cy - camTarget.cy) * cam.k > 4);
   const recenterLabel = route.region ? `Recenter on ${landmarkById[route.region].title}` : 'Show the whole trail';
+
+  // The model lifts out of the flat overview once it is ready, unless the
+  // viewer is already moving the map around.
+  const intro = useRef(true);
+  useEffect(() => {
+    if (depth !== 0 || flatHold || reduced || dragging || !rs.ready || offTarget || camProgress < 1) return;
+    if (relief.getState().phase !== 'flat') return;
+    relief.rise(getCam(), intro.current ? 1500 : undefined);
+    intro.current = false;
+  }, [relief, depth, flatHold, reduced, dragging, rs.ready, offTarget, camProgress, getCam]);
 
   const onStageKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -212,8 +325,11 @@ export default function App() {
   if (focus && fogOpacity > 0.001) {
     const l = landmarkById[focus];
     const b = regionBox(l);
-    const c = toScreen(cam, stage, { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 });
-    const r = Math.hypot(b.x1 - b.x0, b.y1 - b.y0) * 0.5 * cam.k + (compact ? 70 : 120);
+    const project = inRelief ? relief.project : (p: Point) => toScreen(cam, stage, p);
+    const c = project({ x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 });
+    const p0 = project({ x: b.x0, y: b.y0 });
+    const p1 = project({ x: b.x1, y: b.y1 });
+    const r = Math.hypot(p1.x - p0.x, p1.y - p0.y) * 0.5 + (compact ? 70 : 120);
     fogStyle = {
       opacity: fogOpacity,
       background: `radial-gradient(circle at ${c.x}px ${c.y}px, rgba(243,237,222,0) ${r * 0.72}px, rgba(243,237,222,0.62) ${r * 1.08}px, rgba(243,237,222,0.82) ${r * 1.7}px)`,
@@ -343,17 +459,25 @@ export default function App() {
         )}
 
         <div
-          className={`stage ${dragging ? 'is-dragging' : ''}`}
+          className={`stage ${dragging ? 'is-dragging' : ''} ${inRelief ? 'is-relief' : ''}`}
           ref={stageRef}
           role="region"
           tabIndex={0}
+          onPointerMove={(e) => {
+            if (e.pointerType !== 'mouse' || !inRelief) return;
+            const r = e.currentTarget.getBoundingClientRect();
+            relief.lookAt(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
+          }}
+          onPointerLeave={() => relief.lookAt(null)}
           aria-label="Trail map. Drag to pan and scroll to zoom. With the map focused, arrow keys pan, plus and minus zoom, and 0 recenters."
           onKeyDown={onStageKey}
         >
           <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} />
+          {rs.available && !reduced && <div className="relief-model" ref={relief.attach} aria-hidden="true" />}
           <div className="fog" style={fogStyle} aria-hidden="true" />
-          <Markers
+          <LiveMarkers
             cam={cam}
+            relief={relief}
             stage={stage}
             route={route}
             focus={focus}
@@ -368,7 +492,7 @@ export default function App() {
             onHot={setHot}
             progress={learner}
           />
-          {inset && (
+          {inset && rs.phase !== 'down' && (
             <>
               <div className="diagram-backdrop" onClick={closeDiagram} aria-hidden="true" />
               {(() => {
@@ -394,11 +518,15 @@ export default function App() {
           <div className="frame" aria-hidden="true">
             <span className="compass">N</span>
           </div>
-          <Legend depth={depth} gestureHint={compact ? null : 'Drag to pan · scroll to zoom'} progress={learner} />
+          <Legend
+            depth={depth}
+            gestureHint={compact ? null : inRelief ? 'Drag to turn · scroll to zoom in' : 'Drag to pan · scroll to zoom'}
+            progress={learner}
+          />
           <MapControls
-            canZoomIn={cam.k < kMax - 1e-3}
-            canZoomOut={cam.k > kMin + 1e-3}
-            canRecenter={offTarget}
+            canZoomIn={inRelief || cam.k < kMax - 1e-3}
+            canZoomOut={!inRelief && cam.k > kMin + 1e-3}
+            canRecenter={inRelief ? rs.turned : offTarget || (depth === 0 && flatHold && rs.available && !reduced)}
             recenterLabel={recenterLabel}
             onZoomIn={() => zoomBy(1.5)}
             onZoomOut={() => zoomBy(1 / 1.5)}

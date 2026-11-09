@@ -43,7 +43,7 @@ export function zoomAbout(cam: Cam, stage: Size, at: Point, k: number): Cam {
   return camAt(toWorld(cam, stage, at), at, k, stage);
 }
 
-const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+export const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 export const CAMERA_MS = 540;
 
@@ -56,9 +56,10 @@ export const CAMERA_MS = 540;
  * which keeps camera and content in sync under fast clicks and Back.
  *
  * `moveKey` changes when the route changes; a target change without a new key
- * (a resize) jumps instead of animating.
+ * (a resize) jumps instead of animating. `instant`: something else (the 3D
+ * terrain) animates this move, so the flat camera jumps straight to the target.
  */
-export function useCamera(target: Cam, anchor: Point, stage: Size, moveKey: string, reduced: boolean) {
+export function useCamera(target: Cam, anchor: Point, stage: Size, moveKey: string, reduced: boolean, instant = false) {
   const [cam, setCam] = useState<Cam>(target);
   const [progress, setProgress] = useState(1);
   const camRef = useRef<Cam>(target);
@@ -69,7 +70,7 @@ export function useCamera(target: Cam, anchor: Point, stage: Size, moveKey: stri
 
   useEffect(() => {
     cancelAnimationFrame(raf.current);
-    const animate = lastKey.current !== moveKey && !reduced;
+    const animate = lastKey.current !== moveKey && !reduced && !instant;
     lastKey.current = moveKey;
 
     if (!animate) {

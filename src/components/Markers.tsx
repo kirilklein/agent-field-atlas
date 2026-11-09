@@ -1,7 +1,6 @@
 import { LANDMARKS, TERRAIN_NAMES, TRAILHEAD, landmarkById } from '../data/map';
-import type { LabelSide, RegionId } from '../data/types';
-import type { Cam, Size } from '../lib/camera';
-import { toScreen } from '../lib/camera';
+import type { LabelSide, Point, RegionId } from '../data/types';
+import type { Size } from '../lib/camera';
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { TEASERS } from '../data/sketches';
 import { TERRAIN, stopPoint } from '../lib/geometry';
@@ -10,7 +9,8 @@ import { elevationLabel } from '../data/terrain';
 import type { Route } from '../lib/route';
 
 type Props = {
-  cam: Cam;
+  /** World point → stage point: the flat camera's `toScreen`, or the relief model's projection. */
+  project: (p: Point) => Point;
   stage: Size;
   route: Route;
   focus: RegionId | null;
@@ -30,19 +30,19 @@ type Props = {
 
 const at = (x: number, y: number) => ({ transform: `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)` });
 
-export function Markers({ cam, stage, route, focus, revealed, compact, onLandmark, selected, onSelect, onOpen, onHoverConcept, minX, onHot, progress }: Props) {
+export function Markers({ project, stage, route, focus, revealed, compact, onLandmark, selected, onSelect, onOpen, onHoverConcept, minX, onHot, progress }: Props) {
   const inRegion = route.region !== null;
-  const th = toScreen(cam, stage, TRAILHEAD);
+  const th = project(TRAILHEAD);
 
   // What the preview card for stop i must not cover: the landmark's mark and
   // label, and every stop's dot and label (its own included).
   const calloutAvoid = (region: RegionId, i: number): Box[] => {
     const l = landmarkById[region];
-    const lp = toScreen(cam, stage, l);
+    const lp = project(l);
     const side: LabelSide = compact && l.compactSide ? l.compactSide : l.side;
     const boxes: Box[] = [[lp.x - 30, lp.y - 30, lp.x + 30, lp.y + 30], labelBox(lp.x, lp.y, side, 230, 28)];
     l.concepts.forEach((c, j) => {
-      const p = toScreen(cam, stage, stopPoint(l, j));
+      const p = project(stopPoint(l, j));
       const w = c.title.length * 8.4 + 12;
       boxes.push([p.x - 14, p.y - 14, p.x + 14, p.y + 14]);
       // Weight the selected stop's own label more: covering it hides what you picked.
@@ -58,7 +58,7 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
       {/* Place names belong to the overview scale and fade as you descend. */}
       <div className={`terrain-names ${inRegion ? 'is-hidden' : ''}`} aria-hidden="true">
         {TERRAIN_NAMES.map((n) => {
-          const p = toScreen(cam, stage, n);
+          const p = project(n);
           return (
             <span key={n.text} className="terrain-name" style={at(p.x, p.y)}>
               <span style={{ transform: `translate(-50%, -50%) rotate(${n.rotate ?? 0}deg)` }}>{n.text}</span>
@@ -73,7 +73,7 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
       {/* Elevation figures on the index contours, as a printed map has them. */}
       <div className="contour-labels" aria-hidden="true">
         {TERRAIN.labels.map((c) => {
-          const p = toScreen(cam, stage, c);
+          const p = project(c);
           return (
             <span key={`${c.text}-${c.x}`} className="contour-label" style={at(p.x, p.y)}>
               <span style={{ transform: `translate(-50%, -50%) rotate(${c.angle}deg)` }}>{c.text}</span>
@@ -83,7 +83,7 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
       </div>
 
       {LANDMARKS.map((l) => {
-        const p = toScreen(cam, stage, l);
+        const p = project(l);
         const selected = route.region === l.id;
         const dimmed = inRegion && !selected;
         const side: LabelSide = compact && l.compactSide ? l.compactSide : l.side;
@@ -131,7 +131,7 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
       {focus &&
         landmarkById[focus].concepts.map((c, i) => {
           const l = landmarkById[focus];
-          const p = toScreen(cam, stage, stopPoint(l, i));
+          const p = project(stopPoint(l, i));
           const open = route.region === focus && route.concept === c.id;
           const picked = route.region === focus && !route.concept && selected === c.id;
           const active = open || picked;

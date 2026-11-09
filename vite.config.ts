@@ -14,5 +14,9 @@ export default defineConfig(({ mode }) =>
         },
         build: { outDir: 'dist-artifact', emptyOutDir: true },
       }
-    : { plugins: [react()] },
+    : {
+        plugins: [react()],
+        // three (the relief model) is one lazy chunk of ~540 kB, loaded after first paint.
+        build: { chunkSizeWarningLimit: 600 },
+      },
 )

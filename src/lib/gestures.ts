@@ -12,6 +12,10 @@ export type FreeCamera = {
   clampK: (k: number) => number;
   onHint: (message: string) => void;
   onDragChange: (dragging: boolean) => void;
+  /** The 3D relief model is showing: drags turn it, and zooming in hands over to the flat map. */
+  relief?: () => boolean;
+  onTurn?: (dx: number, dy: number) => void;
+  onZoomIn?: () => void;
 };
 
 const INTERACTIVE = 'button, a, input, select, textarea, .map-controls, .legend, .diagram-callout, .diagram-backdrop';
@@ -49,14 +53,16 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
     };
 
     /* ----- drag to pan (pointer events) ----- */
-    let drag: { id: number; start: Point; cam: Cam; moved: boolean } | null = null;
+    let drag: { id: number; start: Point; last: Point; cam: Cam; moved: boolean; relief: boolean } | null = null;
+    const inRelief = () => o.current.relief?.() ?? false;
     let pinching = false;
 
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0 || pinching) return;
       if ((e.target as Element).closest(INTERACTIVE)) return;
       if (e.pointerType === 'touch' && o.current.compact) return;
-      drag = { id: e.pointerId, start: { x: e.clientX, y: e.clientY }, cam: o.current.getCam(), moved: false };
+      const at = { x: e.clientX, y: e.clientY };
+      drag = { id: e.pointerId, start: at, last: at, cam: o.current.getCam(), moved: false, relief: inRelief() };
       node.setPointerCapture(e.pointerId);
     };
     const onPointerMove = (e: PointerEvent) => {
@@ -67,6 +73,17 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       if (!drag.moved) {
         drag.moved = true;
         o.current.onDragChange(true);
+      }
+      const relief = inRelief();
+      if (relief !== drag.relief) {
+        // The model handed over (or took over) mid-drag: carry on from here.
+        drag = { ...drag, start: { x: e.clientX, y: e.clientY }, cam: o.current.getCam(), relief };
+        return;
+      }
+      if (relief) {
+        o.current.onTurn?.(e.clientX - drag.last.x, e.clientY - drag.last.y);
+        drag.last = { x: e.clientX, y: e.clientY };
+        return;
       }
       const c = drag.cam;
       o.current.apply({ k: c.k, cx: c.cx - dx / c.k, cy: c.cy - dy / c.k });
@@ -87,6 +104,10 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
         return;
       }
       e.preventDefault();
+      if (inRelief()) {
+        if (e.deltaY < 0) o.current.onZoomIn?.();
+        return;
+      }
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
       const dy = Math.max(-120, Math.min(120, e.deltaY * unit));
       // Trackpad pinch arrives as ctrl+wheel with small deltas; give it more gain.
@@ -122,6 +143,10 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       if (pinch && e.touches.length === 2) {
         e.preventDefault();
         const { mid, dist } = two(e.touches);
+        if (inRelief()) {
+          if (dist / pinch.dist > 1.12) o.current.onZoomIn?.();
+          return;
+        }
         const k = o.current.clampK(pinch.k * (dist / pinch.dist));
         o.current.apply(camAt(pinch.world, mid, k, o.current.stage));
         return;
