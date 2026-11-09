@@ -4324,3 +4324,166 @@ g:hover > .viz__pairline {
 .frames__cell.is-out {
   outline: 2px solid #c0392b;
 }
+
+/* ------------------------------------------------------------------ */
+/* Welcome                                                             */
+/* ------------------------------------------------------------------ */
+
+.welcome {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 72px 16px 56px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 70% 30%, var(--paper) 0%, var(--paper-deep) 100%);
+}
+.welcome__contours {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--contour);
+  stroke-width: 1;
+  pointer-events: none;
+}
+.welcome__toggle {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1;
+}
+.welcome__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  padding: 44px 48px 40px;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+  animation: card-in 520ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.welcome__sheet::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.welcome__title {
+  margin: 4px 0 14px;
+  font-family: var(--serif);
+  font-size: clamp(38px, 7vw, 54px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variation-settings: 'opsz' 72;
+}
+.welcome__lede {
+  margin: 0 0 30px;
+  max-width: 46ch;
+  font-family: var(--serif);
+  font-size: 18.5px;
+  line-height: 1.5;
+  color: var(--ink-mid);
+}
+.welcome__how {
+  margin: 0 0 6px;
+  padding-top: 22px;
+  border-top: 1px solid var(--rule);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.welcome__steps {
+  margin: 0 0 30px;
+  padding: 0;
+  list-style: none;
+}
+.welcome__step {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 18px;
+  align-items: start;
+  padding: 16px 0;
+  animation: card-in 480ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(180ms + var(--i) * 110ms);
+}
+.welcome__step + .welcome__step {
+  border-top: 1px dashed var(--rule);
+}
+.welcome__step h3 {
+  margin: 0 0 3px;
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.welcome__step p {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--ink-soft);
+}
+.welcome__num {
+  margin-right: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--copper);
+  vertical-align: 2px;
+}
+.welcome__ink-trail {
+  fill: none;
+  stroke: var(--copper);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.welcome__ink-branch {
+  fill: none;
+  stroke: var(--copper-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 3 4;
+}
+.welcome__ink-mark {
+  fill: var(--pine);
+}
+.welcome__ink-ring {
+  fill: var(--card);
+  stroke: var(--pine);
+  stroke-width: 2;
+}
+.welcome__ink-stop {
+  fill: var(--card);
+  stroke: var(--copper);
+  stroke-width: 1.6;
+}
+.welcome__enter {
+  min-height: 50px;
+  font-size: 16px;
+}
+
+@media (max-width: 599px) {
+  .welcome {
+    padding-top: 64px;
+  }
+  .welcome__sheet {
+    padding: 32px 22px 26px;
+  }
+  .welcome__lede {
+    font-size: 17px;
+  }
+  .welcome__step {
+    grid-template-columns: 40px 1fr;
+    gap: 14px;
+  }
+  .welcome__step svg {
+    width: 40px;
+    height: 40px;
+  }
+}
