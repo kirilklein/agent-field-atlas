@@ -1,7 +1,7 @@
-import { useSyncExternalStore, type ComponentProps } from 'react';
+import { useSyncExternalStore, type ComponentProps, type ReactNode } from 'react';
 import { landmarkById } from '../data/map';
 import type { Point, RegionId } from '../data/types';
-import { toScreen, type Cam } from '../lib/camera';
+import { toScreen, type Cam, type Size } from '../lib/camera';
 import { spurCurve } from '../lib/geometry';
 import type { Relief } from '../lib/relief';
 import { Markers } from './Markers';
@@ -22,6 +22,12 @@ export function LiveMarkers({ cam, relief, ...rest }: Props) {
       <Markers project={project} {...rest} />
     </>
   );
+}
+
+/** Renders `children` with whichever camera is showing the map, again on every frame the model draws. */
+export function LiveProjection({ cam, relief, stage, children }: { cam: Cam; relief: Relief; stage: Size; children: (project: (p: Point) => Point) => ReactNode }) {
+  useSyncExternalStore(relief.subscribe, relief.getFrame);
+  return children(relief.showing ? relief.project : (p: Point) => toScreen(cam, stage, p));
 }
 
 /** The flat map's spurs to the concept stops, drawn through the model's camera. */

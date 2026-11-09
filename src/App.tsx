@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { MapControls } from './components/MapControls';
-import { LiveCompass, LiveMarkers } from './components/LiveMarkers';
+import { LiveCompass, LiveMarkers, LiveProjection } from './components/LiveMarkers';
 import { Scene } from './components/Scene';
 import { Cartouche, Legend, RegionCard } from './components/Sheets';
 import { Workbench } from './components/Workbench';
@@ -9,7 +9,7 @@ import { lessonFor } from './data/lessons';
 import { LANDMARKS, TRAILHEAD, landmarkById } from './data/map';
 import type { Point, RegionId } from './data/types';
 import { CALLOUT_GAP, DiagramCallout } from './components/insets/DiagramCallout';
-import { NO_INSETS, camAt, fit, toScreen, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
+import { NO_INSETS, camAt, fit, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
 import { useMapGestures } from './lib/gestures';
 import { INTRO_VARS, useIntro } from './lib/intro';
 import { Relief, type Framing } from './lib/relief';
@@ -312,20 +312,18 @@ export default function App() {
 
   // Fog: dims surrounding terrain around the focused region.
   const fogOpacity = route.region ? Math.min(1, progress * 1.6) : settling ? 1 - progress : 0;
-  let fogStyle: CSSProperties | undefined;
-  if (focus && fogOpacity > 0.001) {
-    const l = landmarkById[focus];
-    const b = regionBox(l);
-    const project = inRelief ? relief.project : (p: Point) => toScreen(cam, stage, p);
+  const fogStyle = (project: (p: Point) => Point): CSSProperties | undefined => {
+    if (!focus || fogOpacity <= 0.001) return undefined;
+    const b = regionBox(landmarkById[focus]);
     const c = project({ x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 });
     const p0 = project({ x: b.x0, y: b.y0 });
     const p1 = project({ x: b.x1, y: b.y1 });
     const r = Math.hypot(p1.x - p0.x, p1.y - p0.y) * 0.5 + (compact ? 70 : 120);
-    fogStyle = {
+    return {
       opacity: fogOpacity,
       background: `radial-gradient(circle at ${c.x}px ${c.y}px, rgba(var(--paper-rgb),0) ${r * 0.72}px, rgba(var(--paper-rgb),var(--fog-mid)) ${r * 1.08}px, rgba(var(--paper-rgb),var(--fog-far)) ${r * 1.7}px)`,
     };
-  }
+  };
 
   /* ---------- navigation ---------- */
   const goRegion = useCallback((id: RegionId) => navigate({ region: id, concept: null }), [navigate]);
@@ -469,7 +467,9 @@ export default function App() {
         >
           <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} intro={inking} />
           {rs.available && !reduced && <div className="relief-model" ref={relief.attach} aria-hidden="true" />}
-          <div className="fog" style={fogStyle} aria-hidden="true" />
+          <LiveProjection cam={cam} relief={relief} stage={stage}>
+            {(project) => <div className="fog" style={fogStyle(project)} aria-hidden="true" />}
+          </LiveProjection>
           <LiveMarkers
             cam={cam}
             relief={relief}
@@ -490,24 +490,26 @@ export default function App() {
           {inset && (
             <>
               <div className="diagram-backdrop" onClick={closeDiagram} aria-hidden="true" />
-              {(() => {
-                const p = inRelief ? relief.project(landmarkById[inset]) : toScreen(cam, stage, landmarkById[inset]);
-                return (
-                  <DiagramCallout
-                    key={inset}
-                    region={inset}
-                    concept={hoveredConcept ?? selected}
-                    x={p.x}
-                    y={p.y}
-                    width={calloutW}
-                    dock={calloutDock}
-                    stageH={stage.h}
-                    reduced={reduced}
-                    focusOnOpen={focusDiagram}
-                    onClose={closeDiagram}
-                  />
-                );
-              })()}
+              <LiveProjection cam={cam} relief={relief} stage={stage}>
+                {(project) => {
+                  const p = project(landmarkById[inset]);
+                  return (
+                    <DiagramCallout
+                      key={inset}
+                      region={inset}
+                      concept={hoveredConcept ?? selected}
+                      x={p.x}
+                      y={p.y}
+                      width={calloutW}
+                      dock={calloutDock}
+                      stageH={stage.h}
+                      reduced={reduced}
+                      focusOnOpen={focusDiagram}
+                      onClose={closeDiagram}
+                    />
+                  );
+                }}
+              </LiveProjection>
             </>
           )}
           <div className="frame" aria-hidden="true">
