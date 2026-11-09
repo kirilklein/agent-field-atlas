@@ -31,6 +31,8 @@ export type Landmark = {
   side: LabelSide;
   /** Label side on narrow screens, when it differs. */
   compactSide?: LabelSide;
+  /** The question this landmark answers, shown first on the concept tour. */
+  question: string;
   /** One-line answer to “what do I build here?” */
   builds: string;
   /** How this landmark applies the one idea behind the whole trail. */

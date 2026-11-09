@@ -970,9 +970,9 @@ pre {
 .region-card__title {
   margin: 0 0 10px;
   font-family: var(--serif);
-  font-size: 30px;
+  font-size: 27px;
   font-weight: 500;
-  line-height: 1.05;
+  line-height: 1.1;
   letter-spacing: -0.012em;
   font-variation-settings: 'opsz' 48;
 }
@@ -1052,15 +1052,23 @@ pre {
   font-family: var(--serif);
   font-size: 15px;
 }
-.region-card__foot {
-  margin-top: 14px;
-}
-.onward {
-  display: inline-block;
-  font-weight: 600;
+.region-card__next .btn {
   text-decoration: none;
-  border-bottom: 1.5px solid var(--copper);
-  padding-bottom: 1px;
+}
+.region-card__deeper {
+  margin-top: 16px;
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+.region-card__deeper > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--pine);
+  padding: 4px 0 8px;
+}
+.region-card__deeper .region-card__builds span {
+  font-weight: 600;
+  color: var(--pine);
 }
 
 /* ----- Workbench ------------------------------------------------------- */
@@ -2689,9 +2697,6 @@ g:hover > .viz__pairline {
   font-size: 13.5px;
   font-style: italic;
   color: var(--ink-soft);
-}
-.region-card__list-title {
-  margin: 0 0 6px;
 }
 /* ----- Selectable stops and previews ------------------------------------- */
 

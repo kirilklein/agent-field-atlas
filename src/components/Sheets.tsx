@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { LANDMARKS, MAIN_ROUTE, landmarkById } from '../data/map';
 import { TEASERS } from '../data/sketches';
 import { elevationLabel } from '../data/terrain';
@@ -20,7 +21,7 @@ export function Cartouche({ onStart, reduced }: { onStart: () => void; reduced: 
       </p>
       <Hub reduced={reduced} />
       <button type="button" className="btn btn--primary btn--start" onClick={onStart}>
-        Start the trail
+        Start the concept tour
         <span aria-hidden="true"> →</span>
       </button>
       <p className="cartouche__meta">
@@ -49,22 +50,63 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
   const branches = LANDMARKS.filter((b) => b.from === region);
   const focus = hovered ?? selected;
   const firstUnvisited = l.concepts.find((c) => !progress.has(region, c.id)) ?? l.concepts[0];
+  // Go deeper stays open per landmark, and opens itself when a stop is picked on the map.
+  const [deeperFor, setDeeperFor] = useState<RegionId | null>(null);
+  const deeper = deeperFor === region || selected !== null;
 
   return (
     <section className="region-card" aria-labelledby="region-title">
       <p className="kicker">
-        {l.kind === 'main' ? `Landmark ${l.mark} · Main trail` : `Optional branch · from ${landmarkById[l.from!].title}`} ·{' '}
+        {l.kind === 'main' ? `Landmark ${l.mark}` : `Branch ${l.mark} · from ${landmarkById[l.from!].title}`} · {l.title} ·{' '}
         {elevationLabel(l.x, l.y)}
       </p>
       <h2 id="region-title" className="region-card__title" tabIndex={-1}>
-        {l.title}
+        {l.question}
       </h2>
-      <p className="region-card__builds">{l.builds}</p>
 
       <StoryPlayer key={region} region={region} concept={focus} reduced={reduced} />
       <p className="region-card__idea">{l.idea}</p>
 
-      <h3 className="section-title region-card__list-title">Explore {l.concepts.length} stops</h3>
+      <div className="region-card__next">
+        {onward ? (
+          <a className="btn btn--primary" href={hrefFor({ region: onward, concept: null })}>
+            {l.kind === 'branch' ? 'Back to ' : 'Next concept: '}
+            {landmarkById[onward].title} <span aria-hidden="true">→</span>
+          </a>
+        ) : (
+          <a className="btn btn--primary" href="#atlas">
+            Summit reached · back to the atlas
+          </a>
+        )}
+      </div>
+      {branches.length > 0 && (
+        <p className="region-card__branches">
+          Side trips:{' '}
+          {branches.map((b, n) => (
+            <span key={b.id}>
+              {n > 0 && ' · '}
+              <a href={hrefFor({ region: b.id, concept: null })}>{b.title}</a>
+            </span>
+          ))}
+        </p>
+      )}
+
+      <details
+        className="region-card__deeper"
+        open={deeper}
+        onToggle={(e) => {
+          const open = e.currentTarget.open;
+          if (open === deeper) return;
+          setDeeperFor(open ? region : null);
+          if (!open) onSelect(null);
+        }}
+      >
+        <summary>
+          Go deeper: {l.concepts.length} stops, code{l.concepts.some((c) => c.id === 'checkpoint' || c.id === 'run-it') ? ', runnable' : ''}
+        </summary>
+        <p className="region-card__builds">
+          <span>You build:</span> {l.builds}
+        </p>
       <ol className="concept-list" aria-label={`Concepts at ${l.title}`}>
         {l.concepts.map((c, n) => {
           const isSel = selected === c.id;
@@ -104,29 +146,7 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
           Open the lessons <span aria-hidden="true">→</span>
         </button>
       )}
-      {branches.length > 0 && (
-        <p className="region-card__branches">
-          Optional:{' '}
-          {branches.map((b, n) => (
-            <span key={b.id}>
-              {n > 0 && ' · '}
-              <a href={hrefFor({ region: b.id, concept: null })}>{b.title}</a>
-            </span>
-          ))}
-        </p>
-      )}
-      <div className="region-card__foot">
-        {onward ? (
-          <a className="onward" href={hrefFor({ region: onward, concept: null })}>
-            {l.kind === 'branch' ? 'Return to ' : 'Next: '}
-            {landmarkById[onward].title} →
-          </a>
-        ) : (
-          <a className="onward" href="#atlas">
-            Summit reached · back to the atlas
-          </a>
-        )}
-      </div>
+      </details>
     </section>
   );
 }

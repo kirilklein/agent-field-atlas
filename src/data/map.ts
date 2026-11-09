@@ -16,6 +16,7 @@ export const LANDMARKS: Landmark[] = [
     x: 430,
     y: 800,
     side: 'left',
+    question: 'What does the model actually get?',
     builds: 'Turn a research question into structured search queries.',
     idea: 'The model is a function: a message list goes in, a proposal comes out. Here the proposal is a query plan, and your code checks it before anything relies on it.',
     concepts: [
@@ -33,6 +34,7 @@ export const LANDMARKS: Landmark[] = [
     x: 590,
     y: 600,
     side: 'left',
+    question: 'Who runs the tool?',
     builds: 'Give the model a search_papers(query) tool and validate its proposed arguments before execution.',
     idea: 'A proposal can be a request to act. The model names a tool and arguments; only your code can run it, so your code decides whether it runs.',
     concepts: [
@@ -50,6 +52,7 @@ export const LANDMARKS: Landmark[] = [
     x: 420,
     y: 400,
     side: 'left',
+    question: 'Who chooses the next step?',
     builds: 'Feed results back into the next model call and stop when the task is done or the step budget runs out.',
     idea: 'Append the proposal and its result to the message list and call the same function again. The loop, and the decision to stop, belong to your code.',
     concepts: [
@@ -67,6 +70,7 @@ export const LANDMARKS: Landmark[] = [
     x: 560,
     y: 170,
     side: 'right',
+    question: 'Did it actually do the job?',
     builds: 'Replay a small set of questions and check that answers cite papers that support their claims.',
     idea: 'The model only ever sees messages, so you can record them, replay them and measure what it proposes. The numbers come with uncertainty, and so does the judge.',
     concepts: [
@@ -86,6 +90,7 @@ export const LANDMARKS: Landmark[] = [
     y: 560,
     side: 'right',
     compactSide: 'below',
+    question: 'What can text make it do?',
     builds: 'Keep the assistant read-only and treat what tools return as untrusted data.',
     idea: 'Your code is the only part with side effects, so its allowlist is the security boundary. Text in a tool result can change what the model proposes, never what the host allows.',
     concepts: [
@@ -103,6 +108,7 @@ export const LANDMARKS: Landmark[] = [
     x: 215,
     y: 470,
     side: 'below',
+    question: 'What can the model see right now?',
     builds: 'Separate the state that lives inside one run from what you deliberately save across runs.',
     idea: 'The model remembers nothing between calls. Memory is whatever your code chooses to put back into the message list, and every token of it is paid for on every call.',
     concepts: [
@@ -122,6 +128,7 @@ export const LANDMARKS: Landmark[] = [
     y: 330,
     side: 'right',
     compactSide: 'below',
+    question: 'When does a second agent pay off?',
     builds: 'Compare one assistant with an assistant plus a reviewer on citation accuracy, latency and cost.',
     idea: 'A second agent is another call to the same function, with different messages and no tools. Whether it helps is a measurement, with error bars.',
     concepts: [
