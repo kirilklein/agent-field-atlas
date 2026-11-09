@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { EXAMPLE } from '../data/companion';
 import { LANDMARKS, MAIN_ROUTE } from '../data/map';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -65,6 +66,30 @@ export function Welcome({ onEnter }: { onEnter: () => void }) {
           plain Python.
           Every run is recorded, so you need no API key.
         </p>
+
+        <h2 className="welcome__how">What you will build</h2>
+        <div className="welcome__example">
+          <p className="welcome__question">“{EXAMPLE.question}”</p>
+          <ol className="welcome__run">
+            {EXAMPLE.searches.map((q) => (
+              <li key={q}>
+                <span>searches</span>
+                <code>search_places("{q}")</code>
+              </li>
+            ))}
+            <li>
+              <span>answers</span>
+              <p>
+                {EXAMPLE.answer.split(/(\[place:[a-z-]+\])/).map((part, i) =>
+                  i % 2 ? <code key={i}>{part}</code> : part,
+                )}
+              </p>
+            </li>
+          </ol>
+          <p className="welcome__note">
+            Each landmark adds one piece of this planner, and every lesson uses it as the example.
+          </p>
+        </div>
 
         <h2 className="welcome__how">How to read the map</h2>
         <ol className="welcome__steps">

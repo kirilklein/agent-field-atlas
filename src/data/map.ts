@@ -17,7 +17,7 @@ export const LANDMARKS: Landmark[] = [
     y: 800,
     side: 'left',
     question: 'What does the model actually get?',
-    builds: 'Turn a trip question into structured search queries.',
+    builds: 'The planner turns the family’s question into search queries your code can check.',
     idea: 'The model is a function: a message list goes in, a proposal comes out. Here the proposal is a query plan, and your code checks it before anything relies on it.',
     sources: [
       { title: 'Building effective AI agents', url: 'https://www.anthropic.com/research/building-effective-agents' },
@@ -38,7 +38,7 @@ export const LANDMARKS: Landmark[] = [
     y: 600,
     side: 'left',
     question: 'Who runs the tool?',
-    builds: 'Give the model a search_places(query) tool and validate its proposed arguments before execution.',
+    builds: 'The planner can ask for search_places, and your code checks every call before it runs.',
     idea: 'A proposal can be a request to act. The model names a tool and arguments; only your code can run it, so your code decides whether it runs.',
     sources: [
       { title: 'Writing effective tools for AI agents', url: 'https://www.anthropic.com/research/writing-tools-for-agents' },
@@ -59,7 +59,7 @@ export const LANDMARKS: Landmark[] = [
     y: 400,
     side: 'left',
     question: 'Who chooses the next step?',
-    builds: 'Feed results back into the next model call and stop when the task is done or the step budget runs out.',
+    builds: 'The planner keeps searching until it can answer, and your code stops it at a step budget.',
     idea: 'Append the proposal and its result to the message list and call the same function again. The loop, and the decision to stop, belong to your code.',
     sources: [
       { title: 'Building effective AI agents', url: 'https://www.anthropic.com/research/building-effective-agents' },
@@ -80,7 +80,7 @@ export const LANDMARKS: Landmark[] = [
     y: 170,
     side: 'right',
     question: 'Did it actually do the job?',
-    builds: 'Replay a small set of questions and check that answers cite places that support their claims.',
+    builds: 'Replay five trip questions and check that every place the planner cites supports what it says.',
     idea: 'The model only ever sees messages, so you can record them, replay them and measure what it proposes. The numbers come with uncertainty, and so does the judge.',
     sources: [
       { title: 'Demystifying evals for AI agents', url: 'https://www.anthropic.com/research/demystifying-evals-for-ai-agents' },
@@ -103,7 +103,7 @@ export const LANDMARKS: Landmark[] = [
     side: 'right',
     compactSide: 'below',
     question: 'What can text make it do?',
-    builds: 'Keep the planner read-only and treat what tools return as untrusted data.',
+    builds: 'The planner stays read-only, so a planted listing can’t wipe the family’s day plan.',
     idea: 'Your code is the only part with side effects, so its allowlist is the security boundary. Text in a tool result can change what the model proposes, never what the host allows.',
     sources: [
       { title: 'The lethal trifecta for AI agents (Simon Willison)', url: 'https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/' },
@@ -124,7 +124,7 @@ export const LANDMARKS: Landmark[] = [
     y: 470,
     side: 'below',
     question: 'What can the model see right now?',
-    builds: 'Separate the state that lives inside one run from what you deliberately save across runs.',
+    builds: 'The planner remembers the child’s age across runs, and trims old results to save tokens.',
     idea: 'The model remembers nothing between calls. Memory is whatever your code chooses to put back into the message list, and every token of it is paid for on every call.',
     sources: [
       { title: 'Effective context engineering for AI agents', url: 'https://www.anthropic.com/research/effective-context-engineering-for-ai-agents' },
@@ -147,7 +147,7 @@ export const LANDMARKS: Landmark[] = [
     side: 'right',
     compactSide: 'below',
     question: 'When does a second agent pay off?',
-    builds: 'Compare one assistant with an assistant plus a reviewer on citation accuracy, latency and cost.',
+    builds: 'A reviewer checks the planner’s answer, and you measure whether that is worth its cost.',
     idea: 'A second agent is another call to the same function, with different messages and no tools. Whether it helps is a measurement, with error bars.',
     sources: [
       { title: 'How we built our multi-agent research system', url: 'https://www.anthropic.com/research/multi-agent-research-system' },

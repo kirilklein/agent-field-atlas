@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EXAMPLE } from '../data/companion';
 import { LANDMARKS, MAIN_ROUTE, landmarkById } from '../data/map';
 import { TEASERS } from '../data/sketches';
 import type { RegionId } from '../data/types';
@@ -16,8 +17,10 @@ export function Cartouche({ onStart, reduced }: { onStart: () => void; reduced: 
         Agent Field Atlas
       </h1>
       <p className="cartouche__lede">
-        Build an LLM agent from scratch: a trip planner for a rainy day in Florence, in plain Python, from a single
-        model call to an evaluated agent.
+        Build an LLM agent from scratch in plain Python, from a single model call to an evaluated agent.
+      </p>
+      <p className="cartouche__example">
+        <span>The example</span>A trip planner that answers “{EXAMPLE.question}”
       </p>
       <Hub reduced={reduced} />
       <button type="button" className="btn btn--primary btn--start" onClick={onStart}>

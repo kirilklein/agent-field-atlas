@@ -160,6 +160,13 @@ export const COMPARE_OUTPUT = strip(outCompare);
 export const REPLAY_SET = strip(replaySet);
 export const CHECKPOINT_4_OUTPUT = strip(out4);
 
+/** The running example, read from checkpoint 3 and its recorded run. */
+export const EXAMPLE = {
+  question: cp3.match(/args\[0\] if args else "(.+)"/)![1],
+  searches: [...out3.matchAll(/proposes search_places\(query='(.+)'\)/g)].map((m) => m[1]),
+  answer: strip(out3).split('\n').at(-1)!,
+};
+
 export type SetupResult = { supported: number; claims: number; latency_s: number; cost_usd: number };
 export type ComparisonRow = { id: string; single: SetupResult; reviewed: SetupResult };
 export const COMPARISON: ComparisonRow[] = JSON.parse(recordedComparison).questions;
