@@ -14,7 +14,7 @@ export type FreeCamera = {
   onDragChange: (dragging: boolean) => void;
 };
 
-const INTERACTIVE = 'button, a, input, select, textarea, .map-controls, .legend';
+const INTERACTIVE = 'button, a, input, select, textarea, .map-controls, .legend, .diagram-callout, .diagram-backdrop';
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
 /**
@@ -80,7 +80,7 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
 
     /* ----- wheel / trackpad pinch ----- */
     const onWheel = (e: WheelEvent) => {
-      if ((e.target as Element).closest('.map-controls, .legend')) return;
+      if ((e.target as Element).closest('.map-controls, .legend, .diagram-callout, .diagram-backdrop')) return;
       const zoomKey = e.ctrlKey || e.metaKey;
       if (o.current.compact && !zoomKey) {
         hint(`Use ${isMac ? '⌘' : 'Ctrl'} + scroll to zoom the map`);

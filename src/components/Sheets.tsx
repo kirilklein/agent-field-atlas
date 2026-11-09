@@ -41,9 +41,13 @@ type RegionCardProps = {
   hovered: string | null;
   onSelect: (concept: string | null) => void;
   onOpen: (concept: string) => void;
+  /** Where the big-picture diagram is: floating beside the landmark (open or closed), or inline here. */
+  diagram: 'open' | 'closed' | 'inline';
+  onShowDiagram: () => void;
+  onDeeper: () => void;
 };
 
-export function RegionCard({ region, progress, reduced, selected, hovered, onSelect, onOpen }: RegionCardProps) {
+export function RegionCard({ region, progress, reduced, selected, hovered, onSelect, onOpen, diagram, onShowDiagram, onDeeper }: RegionCardProps) {
   const l = landmarkById[region];
   const i = MAIN_ROUTE.indexOf(region);
   const onward = l.kind === 'main' ? MAIN_ROUTE[i + 1] : l.from;
@@ -64,7 +68,15 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
         {l.question}
       </h2>
 
-      <StoryPlayer key={region} region={region} concept={focus} reduced={reduced} />
+      {diagram === 'inline' && <StoryPlayer key={region} region={region} concept={focus} reduced={reduced} />}
+      {diagram === 'closed' && (
+        <button type="button" className="btn btn--ghost show-diagram" data-show-diagram onClick={onShowDiagram}>
+          <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+            <path d="M3 1.8 L10 6 L3 10.2 Z" fill="currentColor" />
+          </svg>
+          Show the diagram
+        </button>
+      )}
       <p className="region-card__idea">{l.idea}</p>
 
       <div className="region-card__next">
@@ -98,7 +110,8 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
           const open = e.currentTarget.open;
           if (open === deeper) return;
           setDeeperFor(open ? region : null);
-          if (!open) onSelect(null);
+          if (open) onDeeper();
+          else onSelect(null);
         }}
       >
         <summary>

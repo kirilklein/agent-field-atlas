@@ -7,7 +7,8 @@ import { Workbench } from './components/Workbench';
 import { lessonFor } from './data/lessons';
 import { LANDMARKS, landmarkById } from './data/map';
 import type { Point, RegionId } from './data/types';
-import { NO_INSETS, fit, toScreen, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
+import { CALLOUT_GAP, DiagramCallout } from './components/insets/DiagramCallout';
+import { NO_INSETS, camAt, fit, toScreen, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
 import { useMapGestures } from './lib/gestures';
 import { useProgress } from './lib/progress';
 import { ATLAS_BOX, regionBox, stopPoint } from './lib/geometry';
@@ -78,7 +79,41 @@ export default function App() {
     : { x: (ATLAS_BOX.x0 + ATLAS_BOX.x1) / 2, y: (ATLAS_BOX.y0 + ATLAS_BOX.y1) / 2 };
 
   // Every route change animates (region → lesson too, as the panel opens); resizes jump.
-  const { cam, progress, set: setFree, tweenTo, getCam } = useCamera(target, anchor, stage, key, reduced);
+  /* ---------- big-picture diagram beside the landmark ---------- */
+  // Opens by itself on a landmark page (wide layouts); closing it holds for that landmark.
+  const [closedFor, setClosedFor] = useState<RegionId | null>(null);
+  const [focusDiagram, setFocusDiagram] = useState(false);
+  const inset: RegionId | null = wide && depth === 1 && route.region && closedFor !== route.region ? route.region : null;
+  const freeL = SIDE_COLUMN;
+  const freeR = stage.w - 70;
+  const calloutW = Math.min(640, freeR - freeL - CALLOUT_GAP - 24 - 70);
+  const calloutDock = calloutW < 420 ? { left: freeL + 8, right: Math.max(78, stage.w - freeL - 8 - 640) } : null;
+  const camTarget = useMemo(() => {
+    if (!inset) return target;
+    const l = landmarkById[inset];
+    const at = calloutDock
+      ? { x: (freeL + freeR) / 2, y: Math.max(70, (stage.h - 420) / 2) }
+      : { x: freeL + 70, y: stage.h / 2 };
+    return camAt(l, at, target.k, stage);
+  }, [inset, calloutDock?.left, calloutW, freeL, freeR, stage, target]); // eslint-disable-line react-hooks/exhaustive-deps
+  const openDiagram = useCallback(() => {
+    setFocusDiagram(true);
+    setClosedFor(null);
+  }, []);
+  const hideDiagram = useCallback(() => {
+    setClosedFor(route.region);
+    setFocusDiagram(false);
+  }, [route.region]);
+  const closeDiagram = useCallback(() => {
+    hideDiagram();
+    requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-show-diagram]')?.focus({ preventScroll: true }));
+  }, [hideDiagram]);
+  useEffect(() => {
+    // Leaving the landmark forgets that it was closed there.
+    if (closedFor && closedFor !== route.region) setClosedFor(null);
+  }, [route.region, closedFor]);
+
+  const { cam, progress, set: setFree, tweenTo, getCam } = useCamera(camTarget, anchor, stage, inset ? `${key}|diagram` : key, reduced);
 
   /* ---------- free pan & zoom ---------- */
   const kMin = useMemo(() => fit(ATLAS_BOX, stage, NO_INSETS, { x: 40, y: 40 }, 1.25).k * 0.6, [stage]);
@@ -128,10 +163,10 @@ export default function App() {
     const c = getCam();
     tweenTo(clampCam({ ...c, cx: c.cx + dx / c.k, cy: c.cy + dy / c.k }), 160);
   };
-  const recenter = () => tweenTo(target, 420);
+  const recenter = () => tweenTo(camTarget, 420);
   const offTarget =
     progress >= 1 &&
-    (Math.abs(cam.k / target.k - 1) > 0.01 || Math.hypot(cam.cx - target.cx, cam.cy - target.cy) * cam.k > 4);
+    (Math.abs(cam.k / camTarget.k - 1) > 0.01 || Math.hypot(cam.cx - camTarget.cx, cam.cy - camTarget.cy) * cam.k > 4);
   const recenterLabel = route.region ? `Recenter on ${landmarkById[route.region].title}` : 'Show the whole trail';
 
   const onStageKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -201,7 +236,11 @@ export default function App() {
       const t = e.target as HTMLElement;
       if (t.closest('input, textarea, select, details')) return;
       e.preventDefault();
-      // Escape first closes a preview, then goes up a level.
+      // Escape first closes the diagram or a preview, then goes up a level.
+      if (inset) {
+        closeDiagram();
+        return;
+      }
       if (depthOf(route) === 1 && selected) {
         const was = selected;
         setSelected(null);
@@ -212,7 +251,7 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [route, navigate, selected]);
+  }, [route, navigate, selected, inset, closeDiagram]);
 
   /* ---------- focus & scroll after a route change ---------- */
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -329,6 +368,29 @@ export default function App() {
             onHot={setHot}
             progress={learner}
           />
+          {inset && (
+            <>
+              <div className="diagram-backdrop" onClick={closeDiagram} aria-hidden="true" />
+              {(() => {
+                const p = toScreen(cam, stage, landmarkById[inset]);
+                return (
+                  <DiagramCallout
+                    key={inset}
+                    region={inset}
+                    concept={hoveredConcept ?? selected}
+                    x={p.x}
+                    y={p.y}
+                    width={calloutW}
+                    dock={calloutDock}
+                    stageH={stage.h}
+                    reduced={reduced}
+                    focusOnOpen={focusDiagram}
+                    onClose={closeDiagram}
+                  />
+                );
+              })()}
+            </>
+          )}
           <div className="frame" aria-hidden="true">
             <span className="compass">N</span>
           </div>
@@ -357,6 +419,9 @@ export default function App() {
               hovered={hoveredConcept}
               onSelect={setSelected}
               onOpen={openConcept}
+              diagram={wide ? (inset ? 'open' : 'closed') : 'inline'}
+              onShowDiagram={openDiagram}
+              onDeeper={hideDiagram}
             />
           </div>
         )}

@@ -2999,6 +2999,89 @@ g:hover > .viz__pairline {
   transform: scale(1.25);
 }
 
+/* The big diagram beside a landmark, over a dimmed map. */
+.diagram-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: rgba(243, 237, 222, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  cursor: pointer;
+  animation: diagram-fade 240ms ease-out both;
+}
+.diagram-leader {
+  position: absolute;
+  z-index: 5;
+  height: 0;
+  border-top: 1.5px solid var(--copper);
+  transform-origin: left center;
+  animation: diagram-leader 260ms ease-out both;
+}
+.diagram-callout {
+  position: absolute;
+  z-index: 5;
+  padding: 14px 16px 12px;
+  border: 1px solid var(--rule-strong);
+  border-top: 3px solid var(--copper);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 24px 48px -28px rgba(30, 58, 49, 0.6);
+  cursor: default;
+  transform-origin: 0 50%;
+  animation: diagram-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1) 80ms both;
+}
+.diagram-callout:focus {
+  outline: none;
+}
+.diagram-callout .inset {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.diagram-callout .inset__caption {
+  font-size: 15px;
+}
+.diagram-callout__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+}
+.show-diagram {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  min-height: 34px;
+  padding: 5px 13px;
+  font-size: 13.5px;
+}
+@keyframes diagram-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes diagram-leader {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes diagram-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diagram-backdrop,
+  .diagram-leader,
+  .diagram-callout {
+    animation: none;
+  }
+}
+
 /* SVG vocabulary shared by every inset. */
 .ins-note {
   font-size: 8.5px;
