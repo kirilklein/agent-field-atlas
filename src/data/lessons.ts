@@ -1,5 +1,5 @@
 import { CHECKPOINT_4_OUTPUT, CP4, REPLAY_SET, between, type CheckpointId } from './companion';
-import type { RegionId } from './types';
+import type { RegionId, Source } from './types';
 
 export type Example = {
   label: string;
@@ -20,6 +20,7 @@ export type Lesson = {
   /** The explanation as short steps, one idea each. */
   steps: string[];
   terms?: { term: string; def: string }[];
+  sources?: Source[];
   example?: Example;
   interaction?: Interaction;
 };
@@ -417,10 +418,15 @@ def allowed(name, confirmed_by_user=False):
       'Tool results are written by strangers.',
       'An abstract or a web page can contain text that reads like instructions. It lands in the same message list as your real ones.',
       'Assume it will sometimes work on the model.',
+      'Simon Willison names a “lethal trifecta”: access to private data, exposure to untrusted content, and a way to send data out. An agent with all three can be tricked into sending your data to an attacker.',
       'Defend where the model can’t be talked out of it: fence results as data, keep tools read-only, and check every proposal the same way, whatever came before.',
     ],
     terms: [
       { term: 'Prompt injection', def: 'Instructions hidden in data (like a search result) that try to steer the model.' },
+      { term: 'Lethal trifecta', def: 'Private data + untrusted content + a way to send data out. Together they let an attacker steal data.' },
+    ],
+    sources: [
+      { title: 'The lethal trifecta for AI agents (Simon Willison)', url: 'https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/' },
     ],
     interaction: {
       kind: 'trace',
@@ -481,18 +487,23 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
     },
   },
   'context-memory/cost-of-history': {
-    why: 'Long runs get expensive fast, because every call resends everything before it.',
+    why: 'Long runs get expensive fast, because every call resends everything before it. And the more the context holds, the worse the model recalls what is in it.',
     steps: [
       'Every call resends the whole message list.',
       'Say the system prompt and question are P tokens, and each step adds r tokens. Call i then sends P + (i−1)·r tokens.',
       'n calls send nP + r·n(n−1)/2 in total. The second term grows with the square of the steps, so long runs are mostly old results being resent.',
-      'Keeping only the last k results caps each call at P + k·r, and the total grows linearly again.',
+      'Keeping only the last k results caps each call at P + k·r, and the total grows linearly again. Anthropic calls this kind of trimming compaction; clearing old tool results is its lightest form.',
       'Prompt caching lowers the price of a repeated prefix, but those tokens still fill the context window.',
     ],
     terms: [
       { term: 'Token', def: 'A small chunk of text. Models count and charge by tokens.' },
       { term: 'Context window', def: 'The most tokens a model can read in one call.' },
       { term: 'Prompt caching', def: 'A provider discount for a prefix you send again unchanged.' },
+      { term: 'Compaction', def: 'Shrinking the history so the next call gets less, for example by clearing old tool results.' },
+      { term: 'Context rot', def: 'As the context grows, the model recalls what is in it less well.' },
+    ],
+    sources: [
+      { title: 'Effective context engineering for AI agents', url: 'https://www.anthropic.com/research/effective-context-engineering-for-ai-agents' },
     ],
     example: {
       label: 'trim.py',
@@ -515,11 +526,14 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
     steps: [
       'A reviewer is a second model call with a different job and less context.',
       'It sees the draft answer plus the abstracts it cites, and flags claims those abstracts don’t support.',
-      'The writer revises once with that feedback.',
+      'The writer revises once with that feedback. Anthropic calls this pattern evaluator–optimizer: one call writes, another evaluates and gives feedback.',
       'It is still one host program. The “agents” are roles with their own prompts and tools, and the reviewer gets no tools at all.',
     ],
     terms: [
       { term: 'Role', def: 'One model call with its own prompt and tools. Several roles make a multi-agent setup.' },
+    ],
+    sources: [
+      { title: 'Building effective AI agents', url: 'https://www.anthropic.com/research/building-effective-agents' },
     ],
     example: {
       label: 'review.py',
@@ -541,6 +555,7 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
       'Latency and cost rise on every question by similar amounts, so those differences are real.',
       'Citation accuracy rises on two questions, falls on one and is flat on two. Its 95% interval runs from −41 to +54 points.',
       'The honest result is “can’t tell yet”. If the pattern held, telling the setups apart would take roughly 130 questions.',
+      'These numbers are an illustrative recorded set (`compare.py`). Run the branch measures the fake-model run instead: there the interval is −12% to +25%, still “can’t tell yet”.',
     ],
     terms: [
       { term: 'Paired comparison', def: 'Comparing two setups on the same questions, one question at a time.' },

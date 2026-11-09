@@ -11,6 +11,8 @@ export type RegionId =
   | 'context-memory'
   | 'multi-agent';
 
+export type Source = { title: string; url: string };
+
 export type ConceptStop = {
   id: string;
   title: string;
@@ -37,6 +39,8 @@ export type Landmark = {
   builds: string;
   /** How this landmark applies the one idea behind the whole trail. */
   idea: string;
+  /** Articles that go deeper on this landmark's idea. */
+  sources?: Source[];
   /** For branches: the landmark they leave from. */
   from?: RegionId;
   concepts: ConceptStop[];

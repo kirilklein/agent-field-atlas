@@ -7,6 +7,7 @@ import { TOTAL_STOPS, type Progress } from '../lib/progress';
 import { hrefFor } from '../lib/route';
 import { Hub } from './Hub';
 import { StoryPlayer } from './insets/StoryPlayer';
+import { Sources } from './Sources';
 
 export function Cartouche({ onStart, reduced }: { onStart: () => void; reduced: boolean }) {
   return (
@@ -146,6 +147,7 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
           Open the lessons <span aria-hidden="true">→</span>
         </button>
       )}
+        <Sources sources={l.sources} />
       </details>
     </section>
   );
