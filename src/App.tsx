@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { ElevationProbe } from './components/ElevationProbe';
 import { MapControls } from './components/MapControls';
 import { LiveMarkers } from './components/LiveMarkers';
 import { Scene } from './components/Scene';
@@ -473,6 +474,7 @@ export default function App() {
           onKeyDown={onStageKey}
         >
           <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} />
+          <div className="grain" aria-hidden="true" />
           {rs.available && !reduced && <div className="relief-model" ref={relief.attach} aria-hidden="true" />}
           <div className="fog" style={fogStyle} aria-hidden="true" />
           <LiveMarkers
@@ -515,6 +517,7 @@ export default function App() {
               })()}
             </>
           )}
+          {!inRelief && <ElevationProbe host={stageRef} cam={cam} stage={stage} />}
           <div className="frame" aria-hidden="true">
             <span className="compass">N</span>
           </div>

@@ -364,6 +364,97 @@ pre {
 .map-hint.is-on {
   opacity: 1;
 }
+
+/* Spot height under the cursor: a hairline cross and a surveyor's figure beside it. */
+.probe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms ease-out;
+  will-change: transform;
+}
+.probe.is-on {
+  opacity: 1;
+  transition-duration: 90ms;
+}
+.probe__tick {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 13px;
+  height: 13px;
+  /* Four arms with an open centre, so the ground under the cursor stays visible. */
+  background:
+    linear-gradient(var(--pine-2), var(--pine-2)) 6px 0 / 1px 4px no-repeat,
+    linear-gradient(var(--pine-2), var(--pine-2)) 6px 9px / 1px 4px no-repeat,
+    linear-gradient(var(--pine-2), var(--pine-2)) 0 6px / 4px 1px no-repeat,
+    linear-gradient(var(--pine-2), var(--pine-2)) 9px 6px / 4px 1px no-repeat;
+  filter: drop-shadow(0 0 1px var(--paper)) drop-shadow(0 0 1px var(--paper));
+  opacity: 0.85;
+}
+.probe__lead {
+  /* A short diagonal leader from the cross to the figure, as a draughtsman letters a spot height. */
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 13px;
+  height: 1px;
+  background: var(--copper);
+  opacity: 0.75;
+  transform-origin: 0 0;
+  transform: rotate(var(--lead, 40deg)) translateX(5px);
+}
+.probe__label {
+  position: absolute;
+  left: 15px;
+  top: 6px;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  font-variant-numeric: tabular-nums;
+  color: var(--pine-2);
+  text-shadow: var(--halo);
+}
+.probe[data-side='en'] {
+  --lead: -40deg;
+}
+.probe[data-side='ws'] {
+  --lead: 140deg;
+}
+.probe[data-side='wn'] {
+  --lead: -140deg;
+}
+.probe[data-side^='w'] .probe__label {
+  left: auto;
+  right: 15px;
+}
+.probe[data-side$='n'] .probe__label {
+  top: auto;
+  bottom: 6px;
+}
+.stage.is-dragging .probe,
+.is-compact .probe {
+  display: none;
+}
+@media (hover: none), (pointer: coarse) {
+  .probe {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .probe,
+  .probe.is-on {
+    transition: none;
+  }
+}
 .legend__gesture {
   margin: 0;
   font-size: 11px;
@@ -390,19 +481,21 @@ pre {
 .relief {
   image-rendering: auto;
 }
+/* Contours are drawn in a translucent green-brown so they read the same over
+   the pale summit, the green valley tint and the shaded slopes. */
 .contour {
   fill: none;
-  stroke: #b7c3a6;
-  stroke-width: 0.7;
+  stroke: rgba(78, 98, 70, 0.3);
+  stroke-width: 0.75;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 .contour--index {
-  stroke: #94a487;
-  stroke-width: 1.15;
+  stroke: rgba(70, 88, 60, 0.6);
+  stroke-width: 1.3;
 }
 .contour--minor {
-  stroke: #c9d1ba;
+  stroke: rgba(78, 98, 70, 0.17);
   stroke-width: 0.5;
 }
 .contour-labels {
@@ -421,12 +514,13 @@ pre {
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: #7f9070;
+  color: #5f714f;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   padding: 0 3px;
-  background: var(--paper);
+  background: rgba(243, 237, 222, 0.82);
   border-radius: 2px;
+  box-shadow: 0 0 3px 1px rgba(243, 237, 222, 0.7);
 }
 
 .trail-casing {
@@ -516,6 +610,19 @@ pre {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+/* Paper grain: a static noise tile over the map (under labels and cards), so
+   the relief reads as printed rather than airbrushed. The tile is rasterised
+   once; nothing here is recomputed while panning. */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.28;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.33 0 0 0 0 0.25 0 0 0 1.6 -0.62'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
 }
 
 .frame {
@@ -634,7 +741,8 @@ pre {
   font-weight: 600;
   letter-spacing: 0.02em;
   font-variation-settings: 'opsz' 14;
-  transition: background-color 160ms, color 160ms, box-shadow 160ms, scale 160ms, border-color 160ms;
+  transition: background-color 160ms, color 160ms, box-shadow 200ms, scale 160ms, border-color 160ms,
+    transform 280ms var(--lift-ease);
 }
 .lm--branch .lm__mark {
   border: 1.5px dashed var(--pine-2);
@@ -651,6 +759,71 @@ pre {
 .lm:focus-visible .lm__mark {
   box-shadow: 0 0 0 4px var(--paper), 0 0 0 6px var(--copper);
 }
+
+/*
+ * Hover lift: the mark rises off the sheet like a map pin, its shadow stays on
+ * the paper and spreads, and the label rises with it. Timed with the trail
+ * stretch that lights up underneath (.trail-hot / .branch.is-hot).
+ */
+.lm,
+.stop {
+  --lift-ease: cubic-bezier(0.3, 1.45, 0.45, 1);
+  --lift: 0px;
+}
+.lm::before,
+.stop::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--size) * 0.95);
+  height: calc(var(--size) * 0.36);
+  margin: calc(var(--size) * 0.36) 0 0 calc(var(--size) * -0.475);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(30, 58, 49, 0.34), rgba(30, 58, 49, 0.12) 60%, rgba(30, 58, 49, 0));
+  opacity: 0;
+  transform: scale(0.55);
+  transition: opacity 200ms ease-out, transform 280ms var(--lift-ease);
+  pointer-events: none;
+}
+.lm__label {
+  transform: translateY(var(--lift));
+}
+@media (hover: hover) {
+  .stage:not(.is-dragging) .lm:hover {
+    --lift: -4px;
+  }
+  .stage:not(.is-dragging) .stop.is-revealed:hover {
+    --lift: -2px;
+  }
+}
+.lm:focus-visible {
+  --lift: -4px;
+}
+.stop.is-revealed:focus-visible {
+  --lift: -2px;
+}
+.lm .lm__mark {
+  transform: translateY(var(--lift));
+}
+.lm:is(:hover, :focus-visible)::before {
+  opacity: 1;
+  transform: scale(1.12);
+}
+.lm:is(:hover, :focus-visible):not(.is-selected) .lm__mark {
+  box-shadow: 0 0 0 4px var(--paper), 0 0 0 5.5px rgba(180, 99, 42, 0.42);
+}
+.lm:focus-visible:not(.is-selected) .lm__mark {
+  box-shadow: 0 0 0 4px var(--paper), 0 0 0 6px var(--copper);
+}
+.lm.is-dimmed:is(:hover, :focus-visible)::before {
+  opacity: 0.55;
+  transform: scale(0.9);
+}
+.stage.is-dragging .lm::before,
+.stage.is-dragging .stop::before {
+  opacity: 0;
+}
 .lm.is-selected .lm__mark {
   background: var(--pine);
   border-style: solid;
@@ -665,7 +838,7 @@ pre {
   flex-direction: column;
   white-space: nowrap;
   text-shadow: var(--halo);
-  transition: opacity 200ms;
+  transition: opacity 200ms, transform 300ms var(--lift-ease);
 }
 .lm .lm__label {
   --gap: 12px;
@@ -781,8 +954,10 @@ pre {
   font-size: 11px;
   font-weight: 500;
   scale: 0.5;
-  transition: scale 260ms cubic-bezier(0.3, 1.4, 0.5, 1), background-color 140ms, color 140ms, border-color 140ms;
-  transition-delay: calc(var(--i) * 70ms);
+  transform: translateY(var(--lift));
+  transition: scale 260ms cubic-bezier(0.3, 1.4, 0.5, 1), background-color 140ms, color 140ms, border-color 140ms,
+    transform 260ms var(--lift-ease) 0s;
+  transition-delay: calc(var(--i) * 70ms), calc(var(--i) * 70ms), calc(var(--i) * 70ms), calc(var(--i) * 70ms), 0s;
 }
 .stop.is-revealed .stop__dot {
   scale: 1;
@@ -795,6 +970,12 @@ pre {
   font-weight: 500;
   color: var(--pine);
   text-shadow: var(--halo);
+  transform: translateY(var(--lift));
+  transition: transform 280ms var(--lift-ease);
+}
+.stop.is-revealed:is(:hover, :focus-visible)::before {
+  opacity: 0.75;
+  transform: scale(0.95);
 }
 .stop:hover .stop__dot,
 .stop:focus-visible .stop__dot {
@@ -817,6 +998,118 @@ pre {
 }
 .stop.is-active .stop__label {
   font-weight: 600;
+}
+
+/* ----- Route transitions (View Transitions API, wide layouts) ---------- */
+/*
+ * Only the sheets transition. The stage is named so it leaves the page
+ * snapshot, its frozen old image is hidden and its new image is live, so the
+ * camera keeps flying underneath. New sheets keep their own CSS entrance
+ * (card-in / bench-in, live in the new image); the transition adds the exit
+ * they never had. Names exist only while a transition runs.
+ */
+.is-vt .stage {
+  view-transition-name: map-stage;
+}
+.is-vt .sheet--intro {
+  view-transition-name: sheet-intro;
+}
+.is-vt .sheet--region {
+  view-transition-name: sheet-region;
+}
+.is-vt .sheet--bench {
+  view-transition-name: sheet-bench;
+}
+:root::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(*) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+}
+::view-transition-group(map-stage),
+::view-transition-new(map-stage) {
+  animation: none;
+}
+::view-transition-old(map-stage) {
+  display: none;
+}
+/* A sheet leaving (no sheet of that kind on the new page) slides off its edge. */
+::view-transition-old(sheet-region):only-child,
+::view-transition-old(sheet-intro):only-child {
+  animation: 200ms cubic-bezier(0.4, 0, 1, 1) both sheet-out-left;
+}
+::view-transition-old(sheet-bench):only-child {
+  animation: 200ms cubic-bezier(0.4, 0, 1, 1) both sheet-out-right;
+}
+/* A sheet arriving keeps its own CSS entrance (card-in / bench-in), which plays live. */
+::view-transition-new(sheet-region):only-child,
+::view-transition-new(sheet-intro):only-child,
+::view-transition-new(sheet-bench):only-child {
+  animation: none;
+}
+/* The same sheet on both sides (lesson → lesson, landmark → landmark): a short cross-fade. */
+::view-transition-old(sheet-region),
+::view-transition-old(sheet-bench) {
+  animation-duration: 180ms;
+}
+::view-transition-new(sheet-region),
+::view-transition-new(sheet-bench) {
+  animation-duration: 260ms;
+}
+/* The shared title: a map label lifting off into the card's heading, and back. */
+::view-transition-group(atlas-title) {
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.3, 0.9, 0.25, 1);
+}
+/* The map label carries the flight; the heading only inks in as it lands. */
+::view-transition-old(atlas-title),
+::view-transition-new(atlas-title) {
+  height: 100%;
+  object-fit: fill;
+  mix-blend-mode: normal;
+  animation-duration: 360ms;
+  animation-timing-function: linear;
+}
+::view-transition-old(atlas-title) {
+  animation-name: title-carry;
+}
+::view-transition-new(atlas-title) {
+  animation-name: title-land;
+}
+@keyframes title-carry {
+  55% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes title-land {
+  from,
+  50% {
+    opacity: 0;
+  }
+}
+/* A single box, so the place name can be captured as one image. */
+.region-card__place {
+  display: inline-block;
+}
+@keyframes sheet-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+@keyframes sheet-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(18px);
+  }
 }
 
 /* ----- Legend ---------------------------------------------------------- */
@@ -2536,6 +2829,18 @@ g:hover > .viz__pairline {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* No lift; the colour change on hover stays. */
+  .lm,
+  .stop {
+    --lift: 0px !important;
+  }
+  .lm::before,
+  .stop::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
@@ -3019,6 +3324,10 @@ g:hover > .viz__pairline {
   background: var(--copper);
   border-color: var(--copper);
   transform: scale(1.25);
+}
+/* The steps this concept stop is about: a short rule under their dots. */
+.inset__dot.is-range {
+  background: linear-gradient(color-mix(in srgb, var(--copper) 55%, transparent), color-mix(in srgb, var(--copper) 55%, transparent)) center bottom 1px / 12px 2px no-repeat;
 }
 
 /* The big diagram beside a landmark, over a dimmed map. */
@@ -3513,4 +3822,52 @@ g:hover > .viz__pairline {
   stroke: var(--pass);
   stroke-width: 1.3;
   stroke-linejoin: round;
+}
+
+/* Dev-only story frames page (frames.html). */
+.frames {
+  padding: 24px;
+  font-family: var(--sans, system-ui);
+}
+.frames h1 {
+  margin: 0 0 4px;
+}
+.frames__report {
+  margin: 0 0 16px;
+  font-size: 13px;
+}
+.frames__story {
+  margin: 0 0 32px;
+}
+.frames__story h2 {
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+.frames__grid {
+  display: grid;
+  gap: 6px;
+  align-items: center;
+}
+.frames__head {
+  font-size: 12px;
+  text-align: center;
+  color: var(--ink-soft, #555);
+}
+.frames__caption {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.frames__cell {
+  outline: 1px solid var(--rule-strong);
+  border-radius: 4px;
+}
+.frames__cell .inset__svg {
+  margin: 0;
+}
+.frames__cell.is-still {
+  outline: 2px solid var(--copper);
+}
+.frames__cell.is-out {
+  outline: 2px solid #c0392b;
 }

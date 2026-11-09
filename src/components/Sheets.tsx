@@ -62,7 +62,8 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
   return (
     <section className="region-card" aria-labelledby="region-title">
       <p className="kicker">
-        {l.kind === 'main' ? `Landmark ${l.mark}` : `Branch ${l.mark} · from ${landmarkById[l.from!].title}`} · {l.title} ·{' '}
+        {l.kind === 'main' ? `Landmark ${l.mark}` : `Branch ${l.mark} · from ${landmarkById[l.from!].title}`} ·{' '}
+        <span className="region-card__place">{l.title}</span> ·{' '}
         {elevationLabel(l.x, l.y)}
       </p>
       <h2 id="region-title" className="region-card__title" tabIndex={-1}>
