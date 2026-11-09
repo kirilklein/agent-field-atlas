@@ -8,8 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "build:artifact": "vite build --mode artifact && node scripts/to-artifact.mjs",
-    "frames": "node scripts/story-frames.mjs"
+    "build:artifact": "vite build --mode artifact && node scripts/to-artifact.mjs"
   },
   "dependencies": {
     "@fontsource-variable/newsreader": "^5.3.0",

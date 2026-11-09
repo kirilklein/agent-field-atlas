@@ -2,7 +2,7 @@
  * Dev-only review page (`npm run dev`, then /frames.html): every step of every
  * story at a few moments of its move, plus the still frame a paused or
  * reduced-motion viewer sees. Anything drawn within 2 units of the edge is
- * outlined in red and listed at the top. `npm run frames` screenshots this page.
+ * outlined in red and listed at the top.
  */
 /* oxlint-disable react/only-export-components -- an entry point, not a module */
 import { StrictMode, useEffect, useState } from 'react';
