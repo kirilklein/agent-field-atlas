@@ -51,22 +51,16 @@ type Plate = {
 /** Same colours as the SVG plate (index.css). */
 const PLATES: Record<Theme, Plate> = {
   light: {
-    paper: rgb('#f3edde'), grid: rgb('#c3cfb9'), contour: rgb('#4e6246'), index: rgb('#46583c'), minor: rgb('#4e6246'),
-    copper: rgb('#b4632a'), walked: rgb('#8a4416'), branch: rgb('#35554a'), pine: rgb('#1e3a31'), head: rgb('#1e3a31'),
-    shadow: rgb('#a9b5b0'), light: rgb('#fcf9f1'),
-    gridA: 0.45, contourA: 0.3, indexA: 0.6, minorA: 0.17,
-  },
-  dark: {
-    paper: rgb('#0f1b17'), grid: rgb('#c4d6ba'), contour: rgb('#b8cfac'), index: rgb('#c6dcb8'), minor: rgb('#b8cfac'),
-    copper: rgb('#e48f50'), walked: rgb('#ffc58f'), branch: rgb('#c9ccb8'), pine: rgb('#ece4d0'), head: rgb('#f2a868'),
-    shadow: rgb('#a9b5b0'), light: rgb('#2a3a32'),
-    gridA: 0.072, contourA: 0.2, indexA: 0.4, minorA: 0.11,
-  },
-  toy: {
     paper: rgb('#f7e4c8'), grid: rgb('#3b2340'), contour: rgb('#3b2340'), index: rgb('#3b2340'), minor: rgb('#3b2340'),
     copper: rgb('#e8552f'), walked: rgb('#c23b2a'), branch: rgb('#5c3a5e'), pine: rgb('#3b2340'), head: rgb('#3b2340'),
     shadow: rgb('#b9a3b8'), light: rgb('#fff4d6'),
     gridA: 0.1, contourA: 0.2, indexA: 0.42, minorA: 0.1,
+  },
+  dark: {
+    paper: rgb('#1d1530'), grid: rgb('#fdeee0'), contour: rgb('#fdeee0'), index: rgb('#fdeee0'), minor: rgb('#fdeee0'),
+    copper: rgb('#ff7a52'), walked: rgb('#ffc58f'), branch: rgb('#e6cfd8'), pine: rgb('#fdeee0'), head: rgb('#ff9d78'),
+    shadow: rgb('#6a5a8a'), light: rgb('#3a2d55'),
+    gridA: 0.06, contourA: 0.16, indexA: 0.34, minorA: 0.08,
   },
 };
 

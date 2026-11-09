@@ -1,218 +1,6 @@
-/* Agent Field Atlas — a typeset field atlas of a fictional landscape. */
+/* Agent Field Atlas — a toy diorama of a fictional landscape. */
 
 :root {
-  --paper: #f3edde;
-  --paper-deep: #ebe3cf;
-  --card: #fbf8f0;
-  --code-bg: #f2ede1;
-  --pine: #1e3a31;
-  --pine-2: #35554a;
-  --ink-soft: #586b61;
-  --sage: #8fa68c;
-  --sage-dark: #6f8a6c;
-  --sage-2: #c3cfb9;
-  --sage-3: #dfe5d5;
-  --copper: #b4632a;
-  --copper-2: #cf8a52;
-  --copper-wash: #f3e1cd;
-  --pass: #3c6a4c;
-  --fail: #9a3a2c;
-  --fail-wash: #f5e4dc;
-  --viz-a: #2b7bb5;
-  --viz-b: #b8652b;
-  --terminal-bg: #1f2b27;
-  --terminal-fg: #e6e2d3;
-  --terminal-dim: #9fb0a6;
-  --terminal-bad: #f0a48a;
-  --rule: rgba(30, 58, 49, 0.16);
-  --rule-strong: rgba(30, 58, 49, 0.28);
-  --halo: 0 0 2px var(--paper), 0 0 3px var(--paper), 0 0 5px var(--paper), 0 0 8px var(--paper);
-
-  /* Channels for translucent washes: rgba(var(--ink-rgb), 0.05) etc. */
-  --ink-rgb: 30, 58, 49;
-  --paper-rgb: 243, 237, 222;
-  --card-rgb: 251, 248, 240;
-  --copper-rgb: 180, 99, 42;
-  --pass-rgb: 60, 106, 76;
-  --fail-rgb: 154, 58, 44;
-  --viz-a-rgb: 43, 123, 181;
-  --fog-mid: 0.62;
-  --fog-far: 0.82;
-
-  /* Surfaces and inks beyond the core palette. */
-  --sheet: #fffdf8;
-  --ink-mid: #3d5249;
-  --ink-faint: #7d8c80;
-  --ink-disabled: #b3bdb3;
-  --copper-ink: #8a4718;
-  --on-solid: #fff;
-  --diagram-fill: #fff;
-  --pass-wash: #e3eee1;
-  --pass-wash-2: #dde9dc;
-  --pass-wash-3: #dfeadf;
-  --pass-tint: #eef4ec;
-  --paper-card-bg: #f6f8f0;
-  --fail-wash-2: #f7ebe4;
-  --fail-ink: #6e2418;
-  --fail-ink-2: #5a3a32;
-  --skip-ink: #8a978d;
-  --warn: #8a5a12;
-  --warn-ink: #7a5212;
-  --warn-wash: #f3e6c9;
-  --model-ink: #574477;
-  --model-wash: #e9e2f0;
-  --judge-ink: #3e5566;
-  --judge-wash: #e4e9ee;
-  --viz-a-ink: #1d5a87;
-  --viz-a-wash: #dce8f2;
-  --viz-b-ink: #8f4c1d;
-  --terminal-good: #a9d8a4;
-
-  /* Map */
-  --graticule: var(--sage-2);
-  --contour: rgba(78, 98, 70, 0.3);
-  --contour-index: rgba(70, 88, 60, 0.6);
-  --contour-minor: rgba(78, 98, 70, 0.17);
-  --place-ink: var(--sage-dark);
-  --trail-walked: #8a4416;
-  --pin-bg: var(--card);
-  --pin-ink: currentColor;
-  --pin-border: var(--pine);
-  --pin-glow: 0 1px 0 4px rgba(30, 58, 49, 0.06);
-
-  /* Code */
-  --code-ln: #9aa79a;
-  --tok-kw: #1d4a3c;
-  --tok-str: #8c5426;
-  --tok-com: #77877b;
-  --tok-fn: #2e6a62;
-  --tok-key: #35554a;
-  --tok-deco: #6b5a8c;
-
-  /* Shadows */
-  --shadow-ctl: 0 8px 20px -14px rgba(30, 58, 49, 0.55);
-  --shadow-card: 0 14px 34px -26px rgba(30, 58, 49, 0.5);
-  --shadow-panel: 0 18px 40px -24px rgba(30, 58, 49, 0.45), 0 2px 0 rgba(30, 58, 49, 0.04);
-  --shadow-pop: 0 16px 34px -20px rgba(30, 58, 49, 0.55);
-  --shadow-float: 0 24px 48px -28px rgba(30, 58, 49, 0.6);
-
-  --serif: 'Newsreader Variable', 'Newsreader', 'Iowan Old Style', Georgia, serif;
-  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
-
-  --topbar-h: 56px;
-
-  /* Vellum: the floating panels are tracing paper laid over the plate. */
-  --vellum: rgba(251, 248, 240, 0.7);
-  --vellum-dense: rgba(251, 248, 240, 0.86);
-  --vellum-blur: blur(2px) saturate(1.2);
-  --vellum-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 64px);
-  --vellum-fibre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.25 0 0 0 0 0.2 0.075 0 0 0 -0.012'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
-  --vellum-edge: inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.24);
-  --vellum-lift: 0 1px 1px rgba(30, 58, 49, 0.05), 0 10px 18px -12px rgba(30, 58, 49, 0.26),
-    0 34px 64px -40px rgba(30, 58, 49, 0.5);
-  color-scheme: light;
-}
-
-/* The atlas at night: a pine-black ground, contours in pale sage, the trail lit. */
-:root[data-theme='dark'] {
-  --paper: #0f1b17;
-  --paper-deep: #0b1512;
-  --card: #16231e;
-  --code-bg: #101c18;
-  --pine: #ece4d0;
-  --pine-2: #c9ccb8;
-  --ink-soft: #9bab9f;
-  --sage: #6f866c;
-  --sage-dark: #93a88e;
-  --sage-2: #34473d;
-  --sage-3: #22332b;
-  --copper: #e48f50;
-  --copper-2: #f2a868;
-  --copper-wash: #3a2719;
-  --pass: #82c294;
-  --fail: #ec8a74;
-  --fail-wash: #3a211b;
-  --viz-a: #6cb1e4;
-  --viz-b: #e5965c;
-  --terminal-bg: #09120f;
-  --terminal-fg: #e6e2d3;
-  --terminal-dim: #8fa196;
-  --terminal-bad: #f0a48a;
-  --rule: rgba(236, 228, 208, 0.12);
-  --rule-strong: rgba(236, 228, 208, 0.22);
-
-  --ink-rgb: 236, 228, 208;
-  --paper-rgb: 15, 27, 23;
-  --card-rgb: 22, 35, 30;
-  --copper-rgb: 228, 143, 80;
-  --pass-rgb: 130, 194, 148;
-  --fail-rgb: 236, 138, 116;
-  --viz-a-rgb: 108, 177, 228;
-  --fog-mid: 0.6;
-  --fog-far: 0.84;
-
-  --sheet: #1a2924;
-  --ink-mid: #cdd0c0;
-  --ink-faint: #85978b;
-  --ink-disabled: #4b5c53;
-  --copper-ink: #f3b47f;
-  --on-solid: #0f1b17;
-  --diagram-fill: #1a2924;
-  --pass-wash: #1d3527;
-  --pass-wash-2: #1d3527;
-  --pass-wash-3: #1d3527;
-  --pass-tint: #172a20;
-  --paper-card-bg: #16271f;
-  --fail-wash-2: #35201b;
-  --fail-ink: #f4b6a6;
-  --fail-ink-2: #e2c0b6;
-  --skip-ink: #7d8e84;
-  --warn: #e8b766;
-  --warn-ink: #edc480;
-  --warn-wash: #3a2f19;
-  --model-ink: #cbbbec;
-  --model-wash: #2a2540;
-  --judge-ink: #b8cce0;
-  --judge-wash: #212d38;
-  --viz-a-ink: #a9d0f0;
-  --viz-a-wash: #1a2d3d;
-  --viz-b-ink: #eda977;
-  --terminal-good: #a9d8a4;
-
-  --graticule: rgba(196, 214, 186, 0.16);
-  --contour: rgba(184, 207, 172, 0.2);
-  --contour-index: rgba(198, 220, 184, 0.4);
-  --contour-minor: rgba(184, 207, 172, 0.11);
-  --place-ink: #b5c4ab;
-  --trail-walked: #ffc58f;
-  --pin-bg: radial-gradient(circle at 50% 38%, #2c3b31 0%, #18261f 70%);
-  --pin-ink: #fbf1dc;
-  --pin-border: #efe2c4;
-  --pin-glow: 0 0 0 5.5px rgba(242, 168, 104, 0.6), 0 0 26px 9px rgba(242, 168, 104, 0.26);
-
-  --code-ln: #56685f;
-  --tok-kw: #9ed2b5;
-  --tok-str: #e9b385;
-  --tok-com: #7a8f84;
-  --tok-fn: #8fd0c4;
-  --tok-key: #d2dacb;
-  --tok-deco: #bba8e2;
-
-  --shadow-ctl: 0 10px 24px -12px rgba(0, 0, 0, 0.7);
-  --shadow-card: 0 22px 44px -22px rgba(0, 0, 0, 0.75), 0 1px 0 rgba(236, 228, 208, 0.04) inset;
-  --shadow-panel: 0 24px 54px -22px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(236, 228, 208, 0.04) inset;
-  --shadow-pop: 0 20px 40px -18px rgba(0, 0, 0, 0.75);
-  --shadow-float: 0 30px 60px -24px rgba(0, 0, 0, 0.85);
-  color-scheme: dark;
-}
-:root[data-theme='dark'] ::selection {
-  background: rgba(228, 143, 80, 0.38);
-  color: #fbf1dc;
-}
-
-/* The toy plate: a diorama in warm cream, grass green, coral and plum. */
-:root[data-theme='toy'] {
   --paper: #f7e4c8;
   --paper-deep: #f0d6b0;
   --card: #fff6e8;
@@ -238,7 +26,9 @@
   --terminal-bad: #ffab91;
   --rule: rgba(59, 35, 64, 0.18);
   --rule-strong: rgba(59, 35, 64, 0.34);
+  --halo: 0 0 2px var(--paper), 0 0 3px var(--paper), 0 0 5px var(--paper), 0 0 8px var(--paper);
 
+  /* Channels for translucent washes: rgba(var(--ink-rgb), 0.05) etc. */
   --ink-rgb: 59, 35, 64;
   --paper-rgb: 247, 228, 200;
   --card-rgb: 255, 246, 232;
@@ -246,12 +36,17 @@
   --pass-rgb: 47, 138, 74;
   --fail-rgb: 194, 59, 42;
   --viz-a-rgb: 47, 127, 208;
+  --fog-mid: 0.62;
+  --fog-far: 0.82;
 
+  /* Surfaces and inks beyond the core palette. */
   --sheet: #fffaf2;
   --ink-mid: #4d3150;
   --ink-faint: #8a7086;
   --ink-disabled: #cdb9c6;
   --copper-ink: #a8361a;
+  --on-solid: #fff;
+  --diagram-fill: #fff;
   --pass-wash: #dcf1d2;
   --pass-wash-2: #dcf1d2;
   --pass-wash-3: #dcf1d2;
@@ -273,6 +68,7 @@
   --viz-b-ink: #a8361a;
   --terminal-good: #b4e6a0;
 
+  /* Map */
   --graticule: rgba(59, 35, 64, 0.1);
   --contour: rgba(59, 35, 64, 0.2);
   --contour-index: rgba(59, 35, 64, 0.42);
@@ -280,9 +76,11 @@
   --place-ink: var(--pine-2);
   --trail-walked: #c23b2a;
   --pin-bg: var(--card);
+  --pin-ink: currentColor;
   --pin-border: var(--pine);
-  --pin-glow: 0 3px 0 0 var(--pine);
+  --pin-glow: 0 3px 0 0 var(--drop);
 
+  /* Code */
   --code-ln: #b89fb2;
   --tok-kw: #8a2a6e;
   --tok-str: #b0461c;
@@ -291,19 +89,119 @@
   --tok-key: #5c3a5e;
   --tok-deco: #5b3f8c;
 
-  /* Hard offset shadows: everything sits on the table like a toy block. */
-  --shadow-ctl: 0 3px 0 var(--pine);
-  --shadow-card: 0 5px 0 var(--pine);
-  --shadow-panel: 0 5px 0 var(--pine);
-  --shadow-pop: 0 4px 0 var(--pine);
-  --shadow-float: 0 6px 0 var(--pine);
+  /* Shadows */
+  --shadow-ctl: 0 3px 0 var(--drop);
+  --shadow-card: 0 5px 0 var(--drop);
+  --shadow-panel: 0 5px 0 var(--drop);
+  --shadow-pop: 0 4px 0 var(--drop);
+  --shadow-float: 0 6px 0 var(--drop);
 
   --serif: var(--sans);
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --topbar-h: 56px;
+
+  /* Toy blocks: outline and hard drop shadow. */
+  --edge: var(--pine);
+  --drop: var(--pine);
   color-scheme: light;
 }
-:root[data-theme='toy'] ::selection {
-  background: rgba(232, 85, 47, 0.3);
+
+/* Toy night: a plum-navy ground, cream ink, the trail lit in coral. */
+:root[data-theme='dark'] {
+  --paper: #1d1530;
+  --paper-deep: #160f26;
+  --card: #2a1f3f;
+  --code-bg: #22183a;
+  --pine: #fdeee0;
+  --pine-2: #e6cfd8;
+  --ink-soft: #c2a8bb;
+  --sage: #5f9a52;
+  --sage-dark: #8cc47a;
+  --sage-2: #3a3555;
+  --sage-3: #2a2342;
+  --copper: #ff7a52;
+  --copper-2: #ff9d78;
+  --copper-wash: #4a2530;
+  --pass: #8fd6a0;
+  --fail: #ff8f7a;
+  --fail-wash: #45202a;
+  --viz-a: #7ab8f5;
+  --viz-b: #ff9d78;
+  --terminal-bg: #140e22;
+  --terminal-fg: #fdeee0;
+  --terminal-dim: #b09ab0;
+  --terminal-bad: #ffab91;
+  --rule: rgba(253, 238, 224, 0.14);
+  --rule-strong: rgba(253, 238, 224, 0.26);
+
+  --ink-rgb: 253, 238, 224;
+  --paper-rgb: 29, 21, 48;
+  --card-rgb: 42, 31, 63;
+  --copper-rgb: 255, 122, 82;
+  --pass-rgb: 143, 214, 160;
+  --fail-rgb: 255, 143, 122;
+  --viz-a-rgb: 122, 184, 245;
+  --fog-mid: 0.6;
+  --fog-far: 0.84;
+
+  --sheet: #30244a;
+  --ink-mid: #ecd9e2;
+  --ink-faint: #a690a8;
+  --ink-disabled: #5a4a6a;
+  --copper-ink: #ffb59a;
+  --on-solid: #1d1530;
+  --diagram-fill: #30244a;
+  --pass-wash: #23382f;
+  --pass-wash-2: #23382f;
+  --pass-wash-3: #23382f;
+  --pass-tint: #1f2e2a;
+  --paper-card-bg: #2a1f3f;
+  --fail-wash-2: #3d2030;
+  --fail-ink: #ffc2b4;
+  --fail-ink-2: #ecc8c0;
+  --skip-ink: #8f7d95;
+  --warn: #f2c06a;
+  --warn-ink: #f5cf8a;
+  --warn-wash: #3d3020;
+  --model-ink: #d4c2f5;
+  --model-wash: #33284f;
+  --judge-ink: #b8d4ee;
+  --judge-wash: #22304a;
+  --viz-a-ink: #b5d8fa;
+  --viz-a-wash: #1e2d48;
+  --viz-b-ink: #ffb59a;
+  --terminal-good: #b4e6a0;
+
+  --graticule: rgba(253, 238, 224, 0.06);
+  --contour: rgba(253, 238, 224, 0.16);
+  --contour-index: rgba(253, 238, 224, 0.34);
+  --contour-minor: rgba(253, 238, 224, 0.08);
+  --place-ink: #d9c3d3;
+  --trail-walked: #ffc58f;
+  --pin-bg: var(--card);
+  --pin-ink: #fdeee0;
+  --pin-border: #fdeee0;
+  --pin-glow: 0 3px 0 0 var(--drop);
+
+  --code-ln: #6a5a7a;
+  --tok-kw: #ff9fcf;
+  --tok-str: #ffb38a;
+  --tok-com: #8f7d95;
+  --tok-fn: #8fd0e8;
+  --tok-key: #e6cfd8;
+  --tok-deco: #c9b2f5;
+
+  --edge: #5a4878;
+  --drop: #0b0716;
+  color-scheme: dark;
 }
+:root[data-theme='dark'] ::selection {
+  background: rgba(255, 122, 82, 0.38);
+  color: #fdeee0;
+}
+
 
 *,
 *::before,
@@ -806,30 +704,10 @@ pre {
   pointer-events: none;
 }
 
-/* Paper grain: a static noise tile over the map (under labels and cards), so
-   the relief reads as printed rather than airbrushed. The tile is rasterised
-   once; nothing here is recomputed while panning. */
-.grain {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.28;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.33 0 0 0 0 0.25 0 0 0 1.6 -0.62'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
-}
-
 .frame {
   position: absolute;
   inset: 10px;
-  border: 1px solid var(--rule);
   pointer-events: none;
-}
-.frame::after {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border: 1px solid rgba(var(--ink-rgb), 0.08);
 }
 .compass {
   position: absolute;
@@ -4198,16 +4076,6 @@ g:hover > .viz__pairline {
   stroke: var(--copper-2);
   opacity: 0.6;
 }
-[data-theme='dark'] .frame::after {
-  border-color: rgba(var(--ink-rgb), 0.06);
-}
-/* Solid pine buttons become cream on the dark ground; keep their ink dark. */
-[data-theme='dark'] .btn--primary {
-  color: var(--paper);
-}
-[data-theme='dark'] .btn--primary:hover {
-  background: #fff6e4;
-}
 [data-theme='dark'] .btn--start span {
   color: var(--copper);
 }
@@ -4225,247 +4093,6 @@ g:hover > .viz__pairline {
 }
 [data-theme='dark'] .viz__pt {
   stroke: var(--card);
-}
-
-/* ------------------------------------------------------------------ */
-/* Vellum: floating panels as tracing paper over the plate             */
-/* ------------------------------------------------------------------ */
-/*
- * The cartouche, region card, legend, map controls, stop callout, diagram
- * callout and topbar share one material: a warm translucent sheet with a
- * faint fibre, a lit top edge and a long soft shadow. The contours stay
- * readable through it, softened by a small blur. Where backdrop-filter is
- * missing the panels keep their opaque card background (the base rules
- * above), so the translucency lives only inside the @supports block.
- */
-
-.cartouche,
-.region-card,
-.map-controls,
-.callout,
-.diagram-callout {
-  background-image: var(--vellum-sheen), var(--vellum-fibre);
-  background-size: 100% 100%, 220px 220px;
-  background-repeat: no-repeat, repeat;
-  box-shadow: var(--vellum-edge), var(--vellum-lift);
-}
-.map-controls {
-  box-shadow: var(--vellum-edge), 0 1px 1px rgba(30, 58, 49, 0.05), 0 14px 28px -20px rgba(30, 58, 49, 0.45);
-}
-.cartouche,
-.region-card {
-  border-color: var(--rule);
-}
-.cartouche::before,
-.region-card::before {
-  border-color: rgba(30, 58, 49, 0.1);
-}
-.topbar {
-  background-image: var(--vellum-fibre);
-  background-size: 220px 220px;
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.5), 0 10px 22px -20px rgba(30, 58, 49, 0.4);
-}
-
-/* The workbench is long reading: the same stock, just heavier and opaque. */
-.sheet--bench {
-  background-image: var(--vellum-sheen), var(--vellum-fibre);
-  background-size: 100% 100%, 220px 220px;
-  background-repeat: no-repeat, repeat;
-  box-shadow: var(--vellum-edge), var(--vellum-lift);
-}
-
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .cartouche,
-  .region-card,
-  .map-controls,
-  .callout {
-    background-color: var(--vellum);
-    /* Secondary ink a step darker on vellum: AA (4.5:1) holds even with the
-       summit's tightest contours behind the sheet. */
-    --ink-soft: #4b5d54;
-    -webkit-backdrop-filter: var(--vellum-blur);
-    backdrop-filter: var(--vellum-blur);
-  }
-  /* Over the dimmed map the diagram's frame is vellum; the drawing keeps its own plate. */
-  .diagram-callout {
-    background-color: var(--vellum-dense);
-    --ink-soft: #4b5d54;
-    -webkit-backdrop-filter: var(--vellum-blur);
-    backdrop-filter: var(--vellum-blur);
-  }
-  .diagram-callout .inset__svg {
-    background:
-      radial-gradient(circle at 1px 1px, rgba(30, 58, 49, 0.09) 1px, transparent 1.4px) 0 0 / 12px 12px,
-      rgba(255, 253, 248, 0.82);
-  }
-  .topbar {
-    background-color: rgba(243, 237, 222, 0.8);
-    -webkit-backdrop-filter: var(--vellum-blur);
-    backdrop-filter: var(--vellum-blur);
-  }
-  /* Only a ghost of the map at the workbench; no blur, so panning stays cheap. */
-  .sheet--bench {
-    background-color: rgba(251, 248, 240, 0.965);
-  }
-  /* Small copper labels take the deeper copper (the hover ink) on vellum. */
-  .cartouche .motif__cap,
-  .region-card__builds-label,
-  .callout__kicker,
-  .diagram-callout .inset__kicker {
-    color: #8a4718;
-  }
-  /* The hub sits on the cartouche as an inset plate, a little denser than the sheet. */
-  .cartouche .hub {
-    background: rgba(242, 237, 225, 0.72);
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* Vellum at night: smoked sheets over the dark plate                   */
-/* ------------------------------------------------------------------ */
-
-:root[data-theme='dark'] {
-  --vellum: rgba(var(--card-rgb), 0.74);
-  --vellum-dense: rgba(var(--card-rgb), 0.9);
-  --vellum-sheen: linear-gradient(180deg, rgba(var(--ink-rgb), 0.06), rgba(var(--ink-rgb), 0) 64px);
-  --vellum-edge: inset 0 1px 0 rgba(var(--ink-rgb), 0.1), inset 0 0 0 1px rgba(var(--ink-rgb), 0.05);
-  --vellum-lift: 0 1px 1px rgba(0, 0, 0, 0.3), 0 10px 18px -12px rgba(0, 0, 0, 0.6), 0 34px 64px -40px rgba(0, 0, 0, 0.8);
-}
-[data-theme='dark'] .map-controls {
-  box-shadow: var(--vellum-edge), var(--vellum-lift);
-}
-[data-theme='dark'] .cartouche::before,
-[data-theme='dark'] .region-card::before {
-  border-color: var(--rule);
-}
-[data-theme='dark'] .topbar {
-  box-shadow: inset 0 -1px 0 var(--rule), 0 10px 22px -20px rgba(0, 0, 0, 0.7);
-}
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  [data-theme='dark'] .cartouche,
-  [data-theme='dark'] .region-card,
-  [data-theme='dark'] .map-controls,
-  [data-theme='dark'] .callout,
-  [data-theme='dark'] .diagram-callout {
-    --ink-soft: #9bab9f;
-  }
-  [data-theme='dark'] .diagram-callout .inset__svg {
-    background:
-      radial-gradient(circle at 1px 1px, rgba(var(--ink-rgb), 0.09) 1px, transparent 1.4px) 0 0 / 12px 12px,
-      var(--sheet);
-  }
-  [data-theme='dark'] .topbar {
-    background-color: rgba(var(--paper-rgb), 0.8);
-  }
-  [data-theme='dark'] .sheet--bench {
-    background-color: rgba(var(--card-rgb), 0.965);
-  }
-  [data-theme='dark'] .cartouche .motif__cap,
-  [data-theme='dark'] .region-card__builds-label,
-  [data-theme='dark'] .callout__kicker,
-  [data-theme='dark'] .diagram-callout .inset__kicker {
-    color: var(--copper-ink);
-  }
-  [data-theme='dark'] .cartouche .hub {
-    background: var(--code-bg);
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/* Toy plate: solid rounded blocks instead of vellum                    */
-/* ------------------------------------------------------------------ */
-
-:root[data-theme='toy'] {
-  --vellum: var(--card);
-  --vellum-dense: var(--card);
-  --vellum-blur: none;
-  --vellum-sheen: none;
-  --vellum-fibre: none;
-  --vellum-edge: inset 0 0 0 2px var(--pine);
-  --vellum-lift: 0 5px 0 var(--pine);
-}
-[data-theme='toy'] .grain,
-[data-theme='toy'] .frame {
-  display: none;
-}
-[data-theme='toy'] .theme-toggle__btn[aria-pressed='true']:nth-child(3) {
-  background: var(--copper);
-  color: var(--on-solid);
-}
-[data-theme='toy'] .btn,
-[data-theme='toy'] .icon-btn {
-  border: 2px solid var(--pine);
-  border-radius: 12px;
-  font-weight: 600;
-  box-shadow: 0 3px 0 var(--pine);
-  transition: background-color 140ms, transform 90ms, box-shadow 90ms;
-}
-[data-theme='toy'] .btn:active:not(:disabled),
-[data-theme='toy'] .icon-btn:active {
-  transform: translateY(3px);
-  box-shadow: 0 0 0 var(--pine);
-}
-[data-theme='toy'] .btn--primary {
-  background: var(--copper);
-  color: var(--on-solid);
-}
-[data-theme='toy'] .btn--primary:hover {
-  background: var(--copper-2);
-}
-[data-theme='toy'] .map-controls {
-  border: 0;
-  border-radius: 14px;
-  box-shadow: var(--vellum-edge), var(--vellum-lift);
-}
-[data-theme='toy'] .map-ctl + .map-ctl {
-  border-top: 2px solid var(--pine);
-}
-[data-theme='toy'] .cartouche,
-[data-theme='toy'] .region-card,
-[data-theme='toy'] .callout,
-[data-theme='toy'] .diagram-callout,
-[data-theme='toy'] .sheet--bench {
-  border-radius: 18px;
-}
-[data-theme='toy'] .cartouche::before,
-[data-theme='toy'] .region-card::before,
-[data-theme='toy'] .welcome__sheet::before {
-  border-color: transparent;
-}
-[data-theme='toy'] .welcome__sheet {
-  border: 0;
-  border-radius: 18px;
-  box-shadow: var(--vellum-edge), var(--vellum-lift);
-}
-[data-theme='toy'] .topbar {
-  box-shadow: inset 0 -2px 0 var(--pine);
-}
-@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  [data-theme='toy'] .cartouche,
-  [data-theme='toy'] .region-card,
-  [data-theme='toy'] .map-controls,
-  [data-theme='toy'] .callout,
-  [data-theme='toy'] .diagram-callout {
-    --ink-soft: #6a4c64;
-  }
-  [data-theme='toy'] .diagram-callout .inset__svg {
-    background: var(--sheet);
-  }
-  [data-theme='toy'] .topbar {
-    background-color: var(--paper);
-  }
-  [data-theme='toy'] .sheet--bench {
-    background-color: var(--card);
-  }
-  [data-theme='toy'] .cartouche .motif__cap,
-  [data-theme='toy'] .region-card__builds-label,
-  [data-theme='toy'] .callout__kicker,
-  [data-theme='toy'] .diagram-callout .inset__kicker {
-    color: var(--copper-ink);
-  }
-  [data-theme='toy'] .cartouche .hub {
-    background: var(--code-bg);
-  }
 }
 
 /* Dev-only story frames page (frames.html). */
@@ -4677,4 +4304,55 @@ g:hover > .viz__pairline {
     width: 40px;
     height: 40px;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Panels and buttons: solid rounded toy blocks                        */
+/* ------------------------------------------------------------------ */
+
+.btn,
+.icon-btn {
+  border: 2px solid var(--edge);
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 3px 0 var(--drop);
+  transition: background-color 140ms, transform 90ms, box-shadow 90ms;
+}
+.btn:active:not(:disabled),
+.icon-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--drop);
+}
+.btn--primary {
+  background: var(--copper);
+  color: var(--on-solid);
+}
+.btn--primary:hover {
+  background: var(--copper-2);
+}
+.map-controls {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 2px var(--edge), 0 5px 0 var(--drop);
+}
+.map-ctl + .map-ctl {
+  border-top: 2px solid var(--edge);
+}
+.cartouche,
+.region-card,
+.callout,
+.diagram-callout,
+.sheet--bench,
+.welcome__sheet {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 2px var(--edge), 0 5px 0 var(--drop);
+}
+.cartouche::before,
+.region-card::before,
+.welcome__sheet::before {
+  border-color: transparent;
+}
+.topbar {
+  box-shadow: inset 0 -2px 0 var(--edge);
 }

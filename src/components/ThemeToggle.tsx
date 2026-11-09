@@ -22,20 +22,9 @@ const OPTIONS: { id: Theme; label: string; icon: ReactNode }[] = [
     label: 'Night map',
     icon: <path d="M10.6 2.2a5.8 5.8 0 1 0 3.2 9.2A4.8 4.8 0 0 1 10.6 2.2Z" fill="currentColor" />,
   },
-  {
-    id: 'toy',
-    label: 'Toy map',
-    icon: (
-      <>
-        <rect x="2" y="7.5" width="12" height="6" rx="1.5" fill="currentColor" />
-        <circle cx="5.5" cy="6" r="1.6" fill="currentColor" />
-        <circle cx="10.5" cy="6" r="1.6" fill="currentColor" />
-      </>
-    ),
-  },
 ];
 
-/** Day / night / toy plate. Remembers an explicit choice; otherwise the system decides. */
+/** Day / night plate. Remembers an explicit choice; otherwise the system decides. */
 export function ThemeToggle() {
   const theme = useTheme();
   return (

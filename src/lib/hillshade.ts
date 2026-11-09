@@ -6,46 +6,12 @@ type RGB = [number, number, number];
 type Plate = { ramp: [number, RGB][]; shadow: RGB; light: RGB; lightMax: number; bandMix: number };
 
 /**
- * Hypsometric ramp in the Swiss relief tradition, desaturated to sit on the
- * paper: a green-grey valley floor, paper on the mid slopes, a pale warm light
- * near the summit. Elevations in metres. Shadows fall towards a cool
- * green-grey, lit slopes towards a warm light.
- *
- * At night the ground is pine-black, so shadows sink towards black and lit
- * slopes lift towards a moonlit sage, kept low so the plate stays dark.
- *
- * The toy plate is a diorama: saturated grass, sand, rock and snow in hard
- * 500 m terraces, with plum shadows.
+ * A toy diorama in hard 500 m terraces. By day: saturated grass, sand, rock
+ * and snow with plum shadows. At night: dusky green, mauve and a moonlit
+ * peak, shadows sinking towards plum-black. Elevations in metres.
  */
 export const PLATES: Record<Theme, Plate> = {
   light: {
-    ramp: [
-      [250, [209, 215, 194]],
-      [600, [220, 223, 202]],
-      [1000, [231, 229, 209]],
-      [1400, [239, 234, 215]],
-      [1800, [245, 240, 225]],
-      [2200, [249, 246, 235]],
-      [2600, [252, 250, 243]],
-    ],
-    shadow: [96, 118, 112],
-    light: [255, 251, 238],
-    lightMax: 0.75,
-    bandMix: 0.3,
-  },
-  dark: {
-    ramp: [
-      [250, [11, 23, 19]],
-      [1000, [15, 27, 23]],
-      [1800, [21, 34, 29]],
-      [2600, [27, 40, 34]],
-    ],
-    shadow: [2, 8, 6],
-    light: [150, 178, 150],
-    lightMax: 0.3,
-    bandMix: 0.3,
-  },
-  toy: {
     ramp: [
       [250, [126, 196, 92]],
       [800, [158, 214, 104]],
@@ -57,6 +23,20 @@ export const PLATES: Record<Theme, Plate> = {
     shadow: [92, 54, 98],
     light: [255, 244, 214],
     lightMax: 0.5,
+    bandMix: 1,
+  },
+  dark: {
+    ramp: [
+      [250, [38, 62, 56]],
+      [800, [52, 80, 62]],
+      [1300, [88, 80, 92]],
+      [1800, [104, 86, 120]],
+      [2300, [128, 112, 156]],
+      [2600, [206, 200, 232]],
+    ],
+    shadow: [10, 6, 22],
+    light: [190, 180, 230],
+    lightMax: 0.3,
     bandMix: 1,
   },
 };

@@ -53,7 +53,6 @@ export function Welcome({ onEnter }: { onEnter: () => void }) {
           <ellipse key={r} cx={560 - i * 6} cy={300 + i * 8} rx={r * 1.25} ry={r} transform={`rotate(${-18 + i * 2} 560 300)`} />
         ))}
       </svg>
-      <div className="grain" aria-hidden="true" />
       <div className="welcome__toggle">
         <ThemeToggle />
       </div>
