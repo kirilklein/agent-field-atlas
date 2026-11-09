@@ -3,9 +3,9 @@ import type { LabelSide, Point, RegionId } from '../data/types';
 import type { Size } from '../lib/camera';
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { TEASERS } from '../data/sketches';
-import { TERRAIN, stopPoint } from '../lib/geometry';
+import { stopPoint } from '../lib/geometry';
 import type { Progress } from '../lib/progress';
-import { CONTOUR_LABEL_LAG, LANDMARK_AT, NAME_AT, TRAILHEAD_LABEL_AT, contourAt, ms } from '../lib/intro';
+import { LANDMARK_AT, NAME_AT, TRAILHEAD_LABEL_AT, ms } from '../lib/intro';
 import type { Route } from '../lib/route';
 
 type Props = {
@@ -68,22 +68,6 @@ export function Markers({ project, stage, route, focus, revealed, compact, onLan
         <span className="terrain-name terrain-name--trailhead" style={{ ...at(th.x, th.y), ['--at' as string]: ms(TRAILHEAD_LABEL_AT) }}>
           <span>Trailhead</span>
         </span>
-      </div>
-
-      {/* Elevation figures on the index contours, as a printed map has them. */}
-      <div className="contour-labels" aria-hidden="true">
-        {TERRAIN.labels.map((c) => {
-          const p = project(c);
-          return (
-            <span
-              key={`${c.text}-${c.x}`}
-              className="contour-label"
-              style={{ ...at(p.x, p.y), ['--at' as string]: ms(contourAt(c.level) + CONTOUR_LABEL_LAG) }}
-            >
-              <span style={{ transform: `translate(-50%, -50%) rotate(${c.angle}deg)` }}>{c.text}</span>
-            </span>
-          );
-        })}
       </div>
 
       {LANDMARKS.map((l) => {

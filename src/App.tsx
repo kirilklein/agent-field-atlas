@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { ElevationProbe } from './components/ElevationProbe';
 import { MapControls } from './components/MapControls';
 import { LiveMarkers } from './components/LiveMarkers';
 import { Scene } from './components/Scene';
@@ -526,12 +525,10 @@ export default function App() {
               })()}
             </>
           )}
-          {!inRelief && <ElevationProbe host={stageRef} cam={cam} stage={stage} />}
           <div className="frame" aria-hidden="true">
             <span className="compass">N</span>
           </div>
           <Legend
-            depth={depth}
             gestureHint={compact ? null : inRelief ? 'Drag to turn · scroll to zoom in' : 'Drag to pan · scroll to zoom'}
             progress={learner}
           />

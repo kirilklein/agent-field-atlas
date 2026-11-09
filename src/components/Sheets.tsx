@@ -167,46 +167,19 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
   );
 }
 
-export function Legend({ depth, gestureHint, progress }: { depth: 0 | 1 | 2; gestureHint: string | null; progress: Progress }) {
-  const scales = ['Overview', 'Region', 'Detail'];
+export function Legend({ gestureHint, progress }: { gestureHint: string | null; progress: Progress }) {
+  if (!gestureHint && progress.visited.size === 0) return null;
   return (
-    <div className="legend" aria-label="Map legend">
-      <ul className="legend__keys">
-        <li>
-          <svg width="28" height="8" aria-hidden="true">
-            <path d="M1 4h26" className="legend-trail" />
-          </svg>
-          Main trail
-        </li>
-        <li>
-          <svg width="28" height="8" aria-hidden="true">
-            <path d="M1 4h26" className="legend-branch" />
-          </svg>
-          Optional branch
-        </li>
-        <li>
-          <span className="legend-dot" aria-hidden="true" />
-          Concept stop
-        </li>
-      </ul>
-      {gestureHint && <p className="legend__gesture">{gestureHint}</p>}
+    <div className="legend">
+      {gestureHint && <span>{gestureHint}</span>}
       {progress.visited.size > 0 && (
-        <p className="legend__progress">
-          <span>
-            <strong>{progress.visited.size}</strong> of {TOTAL_STOPS} lessons visited
-          </span>
+        <span className="legend__progress">
+          {progress.visited.size}/{TOTAL_STOPS} visited
           <button type="button" className="linkish" onClick={progress.reset}>
             Reset
           </button>
-        </p>
+        </span>
       )}
-      <div className="scale" aria-label={`Scale: ${scales[depth]}`}>
-        {scales.map((s, i) => (
-          <span key={s} className={`scale__tick ${i === depth ? 'is-on' : ''}`}>
-            {s}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }

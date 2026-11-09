@@ -100,8 +100,6 @@ export const LANDMARK_AT = Object.fromEntries(
 
 export const NAME_AT: number[] = TERRAIN_NAMES.map((_, i) => NAMES_AT + i * NAMES_STAGGER);
 export const TRAILHEAD_LABEL_AT = TRAILHEAD_AT + 140;
-/** Elevation figures are printed just after their contour line. */
-export const CONTOUR_LABEL_LAG = 260;
 
 /** When everything has settled. */
 export const INTRO_MS = Math.max(

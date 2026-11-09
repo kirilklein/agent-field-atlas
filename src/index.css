@@ -73,7 +73,6 @@
   --contour: rgba(78, 98, 70, 0.3);
   --contour-index: rgba(70, 88, 60, 0.6);
   --contour-minor: rgba(78, 98, 70, 0.17);
-  --contour-ink: #5f714f;
   --place-ink: var(--sage-dark);
   --trail-walked: #8a4416;
   --pin-bg: var(--card);
@@ -185,7 +184,6 @@
   --contour: rgba(184, 207, 172, 0.2);
   --contour-index: rgba(198, 220, 184, 0.4);
   --contour-minor: rgba(184, 207, 172, 0.11);
-  --contour-ink: #7f977a;
   --place-ink: #b5c4ab;
   --trail-walked: #ffc58f;
   --pin-bg: radial-gradient(circle at 50% 38%, #2c3b31 0%, #18261f 70%);
@@ -580,102 +578,6 @@ pre {
   opacity: 1;
 }
 
-/* Spot height under the cursor: a hairline cross and a surveyor's figure beside it. */
-.probe {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 3;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 140ms ease-out;
-  will-change: transform;
-}
-.probe.is-on {
-  opacity: 1;
-  transition-duration: 90ms;
-}
-.probe__tick {
-  position: absolute;
-  left: -6px;
-  top: -6px;
-  width: 13px;
-  height: 13px;
-  /* Four arms with an open centre, so the ground under the cursor stays visible. */
-  background:
-    linear-gradient(var(--pine-2), var(--pine-2)) 6px 0 / 1px 4px no-repeat,
-    linear-gradient(var(--pine-2), var(--pine-2)) 6px 9px / 1px 4px no-repeat,
-    linear-gradient(var(--pine-2), var(--pine-2)) 0 6px / 4px 1px no-repeat,
-    linear-gradient(var(--pine-2), var(--pine-2)) 9px 6px / 4px 1px no-repeat;
-  filter: drop-shadow(0 0 1px var(--paper)) drop-shadow(0 0 1px var(--paper));
-  opacity: 0.85;
-}
-.probe__lead {
-  /* A short diagonal leader from the cross to the figure, as a draughtsman letters a spot height. */
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 13px;
-  height: 1px;
-  background: var(--copper);
-  opacity: 0.75;
-  transform-origin: 0 0;
-  transform: rotate(var(--lead, 40deg)) translateX(5px);
-}
-.probe__label {
-  position: absolute;
-  left: 15px;
-  top: 6px;
-  white-space: nowrap;
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: 0.09em;
-  font-variant-numeric: tabular-nums;
-  color: var(--pine-2);
-  text-shadow: var(--halo);
-}
-.probe[data-side='en'] {
-  --lead: -40deg;
-}
-.probe[data-side='ws'] {
-  --lead: 140deg;
-}
-.probe[data-side='wn'] {
-  --lead: -140deg;
-}
-.probe[data-side^='w'] .probe__label {
-  left: auto;
-  right: 15px;
-}
-.probe[data-side$='n'] .probe__label {
-  top: auto;
-  bottom: 6px;
-}
-.stage.is-dragging .probe,
-.is-compact .probe {
-  display: none;
-}
-@media (hover: none), (pointer: coarse) {
-  .probe {
-    display: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .probe,
-  .probe.is-on {
-    transition: none;
-  }
-}
-.legend__gesture {
-  margin: 0;
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-
 .scene {
   position: absolute;
   inset: 0;
@@ -713,31 +615,6 @@ pre {
   stroke: var(--contour-minor);
   stroke-width: 0.5;
 }
-.contour-labels {
-  pointer-events: none !important;
-}
-.contour-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 0;
-  height: 0;
-}
-.contour-label > span {
-  position: absolute;
-  font-family: var(--sans);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--contour-ink);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  padding: 0 3px;
-  background: rgba(var(--paper-rgb), 0.82);
-  border-radius: 2px;
-  box-shadow: 0 0 3px 1px rgba(var(--paper-rgb), 0.7);
-}
-
 .trail-casing {
   fill: none;
   stroke: var(--paper);
@@ -1329,68 +1206,20 @@ pre {
   right: 22px;
   bottom: 22px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  background: rgba(var(--card-rgb), 0.9);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  font-size: 11.5px;
+  gap: 12px;
+  font-size: 11px;
   color: var(--ink-soft);
+  opacity: 0.75;
+  text-shadow: var(--halo);
+  transition: opacity 200ms;
+}
+.legend:hover,
+.legend:focus-within {
+  opacity: 1;
 }
 .depth-2 .legend {
   right: auto;
   left: 22px;
-}
-.legend__keys {
-  display: flex;
-  gap: 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.legend__keys li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.legend-trail {
-  stroke: var(--copper);
-  stroke-width: 3;
-  stroke-linecap: round;
-}
-.legend-branch {
-  stroke: var(--pine-2);
-  stroke-width: 2;
-  stroke-dasharray: 5 4;
-}
-.legend-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  border: 1.5px solid var(--pine-2);
-  background: var(--card);
-}
-.scale {
-  display: flex;
-  border-top: 1px solid var(--rule);
-  padding-top: 7px;
-  gap: 2px;
-}
-.scale__tick {
-  flex: 1;
-  text-align: center;
-  padding: 2px 6px;
-  border-bottom: 2px solid var(--sage-3);
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transition: border-color 200ms, color 200ms;
-}
-.scale__tick.is-on {
-  border-bottom-color: var(--copper);
-  color: var(--pine);
-  font-weight: 600;
 }
 
 /* ------------------------------------------------------------------ */
@@ -2998,14 +2827,6 @@ g:hover > .viz__pairline {
     left: 14px;
     right: auto;
     bottom: 14px;
-    padding: 6px 8px;
-  }
-  .legend__keys {
-    display: none;
-  }
-  .scale {
-    border-top: 0;
-    padding-top: 0;
   }
   .compass {
     top: 12px;
@@ -3055,7 +2876,6 @@ g:hover > .viz__pairline {
 .intro .graticule,
 .intro .relief,
 .intro .contour,
-.intro .contour-label > span,
 .intro .intro-reveal,
 .intro .waypoint,
 .intro .trailhead,
@@ -3087,11 +2907,6 @@ g:hover > .viz__pairline {
   animation-duration: var(--intro-contour-ms);
   animation-delay: var(--at);
   animation-timing-function: ease-out;
-}
-.intro .contour-label > span {
-  animation-name: intro-fade;
-  animation-duration: 420ms;
-  animation-delay: var(--at);
 }
 
 /* The trail and branches are revealed through masks: a wide solid stroke drawn
@@ -3272,8 +3087,7 @@ g:hover > .viz__pairline {
 }
 
 /* Phones: the overview is small, so keep only the trail, landmarks and their names. */
-.is-compact .terrain-names,
-.is-compact .contour-labels {
+.is-compact .terrain-names {
   display: none;
 }
 
@@ -3331,16 +3145,8 @@ g:hover > .viz__pairline {
 }
 .legend__progress {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 0;
-  font-size: 11.5px;
-  color: var(--ink-soft);
+  gap: 8px;
   font-variant-numeric: tabular-nums;
-}
-.legend__progress strong {
-  color: var(--pine);
 }
 .linkish {
   padding: 0;
@@ -4341,7 +4147,6 @@ g:hover > .viz__pairline {
 
 .cartouche,
 .region-card,
-.legend,
 .map-controls,
 .callout,
 .diagram-callout {
@@ -4350,7 +4155,6 @@ g:hover > .viz__pairline {
   background-repeat: no-repeat, repeat;
   box-shadow: var(--vellum-edge), var(--vellum-lift);
 }
-.legend,
 .map-controls {
   box-shadow: var(--vellum-edge), 0 1px 1px rgba(30, 58, 49, 0.05), 0 14px 28px -20px rgba(30, 58, 49, 0.45);
 }
@@ -4379,7 +4183,6 @@ g:hover > .viz__pairline {
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .cartouche,
   .region-card,
-  .legend,
   .map-controls,
   .callout {
     background-color: var(--vellum);
@@ -4434,7 +4237,6 @@ g:hover > .viz__pairline {
   --vellum-edge: inset 0 1px 0 rgba(var(--ink-rgb), 0.1), inset 0 0 0 1px rgba(var(--ink-rgb), 0.05);
   --vellum-lift: 0 1px 1px rgba(0, 0, 0, 0.3), 0 10px 18px -12px rgba(0, 0, 0, 0.6), 0 34px 64px -40px rgba(0, 0, 0, 0.8);
 }
-[data-theme='dark'] .legend,
 [data-theme='dark'] .map-controls {
   box-shadow: var(--vellum-edge), var(--vellum-lift);
 }
@@ -4448,7 +4250,6 @@ g:hover > .viz__pairline {
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   [data-theme='dark'] .cartouche,
   [data-theme='dark'] .region-card,
-  [data-theme='dark'] .legend,
   [data-theme='dark'] .map-controls,
   [data-theme='dark'] .callout,
   [data-theme='dark'] .diagram-callout {

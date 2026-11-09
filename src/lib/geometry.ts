@@ -1,4 +1,4 @@
-import { BRANCH_CURVES, LANDMARKS, MAIN_ROUTE, TERRAIN_NAMES, TRAILHEAD, landmarkById } from '../data/map';
+import { BRANCH_CURVES, LANDMARKS, MAIN_ROUTE, TRAILHEAD, landmarkById } from '../data/map';
 import {
   CONTOUR_INTERVAL,
   DETAIL_EXTENT,
@@ -87,7 +87,6 @@ export function regionBox(l: Landmark): Box {
 
 /* ----- Terrain ------------------------------------------------------------ */
 
-/** Points along every drawn route, used to keep contour labels off the trails. */
 function sampleCubic(a: Point, c1: Point, c2: Point, b: Point, n = 16): Point[] {
   const out: Point[] = [];
   for (let i = 0; i <= n; i++) {
@@ -100,25 +99,6 @@ function sampleCubic(a: Point, c1: Point, c2: Point, b: Point, n = 16): Point[] 
   }
   return out;
 }
-
-const ROUTE_POINTS: Point[] = (() => {
-  const pts: Point[] = [];
-  let prev: Point = TRAILHEAD;
-  for (const id of MAIN_ROUTE) {
-    const l = landmarkById[id];
-    const dy = (prev.y - l.y) * 0.5;
-    pts.push(...sampleCubic(prev, { x: prev.x, y: prev.y - dy }, { x: l.x, y: l.y + dy }, l));
-    prev = l;
-  }
-  for (const l of LANDMARKS) {
-    if (l.kind !== 'branch' || !l.from) continue;
-    const c = BRANCH_CURVES[l.id as keyof typeof BRANCH_CURVES];
-    pts.push(...sampleCubic(landmarkById[l.from], c.c1, c.c2, c.to));
-  }
-  for (const l of LANDMARKS) l.concepts.forEach((_, i) => pts.push(stopPoint(l, i)));
-  pts.push(...TERRAIN_NAMES);
-  return pts;
-})();
 
 function cubicLength(a: Point, c1: Point, c2: Point, b: Point): number {
   const pts = sampleCubic(a, c1, c2, b, 96);
@@ -158,7 +138,6 @@ export const BRANCH_LENGTHS: Partial<Record<RegionId, number>> = Object.fromEntr
 );
 
 export type ContourLevel = { level: number; index: boolean; d: string };
-export type ContourLabel = { x: number; y: number; angle: number; text: string; level: number };
 
 export const TERRAIN = (() => {
   const grid = sampleGrid(heightAt, TERRAIN_EXTENT, 12);
@@ -167,12 +146,10 @@ export const TERRAIN = (() => {
   for (const v of grid.v) [lo, hi] = [Math.min(lo, v), Math.max(hi, v)];
 
   const major: ContourLevel[] = [];
-  const labels: ContourLabel[] = [];
   for (let level = Math.ceil(lo / CONTOUR_INTERVAL) * CONTOUR_INTERVAL; level < hi; level += CONTOUR_INTERVAL) {
     const lines = contourLines(grid, level).map((l) => simplify(l, 0.8)).filter((l) => l.length > 2);
     const index = level % INDEX_INTERVAL === 0;
     major.push({ level, index, d: lines.map(smoothPath).join(' ') });
-    if (index) labels.push(...placeLabels(lines, level));
   }
 
   const fine = sampleGrid(heightAt, DETAIL_EXTENT, 7);
@@ -184,35 +161,5 @@ export const TERRAIN = (() => {
       if (s.length > 2) minorParts.push(polyPath(s));
     }
   }
-  return { major, minor: minorParts.join(' '), labels };
+  return { major, minor: minorParts.join(' ') };
 })();
-
-/** Up to two labels per index contour, inside the overview and clear of routes and names. */
-function placeLabels(lines: Point[][], level: number): ContourLabel[] {
-  const text = level.toLocaleString('en-US');
-  const box = { x0: ATLAS_BOX.x0 - 60, x1: ATLAS_BOX.x1 + 120, y0: ATLAS_BOX.y0 - 20, y1: ATLAS_BOX.y1 - 40 };
-  const candidates: { p: Point; angle: number; clearance: number }[] = [];
-  for (const line of lines) {
-    for (let i = 2; i < line.length - 2; i++) {
-      const p = line[i];
-      if (p.x < box.x0 || p.x > box.x1 || p.y < box.y0 || p.y > box.y1) continue;
-      const clearance = Math.min(...ROUTE_POINTS.map((q) => Math.hypot(q.x - p.x, q.y - p.y)));
-      if (clearance < 70) continue;
-      const a = line[i - 2];
-      const b = line[i + 2];
-      let angle = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
-      if (angle > 90) angle -= 180;
-      if (angle < -90) angle += 180;
-      if (Math.abs(angle) > 50) continue;
-      candidates.push({ p, angle, clearance });
-    }
-  }
-  candidates.sort((a, b) => b.clearance - a.clearance);
-  const picked: ContourLabel[] = [];
-  for (const c of candidates) {
-    if (picked.length === 2) break;
-    if (picked.some((q) => Math.hypot(q.x - c.p.x, q.y - c.p.y) < 320)) continue;
-    picked.push({ x: c.p.x, y: c.p.y, angle: c.angle, text, level });
-  }
-  return picked;
-}
