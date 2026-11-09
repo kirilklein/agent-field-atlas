@@ -359,7 +359,7 @@ export default function App() {
             focus={focus}
             revealed={revealed}
             compact={compact}
-            onLandmark={goRegion}
+            onLandmark={(id) => (wide && depth === 1 && id === route.region ? openDiagram() : goRegion(id))}
             selected={selected}
             onSelect={setSelected}
             onOpen={openConcept}
