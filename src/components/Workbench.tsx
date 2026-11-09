@@ -7,6 +7,7 @@ import { inlineCode } from '../lib/highlight';
 import { hrefFor } from '../lib/route';
 import { CodeBlock } from './CodeBlock';
 import { StoryPlayer } from './insets/StoryPlayer';
+import { Sources } from './Sources';
 import { CheckpointView } from './CheckpointView';
 import { CompareView } from './CompareView';
 import { IntervalView } from './IntervalView';
@@ -93,6 +94,8 @@ export const Workbench = forwardRef<HTMLHeadingElement, Props>(function Workbenc
       ) : (
         <p className="wb__explain">This lesson is still being surveyed.</p>
       )}
+
+      <Sources sources={lesson?.sources} />
 
       <nav className="wb__nav" aria-label="Lesson navigation">
         {prev ? (

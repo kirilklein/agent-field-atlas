@@ -1066,6 +1066,14 @@ pre {
   color: var(--pine);
   padding: 4px 0 8px;
 }
+.sources {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.sources a {
+  color: var(--pine);
+}
 .region-card__deeper .region-card__builds span {
   font-weight: 600;
   color: var(--pine);
