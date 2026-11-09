@@ -11,7 +11,8 @@ import type { Theme } from './theme';
  *
  * Phases:
  * - flat:   the SVG map is in charge; the canvas is hidden and not rendering.
- * - relief: the 3D overview is showing (drifts slowly, drag turns it a little).
+ * - relief: the model is showing. On the overview it drifts slowly; once it
+ *           follows a camera (`follow`), it is that flat camera tilted.
  * - down:   flying from the model to a flat camera (route change, zoom in).
  * - up:     lifting from a flat camera into the model (back to the overview).
  *
@@ -124,6 +125,8 @@ export class Relief {
   private stage: Size = { w: 1, h: 1 };
   private framing: Framing | null = null;
   private base: View | null = null;
+  /** The flat camera the model follows, tilted; null on the overview's own framing. */
+  private cam: Cam | null = null;
   private view: View | null = null;
   private walked = '';
   private theme: Theme = 'light';
@@ -351,6 +354,13 @@ export class Relief {
     return { tx: cam.cx, ty: 0, tz: cam.cy, d: f / cam.k, theta: 0, phi: 0, sx: 0, sy: 0, exag: 0 };
   }
 
+  /** The flat camera tilted: the same ground point at the centre, the same scale there. */
+  private tilted(cam: Cam): View {
+    const f = this.stage.h / (2 * Math.tan(rad(FOV) / 2));
+    const theta = this.framing?.theta ?? rad(52);
+    return { tx: cam.cx, ty: liftAt(cam.cx, cam.cy), tz: cam.cy, d: f / cam.k, theta, phi: 0, sx: 0, sy: 0, exag: 1 };
+  }
+
   /** The idle drift's amplitude: eases up to 1 while awake and back to 0 after. */
   private drift(now: number) {
     const dt = Math.min(100, Math.max(0, now - this.ampAt));
@@ -364,6 +374,10 @@ export class Relief {
   }
 
   private live(now: number): View | null {
+    if (this.cam) {
+      const v = this.tilted(this.cam);
+      return { ...v, phi: v.phi + this.orbit.phi, theta: v.theta + this.orbit.theta };
+    }
     const b = this.base;
     if (!b) return null;
     const s = (now - this.clock) / 1000;
@@ -376,6 +390,24 @@ export class Relief {
   }
 
   /* ----- moves ----- */
+
+  /** Follow the flat camera `cam` (null: back to the overview's framing). Switching eases between the two. */
+  follow(cam: Cam | null) {
+    const switched = (cam === null) !== (this.cam === null);
+    this.cam = cam;
+    if (switched) this.glide(500);
+    this.kick(true);
+  }
+
+  /** Ease from wherever the model is to where it should be now (a route change). */
+  glide(ms = FLIGHT_MS) {
+    if (!this.gl || this.state.phase !== 'relief') return;
+    const now = performance.now();
+    const from = this.view ?? this.live(now);
+    if (!from) return;
+    this.flight = { from, to: null, start: now, ms };
+    this.kick(true);
+  }
 
   /** Fly from wherever the model is to the flat camera `to`, then hand over to the SVG. */
   descend(to: Cam) {
@@ -443,7 +475,7 @@ export class Relief {
 
   /** Pointer position over the stage, -1..1 from the centre (parallax). Null when it leaves. */
   lookAt(nx: number | null, ny = 0) {
-    if (!this.fine) return;
+    if (!this.fine || this.cam) return;
     this.look.tx = nx === null ? 0 : Math.max(-1, Math.min(1, nx));
     this.look.ty = nx === null ? 0 : Math.max(-1, Math.min(1, ny));
     if (nx !== null) this.wake();
@@ -452,6 +484,8 @@ export class Relief {
 
   /** World point → stage point through the model's current camera. */
   project = (p: Point): Point => (this.gl ? this.gl.project(p) : p);
+  /** Stage point → the world point on the ground under it, through the model's current camera. */
+  unproject = (p: Point): Point | null => (this.gl ? this.gl.unproject(p) : null);
 
   /* ----- render loop ----- */
 
@@ -502,9 +536,9 @@ export class Relief {
       }
     } else {
       const interacting = looking || now < this.busyUntil;
-      const drifting = now < this.awakeUntil || this.amp > 0;
+      const drifting = !this.cam && (now < this.awakeUntil || this.amp > 0);
       // Settled: draw once more where it rests, then stop until something moves.
-      if (!interacting && !drifting && this.lastDraw > this.awakeUntil) return;
+      if (!interacting && !drifting && this.lastDraw !== 0 && (this.cam || this.lastDraw > this.awakeUntil)) return;
       // Idle drift: 30 fps is plenty for motion this slow.
       if (!interacting && now - this.lastDraw < 30) {
         this.raf = requestAnimationFrame(this.tick);
