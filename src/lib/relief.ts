@@ -13,13 +13,12 @@ import type { Theme } from './theme';
  * - flat:   the SVG map is in charge; the canvas is hidden and not rendering.
  * - relief: the model is showing. On the overview it drifts slowly; once it
  *           follows a camera (`follow`), it is that flat camera tilted.
- * - down:   flying from the model to a flat camera (route change, zoom in).
- * - up:     lifting from a flat camera into the model (back to the overview).
+ * - up:     lifting from the flat map into the model, once it is ready.
  *
- * A flight ends exactly where the flat camera is: looking straight down with
+ * The lift starts exactly where the flat camera is: looking straight down with
  * the exaggeration at 0, a perspective camera at distance f/k shows the plane
- * at the same scale and position as the SVG's `toScreen`, so the hand-over is
- * a crossfade between two identical pictures.
+ * at the same scale and position as the SVG's `toScreen`. The flat map stays
+ * only where the model can't run (no WebGL 2, reduced motion).
  */
 
 /** World area the model covers (most of TERRAIN_EXTENT; the plate fades out before its edges). */
@@ -64,15 +63,13 @@ export type Framing = {
   points: Point[];
 };
 
-export type Phase = 'flat' | 'relief' | 'down' | 'up';
+export type Phase = 'flat' | 'relief' | 'up';
 export type ReliefState = { available: boolean; ready: boolean; phase: Phase; turned: boolean };
 
 type GL = import('./reliefGL').ReliefGL;
 
 const rad = (deg: number) => (deg * Math.PI) / 180;
 const FLIGHT_MS = 980;
-/** After landing, the model fades into the identical flat map. */
-const FADE_MS = 200;
 /** Idle drift and parallax amplitudes. */
 const DRIFT_PHI = rad(2.4);
 const DRIFT_THETA = rad(1.1);
@@ -80,8 +77,6 @@ const LOOK_PHI = rad(1.8);
 const LOOK_THETA = rad(1.1);
 const TURN_PHI = rad(14);
 const TURN_THETA = { lo: rad(-9), hi: rad(7) };
-/** Free the GPU after this long on the flat map. */
-const SLEEP_MS = 60_000;
 /** The idle drift settles after this long without the pointer moving, and rendering stops. */
 const DRIFT_MS = 45_000;
 
@@ -135,7 +130,6 @@ export class Relief {
   private orbit = { phi: 0, theta: 0 };
   private look = { x: 0, y: 0, tx: 0, ty: 0 };
   private flight: { from: View; to: View | null; start: number; ms: number } | null = null;
-  private fadeFrom = 0;
   private clock = performance.now();
   private raf = 0;
   private lastDraw = 0;
@@ -146,7 +140,6 @@ export class Relief {
   private hidden = typeof document !== 'undefined' && document.hidden;
   private offscreen = false;
   private io: IntersectionObserver | null = null;
-  private sleepTimer = 0;
   private repaintTimer = 0;
   private fine = typeof window !== 'undefined' && window.matchMedia('(pointer: fine)').matches;
 
@@ -164,7 +157,6 @@ export class Relief {
   unmount() {
     this.mounted = false;
     document.removeEventListener('visibilitychange', this.onVisibility);
-    window.clearTimeout(this.sleepTimer);
     window.clearTimeout(this.repaintTimer);
     this.shutdown();
   }
@@ -204,7 +196,7 @@ export class Relief {
     if (host === this.host) return;
     this.io?.disconnect();
     this.io = null;
-    this.release(true);
+    this.release();
     this.host = host;
     if (host && typeof IntersectionObserver !== 'undefined') {
       this.io = new IntersectionObserver(([e]) => {
@@ -217,7 +209,6 @@ export class Relief {
 
   /** Start loading three and building the model (no-op if loaded, loading or unavailable). */
   load() {
-    window.clearTimeout(this.sleepTimer);
     if (this.gl || this.loading || !this.host || !this.state.available || !this.mounted) return;
     if (!webglAvailable()) {
       this.fail();
@@ -262,22 +253,21 @@ export class Relief {
 
   /** Stop: unmount, or reduced motion. */
   shutdown() {
-    this.release(true);
+    this.release();
     this.setState({ ready: false, phase: 'flat' });
   }
 
   private fail() {
-    this.release(true);
+    this.release();
     this.setState({ available: false, ready: false, phase: 'flat' });
   }
 
   /** Free the GPU: dispose the model and drop its canvas. */
-  private release(all: boolean) {
+  private release() {
     cancelAnimationFrame(this.raf);
     this.raf = 0;
     this.flight = null;
     this.flightT = 1;
-    this.fadeFrom = 0;
     this.view = null;
     const canvas = this.canvas;
     this.canvas = null;
@@ -287,7 +277,7 @@ export class Relief {
       this.gl = null;
     }
     canvas?.remove();
-    if (all) this.base = null;
+    this.base = null;
   }
 
   private onLost = (e: Event) => {
@@ -298,13 +288,10 @@ export class Relief {
   private onVisibility = () => {
     this.hidden = document.hidden;
     // No frames while hidden: land a flight in progress at once.
-    if (this.hidden && this.fadeFrom) this.finishDown();
     if (this.hidden && this.flight) {
-      const { phase } = this.state;
       this.flight = null;
       this.flightT = 1;
-      if (phase === 'down') this.finishDown();
-      else if (phase === 'up') this.setState({ phase: 'relief' });
+      if (this.state.phase === 'up') this.setState({ phase: 'relief' });
     }
     this.kick(true);
   };
@@ -409,29 +396,10 @@ export class Relief {
     this.kick(true);
   }
 
-  /** Fly from wherever the model is to the flat camera `to`, then hand over to the SVG. */
-  descend(to: Cam) {
-    if (!this.gl || this.state.phase === 'flat') return;
-    if (this.fadeFrom) {
-      // Already landed and fading: just land somewhere else.
-      this.finishDown();
-      return;
-    }
-    const now = performance.now();
-    const from = this.view ?? this.live(now);
-    if (!from) return;
-    this.flight = { from, to: this.flatView(to), start: now, ms: FLIGHT_MS };
-    this.flightT = 0;
-    this.setState({ phase: 'down' });
-    this.kick(true);
-  }
-
   /** Lift into the model: from the flat camera `from` (when flat) or from mid-flight. */
   rise(from: Cam, ms = FLIGHT_MS) {
     if (!this.gl || !this.base) return;
-    window.clearTimeout(this.sleepTimer);
     const now = performance.now();
-    this.fadeFrom = 0;
     const start = this.state.phase === 'flat' ? this.flatView(from) : (this.view ?? this.flatView(from));
     this.flight = { from: start, to: null, start: now, ms };
     this.flightT = 0;
@@ -442,11 +410,6 @@ export class Relief {
     if (this.canvas) this.canvas.style.opacity = '1';
     this.setState({ phase: 'up' });
     this.kick(true);
-  }
-
-  /** The flat camera moved while flying down (resize, diagram): land there instead. */
-  retarget(to: Cam) {
-    if (this.state.phase === 'down' && this.flight) this.flight.to = this.flatView(to);
   }
 
   /** Drag: turn the model a little (clamped). dx, dy in screen px. */
@@ -493,7 +456,7 @@ export class Relief {
   private kick(now = false) {
     if (now) this.lastDraw = 0;
     if (this.raf || !this.gl || !this.showing || this.hidden) return;
-    if (this.offscreen && !this.flight && !this.fadeFrom) return;
+    if (this.offscreen && !this.flight) return;
     this.raf = requestAnimationFrame(this.tick);
   }
 
@@ -510,15 +473,6 @@ export class Relief {
     this.look.x += lx * 0.07;
     this.look.y += ly * 0.07;
 
-    // Landed: the last frame is exactly the flat camera's picture; fade it out.
-    if (this.fadeFrom) {
-      const t = Math.min(1, (now - this.fadeFrom) / FADE_MS);
-      if (this.canvas) this.canvas.style.opacity = String(1 - smooth(t));
-      if (t >= 1) this.finishDown();
-      else this.raf = requestAnimationFrame(this.tick);
-      return;
-    }
-
     let v: View | null;
     if (this.flight) {
       const f = this.flight;
@@ -529,9 +483,8 @@ export class Relief {
       if (t >= 1) {
         this.flight = null;
         this.flightT = 1;
-        if (phase === 'down') this.fadeFrom = now;
         if (phase === 'up') this.setState({ phase: 'relief' });
-      } else if (phase === 'down' || phase === 'up') {
+      } else if (phase === 'up') {
         this.flightT = t;
       }
     } else {
@@ -553,21 +506,6 @@ export class Relief {
     if (this.canvas) this.canvas.style.opacity = '1';
     this.frame = { n: this.frame.n + 1, showing: true };
     this.emit();
-    if (!this.offscreen || this.flight || this.fadeFrom) this.raf = requestAnimationFrame(this.tick);
+    if (!this.offscreen || this.flight) this.raf = requestAnimationFrame(this.tick);
   };
-
-  private finishDown() {
-    this.fadeFrom = 0;
-    if (this.canvas) this.canvas.style.opacity = '0';
-    this.view = null;
-    this.orbit = { phi: 0, theta: 0 };
-    this.setState({ phase: 'flat', turned: false });
-    // Free the GPU memory if the model is not needed again for a while.
-    window.clearTimeout(this.sleepTimer);
-    this.sleepTimer = window.setTimeout(() => {
-      if (this.state.phase !== 'flat') return;
-      this.release(false);
-      this.setState({ ready: false });
-    }, SLEEP_MS);
-  }
 }
