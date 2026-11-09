@@ -1,14 +1,14 @@
 import { useSyncExternalStore } from 'react';
 
 /**
- * Light (the printed plate) or dark (the atlas at night). The inline script in
+ * Light (the printed plate), dark (the atlas at night) or toy (a toy diorama). The inline script in
  * index.html sets `data-theme` on <html> before first paint; this module keeps it
  * in sync afterwards. With no explicit choice the theme follows the system.
  */
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'toy';
 
 const KEY = 'atlas-theme';
-const META = { light: '#F3EDDE', dark: '#0F1B17' };
+const META = { light: '#F3EDDE', dark: '#0F1B17', toy: '#F7E4C8' };
 const listeners = new Set<() => void>();
 
 const systemQuery = () => window.matchMedia('(prefers-color-scheme: dark)');
@@ -17,14 +17,15 @@ const systemTheme = (): Theme => (systemQuery().matches ? 'dark' : 'light');
 function stored(): Theme | null {
   try {
     const v = window.localStorage.getItem(KEY);
-    return v === 'light' || v === 'dark' ? v : null;
+    return v === 'light' || v === 'dark' || v === 'toy' ? v : null;
   } catch {
     return null;
   }
 }
 
 export function currentTheme(): Theme {
-  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+  const t = document.documentElement.dataset.theme;
+  return t === 'dark' || t === 'toy' ? t : 'light';
 }
 
 function apply(t: Theme) {

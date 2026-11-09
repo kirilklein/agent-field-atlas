@@ -211,6 +211,100 @@
   color: #fbf1dc;
 }
 
+/* The toy plate: a diorama in warm cream, grass green, coral and plum. */
+:root[data-theme='toy'] {
+  --paper: #f7e4c8;
+  --paper-deep: #f0d6b0;
+  --card: #fff6e8;
+  --code-bg: #fbecd6;
+  --pine: #3b2340;
+  --pine-2: #5c3a5e;
+  --ink-soft: #6a4c64;
+  --sage: #6fbf5a;
+  --sage-dark: #3f8a32;
+  --sage-2: #bfe0a6;
+  --sage-3: #e2f0d2;
+  --copper: #e8552f;
+  --copper-2: #ff8a5c;
+  --copper-wash: #ffe1cf;
+  --pass: #2f8a4a;
+  --fail: #c23b2a;
+  --fail-wash: #fde2da;
+  --viz-a: #2f7fd0;
+  --viz-b: #e8552f;
+  --terminal-bg: #2e1b33;
+  --terminal-fg: #fdeee0;
+  --terminal-dim: #c2a8bb;
+  --terminal-bad: #ffab91;
+  --rule: rgba(59, 35, 64, 0.18);
+  --rule-strong: rgba(59, 35, 64, 0.34);
+
+  --ink-rgb: 59, 35, 64;
+  --paper-rgb: 247, 228, 200;
+  --card-rgb: 255, 246, 232;
+  --copper-rgb: 232, 85, 47;
+  --pass-rgb: 47, 138, 74;
+  --fail-rgb: 194, 59, 42;
+  --viz-a-rgb: 47, 127, 208;
+
+  --sheet: #fffaf2;
+  --ink-mid: #4d3150;
+  --ink-faint: #8a7086;
+  --ink-disabled: #cdb9c6;
+  --copper-ink: #a8361a;
+  --pass-wash: #dcf1d2;
+  --pass-wash-2: #dcf1d2;
+  --pass-wash-3: #dcf1d2;
+  --pass-tint: #eef8e8;
+  --paper-card-bg: #fff3e2;
+  --fail-wash-2: #fde9e2;
+  --fail-ink: #7a2214;
+  --fail-ink-2: #5e3a34;
+  --skip-ink: #8f7d8a;
+  --warn: #9a6210;
+  --warn-ink: #87560e;
+  --warn-wash: #fdebc4;
+  --model-ink: #5b3f8c;
+  --model-wash: #ece2f8;
+  --judge-ink: #2f5a7a;
+  --judge-wash: #dfeaf4;
+  --viz-a-ink: #1f5e9e;
+  --viz-a-wash: #dbeafb;
+  --viz-b-ink: #a8361a;
+  --terminal-good: #b4e6a0;
+
+  --graticule: rgba(59, 35, 64, 0.1);
+  --contour: rgba(59, 35, 64, 0.2);
+  --contour-index: rgba(59, 35, 64, 0.42);
+  --contour-minor: rgba(59, 35, 64, 0.1);
+  --place-ink: var(--pine-2);
+  --trail-walked: #c23b2a;
+  --pin-bg: var(--card);
+  --pin-border: var(--pine);
+  --pin-glow: 0 3px 0 0 var(--pine);
+
+  --code-ln: #b89fb2;
+  --tok-kw: #8a2a6e;
+  --tok-str: #b0461c;
+  --tok-com: #8f7d8a;
+  --tok-fn: #1f6e8c;
+  --tok-key: #5c3a5e;
+  --tok-deco: #5b3f8c;
+
+  /* Hard offset shadows: everything sits on the table like a toy block. */
+  --shadow-ctl: 0 3px 0 var(--pine);
+  --shadow-card: 0 5px 0 var(--pine);
+  --shadow-panel: 0 5px 0 var(--pine);
+  --shadow-pop: 0 4px 0 var(--pine);
+  --shadow-float: 0 6px 0 var(--pine);
+
+  --serif: var(--sans);
+  color-scheme: light;
+}
+:root[data-theme='toy'] ::selection {
+  background: rgba(232, 85, 47, 0.3);
+}
+
 *,
 *::before,
 *::after {
@@ -427,7 +521,7 @@ pre {
   background: var(--pine);
   color: var(--paper);
 }
-.theme-toggle__btn[aria-pressed='true']:last-child {
+.theme-toggle__btn[aria-pressed='true']:nth-child(2) {
   background: var(--copper-wash);
   color: var(--copper-2);
   box-shadow: inset 0 0 0 1px rgba(var(--copper-rgb), 0.45);
@@ -4273,6 +4367,97 @@ g:hover > .viz__pairline {
     color: var(--copper-ink);
   }
   [data-theme='dark'] .cartouche .hub {
+    background: var(--code-bg);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Toy plate: solid rounded blocks instead of vellum                    */
+/* ------------------------------------------------------------------ */
+
+:root[data-theme='toy'] {
+  --vellum: var(--card);
+  --vellum-dense: var(--card);
+  --vellum-blur: none;
+  --vellum-sheen: none;
+  --vellum-fibre: none;
+  --vellum-edge: inset 0 0 0 2px var(--pine);
+  --vellum-lift: 0 5px 0 var(--pine);
+}
+[data-theme='toy'] .grain,
+[data-theme='toy'] .frame {
+  display: none;
+}
+[data-theme='toy'] .theme-toggle__btn[aria-pressed='true']:nth-child(3) {
+  background: var(--copper);
+  color: var(--on-solid);
+}
+[data-theme='toy'] .btn,
+[data-theme='toy'] .icon-btn {
+  border: 2px solid var(--pine);
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 3px 0 var(--pine);
+  transition: background-color 140ms, transform 90ms, box-shadow 90ms;
+}
+[data-theme='toy'] .btn:active:not(:disabled),
+[data-theme='toy'] .icon-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--pine);
+}
+[data-theme='toy'] .btn--primary {
+  background: var(--copper);
+  color: var(--on-solid);
+}
+[data-theme='toy'] .btn--primary:hover {
+  background: var(--copper-2);
+}
+[data-theme='toy'] .map-controls {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: var(--vellum-edge), var(--vellum-lift);
+}
+[data-theme='toy'] .map-ctl + .map-ctl {
+  border-top: 2px solid var(--pine);
+}
+[data-theme='toy'] .cartouche,
+[data-theme='toy'] .region-card,
+[data-theme='toy'] .callout,
+[data-theme='toy'] .diagram-callout,
+[data-theme='toy'] .sheet--bench {
+  border-radius: 18px;
+}
+[data-theme='toy'] .cartouche::before,
+[data-theme='toy'] .region-card::before {
+  border-color: transparent;
+}
+[data-theme='toy'] .topbar {
+  box-shadow: inset 0 -2px 0 var(--pine);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  [data-theme='toy'] .cartouche,
+  [data-theme='toy'] .region-card,
+  [data-theme='toy'] .map-controls,
+  [data-theme='toy'] .callout,
+  [data-theme='toy'] .diagram-callout {
+    --ink-soft: #6a4c64;
+  }
+  [data-theme='toy'] .diagram-callout .inset__svg {
+    background: var(--sheet);
+  }
+  [data-theme='toy'] .topbar {
+    background-color: var(--paper);
+  }
+  [data-theme='toy'] .sheet--bench {
+    background-color: var(--card);
+  }
+  [data-theme='toy'] .cartouche .motif__cap,
+  [data-theme='toy'] .region-card__builds-label,
+  [data-theme='toy'] .callout__kicker,
+  [data-theme='toy'] .diagram-callout .inset__kicker {
+    color: var(--copper-ink);
+  }
+  [data-theme='toy'] .cartouche .hub {
     background: var(--code-bg);
   }
 }

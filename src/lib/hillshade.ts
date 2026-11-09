@@ -3,7 +3,7 @@ import type { Theme } from './theme';
 
 type RGB = [number, number, number];
 
-type Plate = { ramp: [number, RGB][]; shadow: RGB; light: RGB; lightMax: number };
+type Plate = { ramp: [number, RGB][]; shadow: RGB; light: RGB; lightMax: number; bandMix: number };
 
 /**
  * Hypsometric ramp in the Swiss relief tradition, desaturated to sit on the
@@ -13,6 +13,9 @@ type Plate = { ramp: [number, RGB][]; shadow: RGB; light: RGB; lightMax: number 
  *
  * At night the ground is pine-black, so shadows sink towards black and lit
  * slopes lift towards a moonlit sage, kept low so the plate stays dark.
+ *
+ * The toy plate is a diorama: saturated grass, sand, rock and snow in hard
+ * 500 m terraces, with plum shadows.
  */
 const PLATES: Record<Theme, Plate> = {
   light: {
@@ -28,6 +31,7 @@ const PLATES: Record<Theme, Plate> = {
     shadow: [96, 118, 112],
     light: [255, 251, 238],
     lightMax: 0.75,
+    bandMix: 0.3,
   },
   dark: {
     ramp: [
@@ -39,22 +43,35 @@ const PLATES: Record<Theme, Plate> = {
     shadow: [2, 8, 6],
     light: [150, 178, 150],
     lightMax: 0.3,
+    bandMix: 0.3,
+  },
+  toy: {
+    ramp: [
+      [250, [126, 196, 92]],
+      [800, [158, 214, 104]],
+      [1300, [236, 210, 140]],
+      [1800, [214, 170, 128]],
+      [2300, [196, 176, 186]],
+      [2600, [255, 250, 244]],
+    ],
+    shadow: [92, 54, 98],
+    light: [255, 244, 214],
+    lightMax: 0.5,
+    bandMix: 1,
   },
 };
-/** Soft steps every 500 m (the index contours), mixed into the smooth ramp. */
+/** Steps every 500 m (the index contours), mixed into the smooth ramp by `bandMix`. */
 const BAND = 500;
-const BAND_MIX = 0.3;
 
 function smoothstep(a: number, b: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 }
 
-function tint(RAMP: [number, RGB][], h: number, out: RGB): void {
-  // Very soft banding: mostly smooth, with a gentle lift at each 500 m step.
+function tint(RAMP: [number, RGB][], bandMix: number, h: number, out: RGB): void {
   const f = h / BAND;
   const stepped = (Math.floor(f) + smoothstep(0.72, 1, f - Math.floor(f))) * BAND;
-  const e = h + (stepped - h) * BAND_MIX;
+  const e = h + (stepped - h) * bandMix;
   let i = 0;
   while (i < RAMP.length - 2 && e > RAMP[i + 1][0]) i++;
   const [h0, c0] = RAMP[i];
@@ -78,7 +95,7 @@ const cache: Partial<Record<Theme, Relief>> = {};
 export function renderHillshade(theme: Theme = 'light', unitsPerPx = 2): Relief | null {
   const hit = cache[theme];
   if (hit) return hit;
-  const { ramp, shadow: SHADOW, light: LIGHT, lightMax } = PLATES[theme];
+  const { ramp, shadow: SHADOW, light: LIGHT, lightMax, bandMix } = PLATES[theme];
   const e = TERRAIN_EXTENT;
   const W = Math.round((e.x1 - e.x0) / unitsPerPx);
   const H = Math.round((e.y1 - e.y0) / unitsPerPx);
@@ -107,7 +124,7 @@ export function renderHillshade(theme: Theme = 'light', unitsPerPx = 2): Relief 
   const lut = new Float32Array((LUT_MAX + 1) * 4);
   const base: RGB = [0, 0, 0];
   for (let m = 0; m <= LUT_MAX; m++) {
-    tint(ramp, m, base);
+    tint(ramp, bandMix, m, base);
     lut[m * 4] = base[0];
     lut[m * 4 + 1] = base[1];
     lut[m * 4 + 2] = base[2];

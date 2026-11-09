@@ -11,10 +11,10 @@
       (function () {
         var t;
         try { t = localStorage.getItem('atlas-theme'); } catch (e) {}
-        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        if (t !== 'light' && t !== 'dark' && t !== 'toy') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', t);
         var m = document.querySelector('meta[name="theme-color"]');
-        if (m && t === 'dark') m.setAttribute('content', '#0F1B17');
+        if (m && t !== 'light') m.setAttribute('content', t === 'dark' ? '#0F1B17' : '#F7E4C8');
       })();
     </script>
     <meta name="description" content="An interactive field atlas for engineers learning how LLM agents work by building a paper-search assistant in plain Python." />
