@@ -12,6 +12,7 @@ import type { Point, RegionId } from './data/types';
 import { CALLOUT_GAP, DiagramCallout } from './components/insets/DiagramCallout';
 import { NO_INSETS, camAt, fit, toScreen, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
 import { useMapGestures } from './lib/gestures';
+import { INTRO_VARS, useIntro } from './lib/intro';
 import { useProgress } from './lib/progress';
 import { ATLAS_BOX, regionBox, stopPoint } from './lib/geometry';
 import { depthOf, hrefFor, parentOf, routeKey, useHashRoute } from './lib/route';
@@ -32,6 +33,8 @@ export default function App() {
   const [hoveredConcept, setHoveredConcept] = useState<string | null>(null);
   const depth = depthOf(route);
   const key = routeKey(route);
+  const intro = useIntro();
+  const inking = intro === 'wait' || intro === 'run';
 
   // The last region visited: the anchor (and fading fog) when returning to the overview.
   const lastRegion = useRef<RegionId | null>(route.region);
@@ -298,7 +301,10 @@ export default function App() {
   });
 
   return (
-    <div className={`app depth-${depth} ${compact ? 'is-compact' : ''} ${lessonHasTrace ? 'has-trace' : ''}`} style={{ ['--panel-w' as string]: `${panelW}px` }}>
+    <div
+      className={`app depth-${depth} ${compact ? 'is-compact' : ''} ${lessonHasTrace ? 'has-trace' : ''} ${inking ? 'intro' : ''} ${intro === 'wait' ? 'intro--hold' : ''} ${intro === 'done' ? 'intro-done' : ''}`}
+      style={{ ['--panel-w' as string]: `${panelW}px`, ...(inking ? INTRO_VARS : null) }}
+    >
       <a
         className="skip"
         href="#main-sheet"
@@ -353,7 +359,7 @@ export default function App() {
           aria-label="Trail map. Drag to pan and scroll to zoom. With the map focused, arrow keys pan, plus and minus zoom, and 0 recenters."
           onKeyDown={onStageKey}
         >
-          <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} />
+          <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} intro={inking} />
           <div className="grain" aria-hidden="true" />
           <div className="fog" style={fogStyle} aria-hidden="true" />
           <Markers

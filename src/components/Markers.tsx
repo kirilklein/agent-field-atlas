@@ -7,6 +7,7 @@ import { TEASERS } from '../data/sketches';
 import { TERRAIN, stopPoint } from '../lib/geometry';
 import type { Progress } from '../lib/progress';
 import { elevationLabel } from '../data/terrain';
+import { CONTOUR_LABEL_LAG, LANDMARK_AT, NAME_AT, TRAILHEAD_LABEL_AT, contourAt, ms } from '../lib/intro';
 import type { Route } from '../lib/route';
 
 type Props = {
@@ -57,15 +58,15 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
     <div className="markers">
       {/* Place names belong to the overview scale and fade as you descend. */}
       <div className={`terrain-names ${inRegion ? 'is-hidden' : ''}`} aria-hidden="true">
-        {TERRAIN_NAMES.map((n) => {
+        {TERRAIN_NAMES.map((n, i) => {
           const p = toScreen(cam, stage, n);
           return (
-            <span key={n.text} className="terrain-name" style={at(p.x, p.y)}>
+            <span key={n.text} className="terrain-name" style={{ ...at(p.x, p.y), ['--at' as string]: ms(NAME_AT[i]) }}>
               <span style={{ transform: `translate(-50%, -50%) rotate(${n.rotate ?? 0}deg)` }}>{n.text}</span>
             </span>
           );
         })}
-        <span className="terrain-name terrain-name--trailhead" style={at(th.x, th.y)}>
+        <span className="terrain-name terrain-name--trailhead" style={{ ...at(th.x, th.y), ['--at' as string]: ms(TRAILHEAD_LABEL_AT) }}>
           <span>Trailhead · {elevationLabel(TRAILHEAD.x, TRAILHEAD.y)}</span>
         </span>
       </div>
@@ -75,7 +76,11 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
         {TERRAIN.labels.map((c) => {
           const p = toScreen(cam, stage, c);
           return (
-            <span key={`${c.text}-${c.x}`} className="contour-label" style={at(p.x, p.y)}>
+            <span
+              key={`${c.text}-${c.x}`}
+              className="contour-label"
+              style={{ ...at(p.x, p.y), ['--at' as string]: ms(contourAt(c.level) + CONTOUR_LABEL_LAG) }}
+            >
               <span style={{ transform: `translate(-50%, -50%) rotate(${c.angle}deg)` }}>{c.text}</span>
             </span>
           );
@@ -100,7 +105,7 @@ export function Markers({ cam, stage, route, focus, revealed, compact, onLandmar
               selected ? 'is-selected' : '',
               dimmed ? 'is-dimmed' : '',
             ].join(' ')}
-            style={at(p.x, p.y)}
+            style={{ ...at(p.x, p.y), ['--at' as string]: ms(LANDMARK_AT[l.id]) }}
             aria-current={selected && !route.concept ? 'location' : undefined}
             aria-label={`${kicker}: ${l.title}. ${l.builds}${l.kind === 'branch' ? ` Optional branch from ${landmarkById[l.from!].title}.` : ''} ${Math.round(progress.share(l.id) * l.concepts.length)} of ${l.concepts.length} lessons visited.`}
             onClick={() => onLandmark(l.id)}
