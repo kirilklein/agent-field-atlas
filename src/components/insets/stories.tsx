@@ -135,8 +135,8 @@ const toolCalling: Story = {
   draw(s, t) {
     const model = { x: 40, y: 105 };
     const gate = { x: 190, y: 105 };
-    const tool = { x: 306, y: 60 };
-    const ghost = { x: 306, y: 152 };
+    const tool = { x: 298, y: 60 };
+    const ghost = { x: 298, y: 152 };
     const open = s === 2 ? seg(t, 0.3, 0.6) : s === 3 ? 1 - seg(t, 0.8, 1) : 0;
     const toTool = (u: number) => qbez(gate, { x: 250, y: 60 }, tool, u);
 
@@ -170,8 +170,8 @@ const toolCalling: Story = {
     return (
       <>
         <path className="ins-wire" d={`M${model.x + 32} ${gate.y} H${gate.x}`} />
-        <path className="ins-wire" d={`M${gate.x} ${gate.y} Q250 60 ${tool.x - 46} ${tool.y}`} />
-        <path className="ins-wire is-ghost" d={`M${gate.x} ${gate.y} Q250 152 ${ghost.x - 46} ${ghost.y}`} />
+        <path className="ins-wire" d={`M${gate.x} ${gate.y} Q250 60 ${tool.x - 54} ${tool.y}`} />
+        <path className="ins-wire is-ghost" d={`M${gate.x} ${gate.y} Q250 152 ${ghost.x - 54} ${ghost.y}`} />
         <Station x={model.x} y={model.y} w={64} label="Model" on={s === 1 ? t < 0.25 : s === 4 ? t < 0.25 : (s === 3 || s === 6) && t > 0.8} />
         <Note x={8} y={model.y + 26} anchor="start" opacity={appear(s, t, 0, 0.8, 1)}>
           knows: search_papers
@@ -190,8 +190,8 @@ const toolCalling: Story = {
           allowlist: search_papers
         </Note>
 
-        <Station x={tool.x} y={tool.y} w={92} label="search_papers" on={(s === 2 && t > 0.85) || (s === 3 && t < 0.2)} />
-        <Station x={ghost.x} y={ghost.y} w={92} label="fetch_url" ghost bad={s === 5} sub="never offered" />
+        <Station x={tool.x} y={tool.y} w={108} label="search_papers" on={(s === 2 && t > 0.85) || (s === 3 && t < 0.2)} />
+        <Station x={ghost.x} y={ghost.y} w={108} label="fetch_url" ghost bad={s === 5} sub="never offered" />
 
         {schema && <Chip x={schema.x} y={schema.y} text="search_papers(query)" tone="host" opacity={1 - seg(t, 0.85, 1)} scale={lerp(1, 0.7, t)} />}
         {call && <Chip x={call.p.x} y={call.p.y} text={call.text} tone={call.tone} opacity={call.o} />}
