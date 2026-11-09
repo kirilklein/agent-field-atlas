@@ -62,6 +62,12 @@ const PLATES: Record<Theme, Plate> = {
     shadow: rgb('#a9b5b0'), light: rgb('#2a3a32'),
     gridA: 0.072, contourA: 0.2, indexA: 0.4, minorA: 0.11, night: 1,
   },
+  toy: {
+    paper: rgb('#f7e4c8'), grid: rgb('#3b2340'), contour: rgb('#3b2340'), index: rgb('#3b2340'), minor: rgb('#3b2340'),
+    copper: rgb('#e8552f'), walked: rgb('#c23b2a'), branch: rgb('#5c3a5e'), pine: rgb('#3b2340'), head: rgb('#3b2340'),
+    shadow: rgb('#b9a3b8'), light: rgb('#fff4d6'),
+    gridA: 0.1, contourA: 0.2, indexA: 0.42, minorA: 0.1, night: 0,
+  },
 };
 
 const plateUniforms = (p: Plate) => ({

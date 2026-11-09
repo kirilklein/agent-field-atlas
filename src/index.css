@@ -4428,8 +4428,14 @@ g:hover > .viz__pairline {
   border-radius: 18px;
 }
 [data-theme='toy'] .cartouche::before,
-[data-theme='toy'] .region-card::before {
+[data-theme='toy'] .region-card::before,
+[data-theme='toy'] .welcome__sheet::before {
   border-color: transparent;
+}
+[data-theme='toy'] .welcome__sheet {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: var(--vellum-edge), var(--vellum-lift);
 }
 [data-theme='toy'] .topbar {
   box-shadow: inset 0 -2px 0 var(--pine);
