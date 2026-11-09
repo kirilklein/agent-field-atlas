@@ -21,6 +21,7 @@ import { BRANCH_CURVES, LANDMARKS, MAIN_ROUTE, TRAILHEAD, landmarkById } from '.
 import { DETAIL_EXTENT, heightAt } from '../data/terrain';
 import type { Point } from '../data/types';
 import type { Size } from './camera';
+import { PLATES as RELIEF } from './hillshade';
 import type { Theme } from './theme';
 import { FOV, MESH, liftAt, liftOf, type Framing, type View } from './relief';
 
@@ -45,29 +46,44 @@ type Plate = {
   light: RGB;
   /** Line opacities, as the SVG strokes. */
   gridA: number; contourA: number; indexA: number; minorA: number;
-  night: number;
 };
 
-/** Same colours as the SVG plate (index.css), by day and at night. */
+/** Same colours as the SVG plate (index.css). */
 const PLATES: Record<Theme, Plate> = {
   light: {
     paper: rgb('#f3edde'), grid: rgb('#c3cfb9'), contour: rgb('#4e6246'), index: rgb('#46583c'), minor: rgb('#4e6246'),
     copper: rgb('#b4632a'), walked: rgb('#8a4416'), branch: rgb('#35554a'), pine: rgb('#1e3a31'), head: rgb('#1e3a31'),
     shadow: rgb('#a9b5b0'), light: rgb('#fcf9f1'),
-    gridA: 0.45, contourA: 0.3, indexA: 0.6, minorA: 0.17, night: 0,
+    gridA: 0.45, contourA: 0.3, indexA: 0.6, minorA: 0.17,
   },
   dark: {
     paper: rgb('#0f1b17'), grid: rgb('#c4d6ba'), contour: rgb('#b8cfac'), index: rgb('#c6dcb8'), minor: rgb('#b8cfac'),
     copper: rgb('#e48f50'), walked: rgb('#ffc58f'), branch: rgb('#c9ccb8'), pine: rgb('#ece4d0'), head: rgb('#f2a868'),
     shadow: rgb('#a9b5b0'), light: rgb('#2a3a32'),
-    gridA: 0.072, contourA: 0.2, indexA: 0.4, minorA: 0.11, night: 1,
+    gridA: 0.072, contourA: 0.2, indexA: 0.4, minorA: 0.11,
   },
   toy: {
     paper: rgb('#f7e4c8'), grid: rgb('#3b2340'), contour: rgb('#3b2340'), index: rgb('#3b2340'), minor: rgb('#3b2340'),
     copper: rgb('#e8552f'), walked: rgb('#c23b2a'), branch: rgb('#5c3a5e'), pine: rgb('#3b2340'), head: rgb('#3b2340'),
     shadow: rgb('#b9a3b8'), light: rgb('#fff4d6'),
-    gridA: 0.1, contourA: 0.2, indexA: 0.42, minorA: 0.1, night: 0,
+    gridA: 0.1, contourA: 0.2, indexA: 0.42, minorA: 0.1,
   },
+};
+
+/** The flat map's tint ramp, padded to RAMP_N stops for the shader. */
+const RAMP_N = 7;
+const reliefUniforms = (theme: Theme) => {
+  const { ramp, shadow, light, lightMax, bandMix } = RELIEF[theme];
+  const stops = Array.from({ length: RAMP_N }, (_, i) => ramp[Math.min(i, ramp.length - 1)]);
+  return {
+    rampH: { value: stops.map(([h]) => h) },
+    rampC: { value: stops.flatMap(([, c]) => c.map((v) => v / 255)) },
+    rampN: { value: ramp.length },
+    rShadow: { value: shadow.map((v) => v / 255) },
+    rLight: { value: light.map((v) => v / 255) },
+    lightMax: { value: lightMax },
+    bandMix: { value: bandMix },
+  };
 };
 
 const plateUniforms = (p: Plate) => ({
@@ -75,7 +91,6 @@ const plateUniforms = (p: Plate) => ({
   cMinor: { value: p.minor }, cCopper: { value: p.copper }, cWalked: { value: p.walked }, cBranch: { value: p.branch },
   cPine: { value: p.pine }, cHead: { value: p.head }, cShadow: { value: p.shadow }, cLight: { value: p.light },
   gridA: { value: p.gridA }, contourA: { value: p.contourA }, indexA: { value: p.indexA }, minorA: { value: p.minorA },
-  night: { value: p.night },
 });
 
 /** Trail distance field: covers the trail network with a margin, at TRAIL_RES world units per texel. */
@@ -109,6 +124,7 @@ void main() {
 `;
 
 const FRAG = /* glsl */ `
+#define RAMP_N ${RAMP_N}
 uniform sampler2D trails;
 uniform vec4 meshBox;   // x0, y0, w, h
 uniform vec4 trailBox;  // x0, y0, w, h
@@ -120,7 +136,11 @@ uniform float edge;
 uniform vec2 haze;      // depth at which haze starts, strength
 uniform float hazeFar;
 uniform vec3 cPaper, cGrid, cContour, cIndex, cCopper, cWalked, cBranch, cPine, cHead, cShadow, cLight, cMinor;
-uniform float gridA, contourA, indexA, minorA, night;
+uniform float gridA, contourA, indexA, minorA;
+uniform float rampH[RAMP_N];
+uniform vec3 rampC[RAMP_N];
+uniform float rampN, lightMax, bandMix;
+uniform vec3 rShadow, rLight;
 uniform vec2 trailhead;
 uniform float minor;
 uniform vec4 detailBox; // x0, y0, x1, y1
@@ -130,38 +150,16 @@ varying vec2 vG;
 varying vec3 vN;
 varying float vDepth;
 
-// Hypsometric ramp and relief inks, as hillshade.ts.
-const vec3 R0 = vec3(209.0, 215.0, 194.0) / 255.0;
-const vec3 R1 = vec3(220.0, 223.0, 202.0) / 255.0;
-const vec3 R2 = vec3(231.0, 229.0, 209.0) / 255.0;
-const vec3 R3 = vec3(239.0, 234.0, 215.0) / 255.0;
-const vec3 R4 = vec3(245.0, 240.0, 225.0) / 255.0;
-const vec3 R5 = vec3(249.0, 246.0, 235.0) / 255.0;
-const vec3 R6 = vec3(252.0, 250.0, 243.0) / 255.0;
-const vec3 RSHADOW = vec3(96.0, 118.0, 112.0) / 255.0;
-const vec3 RLIGHT = vec3(255.0, 251.0, 238.0) / 255.0;
-// At night: pine-black ground; shadows sink, lit slopes lift towards a moonlit sage.
-const vec3 N0 = vec3(11.0, 23.0, 19.0) / 255.0;
-const vec3 N1 = vec3(15.0, 27.0, 23.0) / 255.0;
-const vec3 N2 = vec3(21.0, 34.0, 29.0) / 255.0;
-const vec3 N3 = vec3(27.0, 40.0, 34.0) / 255.0;
-const vec3 NSHADOW = vec3(2.0, 8.0, 6.0) / 255.0;
-const vec3 NLIGHT = vec3(150.0, 178.0, 150.0) / 255.0;
-
+// Hypsometric tint, as hillshade.ts.
 vec3 tint(float h) {
   float f = h / 500.0;
-  float e = h + ((floor(f) + smoothstep(0.72, 1.0, fract(f))) * 500.0 - h) * 0.3;
-  if (night > 0.5) {
-    if (e <= 1000.0) return mix(N0, N1, clamp((e - 250.0) / 750.0, 0.0, 1.0));
-    if (e <= 1800.0) return mix(N1, N2, (e - 1000.0) / 800.0);
-    return mix(N2, N3, clamp((e - 1800.0) / 800.0, 0.0, 1.0));
+  float e = h + ((floor(f) + smoothstep(0.72, 1.0, fract(f))) * 500.0 - h) * bandMix;
+  vec3 col = rampC[0];
+  for (int i = 0; i < RAMP_N - 1; i++) {
+    if (float(i) < rampN - 1.0 && (i == 0 || e > rampH[i]))
+      col = mix(rampC[i], rampC[i + 1], clamp((e - rampH[i]) / (rampH[i + 1] - rampH[i]), 0.0, 1.0));
   }
-  if (e <= 600.0) return mix(R0, R1, clamp((e - 250.0) / 350.0, 0.0, 1.0));
-  if (e <= 1000.0) return mix(R1, R2, (e - 600.0) / 400.0);
-  if (e <= 1400.0) return mix(R2, R3, (e - 1000.0) / 400.0);
-  if (e <= 1800.0) return mix(R3, R4, (e - 1400.0) / 400.0);
-  if (e <= 2200.0) return mix(R4, R5, (e - 1800.0) / 400.0);
-  return mix(R5, R6, clamp((e - 2200.0) / 400.0, 0.0, 1.0));
+  return col;
 }
 
 // Coverage of a line of width w (CSS px) at distance d (device px) from its centre.
@@ -176,8 +174,8 @@ void main() {
   float inv = 1.0 / length(vec3(dz, 1.0));
   float rel = (0.54168 * (dz.x + dz.y) + 0.64279) * inv - 0.64279;
   float c = 0.7 + 0.55 * smoothstep(300.0, 2400.0, vH);
-  col = mix(col, night > 0.5 ? NSHADOW : RSHADOW, min(0.5, (max(-rel, 0.0) * 1.1 + (1.0 - inv) * 0.1) * c));
-  col = mix(col, night > 0.5 ? NLIGHT : RLIGHT, min(night > 0.5 ? 0.3 : 0.75, max(rel, 0.0) * 2.4 * c));
+  col = mix(col, rShadow, min(0.5, (max(-rel, 0.0) * 1.1 + (1.0 - inv) * 0.1) * c));
+  col = mix(col, rLight, min(lightMax, max(rel, 0.0) * 2.4 * c));
 
   // Graticule every 125 world units.
   vec2 g = abs(fract(vW / 125.0 + 0.5) - 0.5) * 125.0;
@@ -443,6 +441,7 @@ export class ReliefGL {
         haze: { value: [0, 0] },
         hazeFar: { value: 1 },
         ...plateUniforms(PLATES.light),
+        ...reliefUniforms('light'),
         minor: { value: 0 },
         detailBox: { value: [DETAIL_EXTENT.x0, DETAIL_EXTENT.y0, DETAIL_EXTENT.x1, DETAIL_EXTENT.y1] },
         trailhead: { value: new Vector2(TRAILHEAD.x, TRAILHEAD.y) },
@@ -458,11 +457,10 @@ export class ReliefGL {
     if (this.renderer.extensions.has('KHR_parallel_shader_compile')) await this.renderer.compileAsync(this.scene, this.camera);
   }
 
-  /** Day or night plate. */
   setTheme(theme: Theme) {
     const plate = PLATES[theme];
     const u = this.mesh.material.uniforms;
-    for (const [k, v] of Object.entries(plateUniforms(plate))) u[k].value = v.value;
+    for (const [k, v] of Object.entries({ ...plateUniforms(plate), ...reliefUniforms(theme) })) u[k].value = v.value;
     this.renderer.setClearColor(new Color().setRGB(...plate.paper, SRGBColorSpace), 1);
   }
 
