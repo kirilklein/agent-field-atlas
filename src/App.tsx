@@ -14,7 +14,6 @@ import { ATLAS_BOX, regionBox, stopPoint } from './lib/geometry';
 import { depthOf, hrefFor, parentOf, routeKey, useHashRoute } from './lib/route';
 
 const COMPACT = '(max-width: 899px)';
-const SIDE_COLUMN = 420; // cartouche / region card column on wide screens
 
 export default function App() {
   const [route, navigate] = useHashRoute();
@@ -23,6 +22,8 @@ export default function App() {
   const compact = useMediaQuery(COMPACT);
   const reduced = useMediaQuery('(prefers-reduced-motion: reduce)');
   const [stageRef, stage] = useElementSize<HTMLDivElement>();
+  // Cartouche / region card column; wider on large screens so the diagram is readable.
+  const SIDE_COLUMN = stage.w >= 1280 && route.region ? 536 : 420;
   const [hot, setHot] = useState<RegionId | null>(null);
   // A concept picked on the map or in the list: previewed, not yet opened.
   const [selected, setSelected] = useState<string | null>(null);

@@ -892,6 +892,11 @@ pre {
   max-height: calc(100% - 44px);
   overflow: auto;
 }
+@media (min-width: 1280px) {
+  .sheet--region {
+    width: 500px;
+  }
+}
 .sheet--bench {
   position: absolute;
   top: 12px;
