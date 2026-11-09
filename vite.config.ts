@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) =>
       }
     : {
         plugins: [react()],
+        base: './',
         // three (the relief model) is one lazy chunk of ~540 kB, loaded after first paint.
         build: { chunkSizeWarningLimit: 600 },
       },
