@@ -1,5 +1,5 @@
 $ python check.py 1
-✗ 1a  Reject duplicate queries: duplicates were accepted: plan_queries returned ['LLM agents', 'llm  Agents']
+✗ 1a  Reject duplicate queries: duplicates were accepted: plan_queries returned ['kids museums', 'Kids  museums']
 ✗ 1b  Cap query length: a query over 80 characters was accepted
 
 0/2 passing

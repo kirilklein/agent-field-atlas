@@ -1,13 +1,13 @@
-$ python branch_permissions.py --save --no
-library before: ['arXiv:2303.11366']
-  model ▸ replies: '{"queries": ["Find paper on interleaving reasoning and", "reasoning and acting"], "year…'
-  model ▸ call_01 proposes search_papers(query='Find paper on interleaving reasoning and')
-  host  ▸ call_01 ok, marked untrusted: arXiv:2210.03629, arXiv:0000.00001
-  model ▸ call_02 proposes search_papers(query='reasoning and acting')
-  host  ▸ call_02 ok, marked untrusted: arXiv:2210.03629, arXiv:0000.00001
-  model ▸ call_03 proposes save_to_library(paper_id='arXiv:2210.03629')
+$ python branch_permissions.py --add --no
+plan before: ['place:mercato-centrale']
+  model ▸ replies: '{"queries": ["Find museum knights armour and add", "knights in armour"], "age": null}'
+  model ▸ call_01 proposes search_places(query='Find museum knights armour and add')
+  host  ▸ call_01 ok, marked untrusted: place:stibbert, place:la-specola, place:fun-zone
+  model ▸ call_02 proposes search_places(query='knights in armour')
+  host  ▸ call_02 ok, marked untrusted: place:stibbert, place:fun-zone
+  model ▸ call_03 proposes add_to_plan(place_id='place:stibbert')
   host  ▸ call_03 rejected: not_confirmed (the user declined this action)
-  model ▸ replies: 'ReAct interleaves reasoning traces with actions such as search [arXiv:2210.03629].'
+  model ▸ replies: 'Museo Stibbert has a hall of armoured knights on horseback [place:stibbert]. La Specola…'
 
-library after:  ['arXiv:2303.11366']
-ReAct interleaves reasoning traces with actions such as search [arXiv:2210.03629].
+plan after:  ['place:mercato-centrale']
+Museo Stibbert has a hall of armoured knights on horseback [place:stibbert]. La Specola shows hundreds of preserved animals, from insects to a hippo, in Florence's natural history museum [place:la-specola].

@@ -16,16 +16,16 @@
   {
     "id": "2a",
     "checkpoint": 2,
-    "title": "Add a year filter",
-    "task": "Give search_papers an optional integer argument year_from. Declare it in the schema, validate it in handle_tool_call (a whole number from 1990 to 2030), and drop older papers from the results. An invalid year must not run the tool.",
-    "hint": "In Python, True is an int, so check isinstance(x, int) and not isinstance(x, bool). Filter the list the tool returns rather than changing papers.py."
+    "title": "Add an age filter",
+    "task": "Give search_places an optional integer argument age. Declare it in the schema, validate it in handle_tool_call (a whole number from 0 to 17), and drop places whose min_age is above it. An invalid age must not run the tool.",
+    "hint": "In Python, True is an int, so check isinstance(x, int) and not isinstance(x, bool). Filter the list the tool returns rather than changing places.py."
   },
   {
     "id": "2b",
     "checkpoint": 2,
     "title": "Reject stopword-only queries",
     "task": "A query like \"the of and\" passes the empty-string check but cannot match anything. Reject it with invalid_arguments before the tool runs.",
-    "hint": "papers.terms(query) returns the searchable words. An empty list means there are none."
+    "hint": "places.terms(query) returns the searchable words. An empty list means there are none."
   },
   {
     "id": "3a",
@@ -46,13 +46,13 @@
     "checkpoint": 4,
     "title": "Teach the judge about overclaiming",
     "task": "Make overlap_judge agree with all twelve hand labels in judge_labels.jsonl. Right now it passes two overstatements.",
-    "hint": "Words like first, best, all, halves and eliminates make a claim stronger than its vocabulary suggests. If the claim uses one that the summary does not, call it unsupported."
+    "hint": "Words like best, largest, only, all and every make a claim stronger than its vocabulary suggests. If the claim uses one that the summary does not, call it unsupported."
   },
   {
     "id": "4b",
     "checkpoint": 4,
-    "title": "Check the expected papers",
-    "task": "Write cites_expected(claims, expect_any): True when at least one claim cites a paper listed in expect_any. Use it in evaluate() to flag questions whose answer misses every expected paper.",
+    "title": "Check the expected places",
+    "task": "Write cites_expected(claims, expect_any): True when at least one claim cites a place listed in expect_any. Use it in evaluate() to flag questions whose answer misses every expected place.",
     "hint": "any(c[\"cites\"] in expect_any for c in claims)"
   }
 ]

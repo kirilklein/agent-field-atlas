@@ -79,23 +79,23 @@ function Block({ block }: { block: TraceBlock }) {
         </div>
       );
     }
-    case 'papers':
+    case 'places':
       return (
         <div className="blk tone-ok">
           <div className="blk__label">Tool ran</div>
           <code className="blk__call">{block.call}</code>
-          <ol className="papers">
-            {block.papers.map((p) => (
-              <li key={p.id} className="paper">
-                <span className="paper__title">{p.title}</span>
-                <span className="paper__meta">
-                  {p.authors} · {p.year} · <code>{p.id}</code>
+          <ol className="places">
+            {block.places.map((p) => (
+              <li key={p.id} className="place">
+                <span className="place__title">{p.name}</span>
+                <span className="place__meta">
+                  {p.indoor ? 'Indoors' : 'Outdoors'} · ages {p.min_age}+ · <code>{p.id}</code>
                 </span>
-                <span className="paper__summary">{p.summary}</span>
+                <span className="place__summary">{p.summary}</span>
               </li>
             ))}
           </ol>
-          <p className="fixture-note">Fixture results, recorded once. Summaries paraphrased.</p>
+          <p className="fixture-note">Fixture results, recorded once. Notes written for this course.</p>
         </div>
       );
     case 'notRun':

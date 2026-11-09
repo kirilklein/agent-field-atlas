@@ -1,5 +1,5 @@
 $ python checkpoint_1.py --sloppy
-question: How do LLM agents decide when to call a tool?
-  model ▸ replies: 'Sure! Here are some searches you could try:\n1. LLM agents tool use\n2. ReAct prompting'
-  model ▸ replies: '{"queries": ["LLM agents decide call tool", "language models learning to use tools"], "…'
-queries:  ['LLM agents decide call tool', 'language models learning to use tools']
+question: Rainy Saturday in Florence with a 4-year-old: what can we do?
+  model ▸ replies: 'Sure! Florence has lots to do:\n1. the Uffizi\n2. the Boboli Gardens'
+  model ▸ replies: '{"queries": ["Rainy Saturday Florence 4-year-old", "hands-on museums for children"], "a…'
+queries:  ['Rainy Saturday Florence 4-year-old', 'hands-on museums for children']

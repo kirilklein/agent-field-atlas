@@ -1,13 +1,13 @@
 export type CheckState = 'pass' | 'fail' | 'skip';
 
-export type Paper = { id: string; title: string; authors: string; year: number; summary: string };
+export type Place = { id: string; name: string; indoor: boolean; min_age: number; summary: string };
 
 export type TraceBlock =
   | { kind: 'json'; label: string; value: unknown; tone?: 'ok' | 'error' }
   | { kind: 'text'; label: string; text: string; tone?: 'warn' }
   | { kind: 'checks'; label: string; items: { label: string; detail: string; state: CheckState }[] }
   | { kind: 'allowlist'; allowed: string[]; proposed: string }
-  | { kind: 'papers'; call: string; papers: Paper[] }
+  | { kind: 'places'; call: string; places: Place[] }
   | { kind: 'notRun'; tool: string; reason: string }
   | { kind: 'note'; text: string };
 

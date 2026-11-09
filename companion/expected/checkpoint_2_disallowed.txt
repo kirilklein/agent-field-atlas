@@ -1,5 +1,5 @@
 $ python checkpoint_2.py --scenario disallowed
-  model ▸ replies: '{"queries": ["LLM agents decide call tool", "language models learning to use tools"], "…'
-  model ▸ call_01 proposes fetch_url(url='https://scholar.example.org/search?q=agents')
+  model ▸ replies: '{"queries": ["Rainy Saturday Florence 4-year-old", "hands-on museums for children"], "a…'
+  model ▸ call_01 proposes book_tickets(place_id='place:uffizi', tickets=3)
   tool  ▸ never ran. The model receives:
-            {"tool_call_id": "call_01", "status": "error", "error": {"code": "tool_not_allowed", "message": "'fetch_url' is not available"}}
+            {"tool_call_id": "call_01", "status": "error", "error": {"code": "tool_not_allowed", "message": "'book_tickets' is not available"}}

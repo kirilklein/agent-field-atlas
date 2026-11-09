@@ -29,7 +29,7 @@ type LessonKey = `${RegionId}/${string}`;
 
 /**
  * Lesson content, keyed by region/concept. Every lesson follows the same
- * paper-search assistant, and repeats one idea: the model proposes, the host decides.
+ * rainy-day trip planner, and repeats one idea: the model proposes, the host decides.
  */
 export const LESSONS: Record<LessonKey, Lesson> = {
   /* I · One model call ------------------------------------------------ */
@@ -60,8 +60,8 @@ export const LESSONS: Record<LessonKey, Lesson> = {
 #   messages += [proposal, result]      and the next call sees both
 
 messages = [
-    {"role": "system", "content": "You help researchers find papers."},
-    {"role": "user", "content": "How do LLM agents decide when to call a tool?"},
+    {"role": "system", "content": "You help families plan a day out in Florence."},
+    {"role": "user", "content": "Rainy Saturday in Florence with a 4-year-old: what can we do?"},
 ]
 reply = call_model(messages)
 print(reply["text"])`,
@@ -71,7 +71,7 @@ print(reply["text"])`,
     why: 'Your program needs fields it can use, not prose it has to guess at.',
     steps: [
       'Free text is for people. Your program needs fields.',
-      'Describe the shape you want: two to four search queries and an optional start year.',
+      'Describe the shape you want: two to four search queries and the child’s age, if the question gives one.',
       'Ask for JSON in exactly that shape. Many providers can enforce the schema for you.',
       'The model reads the schema too, so it doubles as documentation.',
     ],
@@ -86,7 +86,7 @@ print(reply["text"])`,
     "properties": {
         "queries": {"type": "array", "items": {"type": "string"},
                     "minItems": 2, "maxItems": 4},
-        "year_from": {"type": ["integer", "null"]},
+        "age": {"type": ["integer", "null"]},
     },
     "required": ["queries"],
 }
@@ -97,7 +97,7 @@ reply = call_model(
      {"role": "user", "content": question}],
     schema=QUERY_SCHEMA,
 )
-# reply["text"] == '{"queries": ["LLM agents tool use", ...], "year_from": 2022}'`,
+# reply["text"] == '{"queries": ["Rainy Saturday Florence 4-year-old", ...], "age": 4}'`,
     },
   },
   'one-model-call/parse-a-reply': {
@@ -125,7 +125,7 @@ reply = call_model(
     steps: [
       'A tool is a name, a description and a JSON schema for its arguments.',
       'You send these declarations with the request.',
-      'The model may then answer with a tool call: a request that your code run `search_papers` with some arguments.',
+      'The model may then answer with a tool call: a request that your code run `search_places` with some arguments.',
       'The model never runs anything itself.',
       'The declaration is all the model knows about the tool, so the description is part of your prompt.',
     ],
@@ -136,10 +136,10 @@ reply = call_model(
     example: {
       label: 'tools.py',
       language: 'python',
-      code: `SEARCH_PAPERS = {
-    "name": "search_papers",
-    "description": "Search the paper index. Returns up to 3 papers "
-                   "with id, title, year and summary. Read-only.",
+      code: `SEARCH_PLACES = {
+    "name": "search_places",
+    "description": "Search places in Florence. Returns up to 3 places "
+                   "with id, name, indoor, min_age and summary. Read-only.",
     "input_schema": {
         "type": "object",
         "properties": {"query": {"type": "string", "maxLength": 200}},
@@ -147,10 +147,10 @@ reply = call_model(
     },
 }
 
-reply = call_model(messages, tools=[SEARCH_PAPERS])
+reply = call_model(messages, tools=[SEARCH_PLACES])
 reply["tool_calls"]
-# [{"id": "call_01", "name": "search_papers",
-#   "arguments": {"query": "LLM agents decide call tool"}}]`,
+# [{"id": "call_01", "name": "search_places",
+#   "arguments": {"query": "Rainy Saturday Florence 4-year-old"}}]`,
     },
   },
   'tool-calling/inspect-a-call': {
@@ -186,7 +186,7 @@ reply["tool_calls"]
       label: 'host.py',
       language: 'python',
       code: `try:
-    papers = search_papers(query=query, limit=3)
+    places = search_places(query=query, limit=3)
 except TimeoutError:
     return error(call, "tool_timeout",
                  "search took too long; try a narrower query")
@@ -264,8 +264,8 @@ else:
   'evaluation/replay-set': {
     why: 'You can’t tell by eye whether a change helped. You need fixed questions to rerun.',
     steps: [
-      'Write down a handful of real questions, with papers a good answer could cite.',
-      'With a fixed paper index, replays give the same questions and the same search results.',
+      'Write down a handful of real questions, with places a good answer could cite.',
+      'With a fixed place index, replays give the same questions and the same search results.',
       'So only the model’s behaviour can change between runs.',
       'Five questions is enough to find bugs. It is far too few to measure small improvements (see Trust the numbers).',
     ],
@@ -278,13 +278,13 @@ else:
     why: 'A score is only useful if you know how each claim was checked.',
     steps: [
       'Check every claim in two steps.',
-      'First: is the cited paper one the assistant actually retrieved? That is a set lookup. It catches invented IDs.',
-      'Second: does the paper support the claim? That needs judgement, usually a separate model call that sees one claim and one paper summary.',
+      'First: is the cited place one the planner actually retrieved? That is a set lookup. It catches invented IDs.',
+      'Second: does the place’s note support the claim? That needs judgement, usually a separate model call that sees one claim and one note.',
       'Offline, checkpoint 4 uses a cheap word-overlap judge instead, and measures how often it is wrong.',
     ],
     terms: [
-      { term: 'Claim', def: 'One statement in the answer, with the paper it cites.' },
-      { term: 'Judge', def: 'Whatever decides if a paper supports a claim: a model call, or here a word-overlap rule.' },
+      { term: 'Claim', def: 'One statement in the answer, with the place it cites.' },
+      { term: 'Judge', def: 'Whatever decides if a place’s note supports a claim: a model call, or here a word-overlap rule.' },
     ],
     interaction: {
       kind: 'trace',
@@ -302,7 +302,7 @@ else:
     ],
     terms: [
       { term: '95% interval', def: 'The range the true rate likely falls in, given how few claims you checked.' },
-      { term: 'Overstatement', def: 'A claim that says more than the paper does.' },
+      { term: 'Overstatement', def: 'A claim that says more than the note does, like “every kind of animal” for “hundreds of animals”.' },
     ],
     example: { label: 'python checkpoint_4.py', language: 'text', code: CHECKPOINT_4_OUTPUT },
     interaction: { kind: 'interval' },
@@ -323,7 +323,7 @@ else:
     why: 'Running the code yourself is how the idea sticks.',
     steps: [
       'New here: a tool declaration, an allowlist and `handle_tool_call`.',
-      'The model proposes a call. `search_papers` runs only after every check passes.',
+      'The model proposes a call. `search_places` runs only after every check passes.',
       'Run the three scenarios and compare what the model receives in each. They are the same three cases as Inspect a call.',
       'Then extend the tool in the exercises below.',
     ],
@@ -357,10 +357,10 @@ else:
   'permissions/run-it': {
     why: 'This shows the difference between a tool that doesn’t exist and one that needs a person’s yes.',
     steps: [
-      'A search result has instructions hidden in its summary. The fake model obeys them and asks for `delete_library`.',
+      'A place listing has instructions hidden in its summary. The fake model obeys them and asks for `clear_plan`, which would wipe the family’s day plan.',
       'The host never offered that tool, so nothing happens.',
-      'Saving is different: `save_to_library` exists, but runs only after a person confirms.',
-      'Run it with `--save --yes` and `--save --no` to see both answers.',
+      'Adding is different: `add_to_plan` exists, but runs only after a person confirms.',
+      'Run it with `--add --yes` and `--add --no` to see both answers.',
     ],
     interaction: { kind: 'checkpoint', id: 'permissions' },
   },
@@ -369,8 +369,8 @@ else:
     steps: [
       'One question, run twice with five searches: once keeping every result, once keeping only the last two in full.',
       'The table shows tokens sent per call.',
-      'Trimming saves tokens, at a price: the answer can no longer describe papers whose summaries were trimmed.',
-      'Then save a preference with `--remember year_from=2023`, and see the host apply it to every search.',
+      'Trimming saves tokens, at a price: the answer can no longer describe places whose notes were trimmed.',
+      'Then save a preference with `--remember child_age=4`, and see the host drop places meant for older children from every search.',
     ],
     interaction: { kind: 'checkpoint', id: 'memory' },
   },
@@ -389,7 +389,7 @@ else:
   'permissions/read-only-tools': {
     why: 'The safest power is one you never hand over.',
     steps: [
-      'A paper-search assistant needs to read, so expose read-only tools.',
+      'A trip planner needs to look things up, so expose read-only tools.',
       'Anything that writes, sends, deletes or spends is either absent, or behind a confirmation a person completes.',
       'The system prompt can ask the model to behave.',
       'Only the host’s allowlist can say no.',
@@ -401,14 +401,14 @@ else:
     example: {
       label: 'permissions.py',
       language: 'python',
-      code: `READ_ONLY = {"search_papers": search_papers, "get_abstract": get_abstract}
-NEEDS_CONFIRMATION = {"save_to_library": save_to_library}
+      code: `READ_ONLY = {"search_places": search_places, "opening_hours": opening_hours}
+NEEDS_CONFIRMATION = {"add_to_plan": add_to_plan}
 
 def allowed(name, confirmed_by_user=False):
     if name in READ_ONLY:
         return True
     if name in NEEDS_CONFIRMATION:
-        return confirmed_by_user   # a person clicked "Save", not the model
+        return confirmed_by_user   # a person clicked "Add", not the model
     return False`,
     },
   },
@@ -416,7 +416,7 @@ def allowed(name, confirmed_by_user=False):
     why: 'Text from the outside world ends up in front of the model. Some of it will try to steer it.',
     steps: [
       'Tool results are written by strangers.',
-      'An abstract or a web page can contain text that reads like instructions. It lands in the same message list as your real ones.',
+      'A place listing, a review or a web page can contain text that reads like instructions. It lands in the same message list as your real ones.',
       'Assume it will sometimes work on the model.',
       'Simon Willison names a “lethal trifecta”: access to private data, exposure to untrusted content, and a way to send data out. An agent with all three can be tricked into sending your data to an attacker.',
       'Defend where the model can’t be talked out of it: fence results as data, keep tools read-only, and check every proposal the same way, whatever came before.',
@@ -440,7 +440,7 @@ def allowed(name, confirmed_by_user=False):
     why: 'The host needs facts it can check quickly, without rereading the whole conversation.',
     steps: [
       'Inside one run, the message list is the state: the question, every proposal, every result.',
-      'Keep a little structured state beside it: the step count, paper IDs already seen.',
+      'Keep a little structured state beside it: the step count, place IDs already seen.',
       'Then the host can decide things without re-reading prose.',
       'All of it is thrown away when the run ends. Nothing from this run should reach the next by accident.',
     ],
@@ -457,15 +457,15 @@ class RunState:
     seen_ids: set[str] = field(default_factory=set)
 
     def record(self, result):
-        for paper in result.get("content", []):
-            self.seen_ids.add(paper["id"])   # skip repeats next search`,
+        for place in result.get("content", []):
+            self.seen_ids.add(place["id"])   # skip repeats next search`,
     },
   },
   'context-memory/saved-memory': {
     why: 'Some facts should outlive a run, but only the ones you chose to keep.',
     steps: [
       'Memory across runs is a small, separate store you write to on purpose. It is not a replay of old transcripts.',
-      'Save durable facts the user stated, like a year cutoff or a reading list.',
+      'Save durable facts the user stated, like the child’s age or a place they never want again.',
       'Load them into the system message when a run starts.',
       'Because it is explicit, the user can see it, edit it and delete it.',
     ],
@@ -476,11 +476,11 @@ class RunState:
       label: 'memory.py',
       language: 'python',
       code: `# memory.json — written only when the user asks
-# {"prefers_after": 2020, "reading_list": ["arXiv:2210.03629"]}
+# {"child_age": 4, "avoid": ["place:giotto-tower"]}
 
 def system_message(memory):
     return {"role": "system", "content":
-            "You help researchers find papers.\\n"
+            "You help families plan a day out in Florence.\\n"
             f"Saved user preferences: {json.dumps(memory)}"}
 
 messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
@@ -509,12 +509,12 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
       label: 'trim.py',
       language: 'python',
       code: `def trim(messages, keep_last=2):
-    """Shrink all but the last few tool results to id + title."""
+    """Shrink all but the last few tool results to id + name."""
     tool_idx = [i for i, m in enumerate(messages) if m["role"] == "tool"]
     for i in tool_idx[:-keep_last]:
-        papers = messages[i].get("content") or []
+        places = messages[i].get("content") or []
         messages[i] = {**messages[i], "content": [
-            {"id": p["id"], "title": p["title"]} for p in papers]}
+            {"id": p["id"], "name": p["name"]} for p in places]}
     return messages`,
     },
     interaction: { kind: 'tokens' },
@@ -525,7 +525,7 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
     why: 'A second look with a different job catches mistakes the writer can’t see in its own draft.',
     steps: [
       'A reviewer is a second model call with a different job and less context.',
-      'It sees the draft answer plus the abstracts it cites, and flags claims those abstracts don’t support.',
+      'It sees the draft answer plus the notes on the places it cites, and flags claims those notes don’t support.',
       'The writer revises once with that feedback. Anthropic calls this pattern evaluator–optimizer: one call writes, another evaluates and gives feedback.',
       'It is still one host program. The “agents” are roles with their own prompts and tools, and the reviewer gets no tools at all.',
     ],
@@ -542,7 +542,7 @@ messages = [system_message(load_memory()), {"role": "user", "content": q}]`,
     draft = run_agent(question)
     cited = {pid: INDEX[pid] for pid in citations(draft["answer"])}
     review = call_model([REVIEWER_SYSTEM, {"role": "user", "content":
-                         json.dumps({"draft": draft["answer"], "papers": cited})}])
+                         json.dumps({"draft": draft["answer"], "places": cited})}])
     if review["text"].strip() == "NO_ISSUES":
         return draft
     return revise(question, draft, feedback=review["text"])`,

@@ -1,9 +1,9 @@
 $ python checkpoint_3.py --max-steps 2
-  model ▸ replies: '{"queries": ["LLM agents interleave reasoning and tool", "reasoning and acting"], "year…'
-  model ▸ call_01 proposes search_papers(query='LLM agents interleave reasoning and tool')
-  host  ▸ call_01 ok: arXiv:2210.03629, arXiv:2302.04761, arXiv:2303.11366
-  model ▸ call_02 proposes search_papers(query='reasoning and acting')
-  host  ▸ call_02 ok: arXiv:2210.03629
+  model ▸ replies: '{"queries": ["Rainy Saturday Florence 4-year-old", "hands-on museums for children"], "a…'
+  model ▸ call_01 proposes search_places(query='Rainy Saturday Florence 4-year-old')
+  host  ▸ call_01 ok: place:la-specola, place:leonardo-interactive, place:palazzo-vecchio
+  model ▸ call_02 proposes search_places(query='hands-on museums for children')
+  host  ▸ call_02 ok: place:leonardo-interactive, place:la-specola
 
 stop=step_budget after 2 step(s), 6 messages
 (no answer: the step budget ran out)

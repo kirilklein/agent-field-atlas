@@ -31,92 +31,92 @@ class Script:
     calls get the scripted replies in order."""
 
     def __init__(self, plan_replies=None, act_replies=None):
-        self.plan_replies = list(plan_replies or ['{"queries": ["agents reasoning", "tool learning"]}'])
+        self.plan_replies = list(plan_replies or ['{"queries": ["hands-on museums", "knights in armour"]}'])
         self.act_replies = list(act_replies or [])
         self.calls = []
 
     def __call__(self, messages, tools=None, schema=None):
         self.calls.append([dict(m) for m in messages])
         if tools:
-            reply = self.act_replies.pop(0) if self.act_replies else {"text": "Done [arXiv:2210.03629].", "tool_calls": []}
+            reply = self.act_replies.pop(0) if self.act_replies else {"text": "Done [place:uffizi].", "tool_calls": []}
             return {"text": reply.get("text"), "tool_calls": reply.get("tool_calls", [])}
         text = self.plan_replies.pop(0) if len(self.plan_replies) > 1 else self.plan_replies[0]
         return {"text": text, "tool_calls": []}
 
 
 def search(i, query, **extra):
-    return {"text": None, "tool_calls": [{"id": f"t{i}", "name": "search_papers", "arguments": {"query": query, **extra}}]}
+    return {"text": None, "tool_calls": [{"id": f"t{i}", "name": "search_places", "arguments": {"query": query, **extra}}]}
 
 
 def count_tool_runs(module):
-    real = module.ALLOWED_TOOLS["search_papers"]
+    real = module.ALLOWED_TOOLS["search_places"]
     counter = {"n": 0}
 
     def wrapped(*args, **kwargs):
         counter["n"] += 1
         return real(*args, **kwargs)
 
-    module.ALLOWED_TOOLS["search_papers"] = wrapped
+    module.ALLOWED_TOOLS["search_places"] = wrapped
     return counter
 
 
 # -- checks: each returns None on success or a message saying what is wrong ------
 
 def check_1a(m):
-    m.call_model = s = Script(['{"queries": ["LLM agents", "llm  Agents "]}', '{"queries": ["agents", "tools"]}'])
+    m.call_model = s = Script(['{"queries": ["kids museums", "Kids  museums "]}', '{"queries": ["museums", "lunch"]}'])
     out = m.plan_queries("q")
-    if out != ["agents", "tools"]:
+    if out != ["museums", "lunch"]:
         return f"duplicates were accepted: plan_queries returned {out}"
     if len(s.calls) != 2 or "Invalid reply" not in s.calls[1][-1]["content"]:
         return "the model should get one retry that explains the problem"
 
 
 def check_1b(m):
-    long_query = "how do large language model agents decide when to call a tool and how do we evaluate it"
-    m.call_model = s = Script([json.dumps({"queries": [long_query, "tools"]}), '{"queries": ["agents", "tools"]}'])
+    long_query = "what can we do on a rainy saturday in florence with a four year old who loves animals"
+    m.call_model = s = Script([json.dumps({"queries": [long_query, "lunch"]}), '{"queries": ["museums", "lunch"]}'])
     out = m.plan_queries("q")
-    if out != ["agents", "tools"]:
+    if out != ["museums", "lunch"]:
         return "a query over 80 characters was accepted"
     if len(s.calls) != 2:
         return "the model should get one retry"
 
 
 def check_2a(m):
-    props = m.SEARCH_PAPERS["input_schema"]["properties"]
-    if "year_from" not in props:
-        return "year_from is not declared in SEARCH_PAPERS"
+    props = m.SEARCH_PLACES["input_schema"]["properties"]
+    if "age" not in props:
+        return "age is not declared in SEARCH_PLACES"
     runs = count_tool_runs(m)
-    ok = m.handle_tool_call({"id": "a", "name": "search_papers", "arguments": {"query": "language model tool agents", "year_from": 2023}})
+    ok = m.handle_tool_call({"id": "a", "name": "search_places", "arguments": {"query": "Renaissance paintings museum", "age": 4}})
     if ok["status"] != "ok" or not ok["content"]:
-        return "a valid year_from should return papers"
-    if any(p["year"] < 2023 for p in ok["content"]):
-        return "papers older than year_from were returned"
+        return "a valid age should return places"
+    if any(p["min_age"] > 4 for p in ok["content"]):
+        return "places for older children were returned"
     before = runs["n"]
-    for bad in ("soon", True, 1850):
-        r = m.handle_tool_call({"id": "b", "name": "search_papers", "arguments": {"query": "agents", "year_from": bad}})
+    for bad in ("four", True, 40):
+        r = m.handle_tool_call({"id": "b", "name": "search_places", "arguments": {"query": "museum", "age": bad}})
         if r["status"] != "error" or r["error"]["code"] != "invalid_arguments":
-            return f"year_from={bad!r} should be rejected with invalid_arguments"
+            return f"age={bad!r} should be rejected with invalid_arguments"
     if runs["n"] != before:
-        return "the tool ran even though year_from was invalid"
-    plain = m.handle_tool_call({"id": "c", "name": "search_papers", "arguments": {"query": "agents"}})
+        return "the tool ran even though age was invalid"
+    plain = m.handle_tool_call({"id": "c", "name": "search_places", "arguments": {"query": "museum"}})
     if plain["status"] != "ok":
-        return "searches without year_from should still work"
+        return "searches without age should still work"
 
 
 def check_2b(m):
     runs = count_tool_runs(m)
-    r = m.handle_tool_call({"id": "a", "name": "search_papers", "arguments": {"query": "the of and"}})
+    r = m.handle_tool_call({"id": "a", "name": "search_places", "arguments": {"query": "the of and"}})
     if r["status"] != "error" or r["error"]["code"] != "invalid_arguments":
         return "a stopword-only query should be rejected with invalid_arguments"
     if runs["n"]:
         return "the tool ran for a stopword-only query"
-    if m.handle_tool_call({"id": "b", "name": "search_papers", "arguments": {"query": "agents"}})["status"] != "ok":
+    if m.handle_tool_call({"id": "b", "name": "search_places", "arguments": {"query": "museum"}})["status"] != "ok":
         return "ordinary queries should still work"
 
 
 def check_3a(m):
     runs = count_tool_runs(m)
-    m.call_model = Script(act_replies=[search(1, "agents reasoning"), search(2, "Agents  reasoning"), {"text": "Done [arXiv:2210.03629]."}])
+    m.call_model = Script(act_replies=[search(1, "knights armour"), search(2, "Knights  armour"), {"text": "Done [place:uffizi]."}])
     run = m.run_agent("q")
     errors = [x for x in run["messages"] if x["role"] == "tool" and x["status"] == "error"]
     if runs["n"] != 1:
@@ -126,7 +126,7 @@ def check_3a(m):
 
 
 def check_3b(m):
-    queries = ["agents reasoning", "tool learning", "API calls", "judge evaluation", "long context", "agent memory"]
+    queries = ["knights armour", "telescopes", "animals", "paintings", "gardens", "towers"]
     m.call_model = Script(act_replies=[search(i, q) for i, q in enumerate(queries, 1)])
     try:
         run = m.run_agent("q", max_chars=1500)
@@ -134,7 +134,7 @@ def check_3b(m):
         return "run_agent does not accept max_chars"
     if run["stop"] != "context_budget":
         return f"expected stop='context_budget', got {run['stop']!r}"
-    m.call_model = Script(act_replies=[search(1, "agents"), {"text": "Done [arXiv:2210.03629]."}])
+    m.call_model = Script(act_replies=[search(1, "museum"), {"text": "Done [place:uffizi]."}])
     if m.run_agent("q")["stop"] != "done":
         return "with the default budget, a short run should finish normally"
 
@@ -142,9 +142,9 @@ def check_3b(m):
 def check_4a(m):
     with open(os.path.join(HERE, "judge_labels.jsonl")) as f:
         labels = [json.loads(line) for line in f if line.strip()]
-    papers = {p["id"]: p for p in m.PAPERS}
+    places = {p["id"]: p for p in m.PLACES}
     wrong = [x["claim"] for x in labels
-             if m.overlap_judge(x["claim"], papers[x["paper"]]["title"] + ". " + papers[x["paper"]]["summary"]) != x["supported"]]
+             if m.overlap_judge(x["claim"], places[x["place"]]["name"] + ". " + places[x["place"]]["summary"]) != x["supported"]]
     if wrong:
         return f"{len(labels) - len(wrong)}/{len(labels)} agree; still wrong on: {wrong[0]!r}"
 
@@ -152,12 +152,12 @@ def check_4a(m):
 def check_4b(m):
     if not hasattr(m, "cites_expected"):
         return "cites_expected is not defined"
-    claims = [{"text": "a", "cites": "arXiv:1"}, {"text": "b", "cites": None}]
-    if m.cites_expected(claims, ["arXiv:1", "arXiv:9"]) is not True:
-        return "should be True when one claim cites an expected paper"
-    if m.cites_expected(claims, ["arXiv:9"]) is not False:
-        return "should be False when no claim cites an expected paper"
-    if m.cites_expected([], ["arXiv:1"]) is not False:
+    claims = [{"text": "a", "cites": "place:a"}, {"text": "b", "cites": None}]
+    if m.cites_expected(claims, ["place:a", "place:z"]) is not True:
+        return "should be True when one claim cites an expected place"
+    if m.cites_expected(claims, ["place:z"]) is not False:
+        return "should be False when no claim cites an expected place"
+    if m.cites_expected([], ["place:a"]) is not False:
         return "should be False for an answer with no claims"
 
 

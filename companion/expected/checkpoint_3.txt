@@ -1,10 +1,10 @@
 $ python checkpoint_3.py
-  model ▸ replies: '{"queries": ["LLM agents interleave reasoning and tool", "reasoning and acting"], "year…'
-  model ▸ call_01 proposes search_papers(query='LLM agents interleave reasoning and tool')
-  host  ▸ call_01 ok: arXiv:2210.03629, arXiv:2302.04761, arXiv:2303.11366
-  model ▸ call_02 proposes search_papers(query='reasoning and acting')
-  host  ▸ call_02 ok: arXiv:2210.03629
-  model ▸ replies: 'ReAct interleaves reasoning traces with actions such as search [arXiv:2210.03629]. Tool…'
+  model ▸ replies: '{"queries": ["Rainy Saturday Florence 4-year-old", "hands-on museums for children"], "a…'
+  model ▸ call_01 proposes search_places(query='Rainy Saturday Florence 4-year-old')
+  host  ▸ call_01 ok: place:la-specola, place:leonardo-interactive, place:palazzo-vecchio
+  model ▸ call_02 proposes search_places(query='hands-on museums for children')
+  host  ▸ call_02 ok: place:leonardo-interactive, place:la-specola
+  model ▸ replies: "La Specola shows hundreds of preserved animals, from insects to a hippo, in Florence's …"
 
 stop=done after 3 step(s), 7 messages
-ReAct interleaves reasoning traces with actions such as search [arXiv:2210.03629]. Toolformer trains a model to decide which API to call, when to call it and with what arguments, from self-labelled examples of helpful calls [arXiv:2302.04761].
+La Specola shows hundreds of preserved animals, from insects to a hippo, in Florence's natural history museum [place:la-specola]. Leonardo Interactive Museum has hands-on wooden models of Leonardo's machines that kids can turn and push [place:leonardo-interactive].

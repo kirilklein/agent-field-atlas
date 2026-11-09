@@ -1,5 +1,5 @@
 $ python checkpoint_2.py --scenario empty
-  model ▸ replies: '{"queries": ["LLM agents decide call tool", "language models learning to use tools"], "…'
-  model ▸ call_01 proposes search_papers(query='   ')
+  model ▸ replies: '{"queries": ["Rainy Saturday Florence 4-year-old", "hands-on museums for children"], "a…'
+  model ▸ call_01 proposes search_places(query='   ')
   tool  ▸ never ran. The model receives:
             {"tool_call_id": "call_01", "status": "error", "error": {"code": "invalid_arguments", "message": "query must be a non-empty string"}}

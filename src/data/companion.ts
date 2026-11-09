@@ -9,7 +9,7 @@ import cp4 from '../../companion/checkpoint_4.py?raw';
 import comparePy from '../../companion/compare.py?raw';
 import fakeModelPy from '../../companion/fake_model.py?raw';
 import llmPy from '../../companion/llm.py?raw';
-import papersPy from '../../companion/papers.py?raw';
+import placesPy from '../../companion/places.py?raw';
 import judgeLabels from '../../companion/judge_labels.jsonl?raw';
 import replaySet from '../../companion/replay_set.jsonl?raw';
 import recordedComparison from '../../companion/recorded_comparison.json?raw';
@@ -26,7 +26,7 @@ import branchPermissionsPy from '../../companion/branch_permissions.py?raw';
 import branchMemoryPy from '../../companion/branch_memory.py?raw';
 import branchMultiAgentPy from '../../companion/branch_multi_agent.py?raw';
 import outPerm from '../../companion/expected/branch_permissions.txt?raw';
-import outPermSave from '../../companion/expected/branch_permissions_save.txt?raw';
+import outPermAdd from '../../companion/expected/branch_permissions_add.txt?raw';
 import outPermRefuse from '../../companion/expected/branch_permissions_refuse.txt?raw';
 import outMemory from '../../companion/expected/branch_memory.txt?raw';
 import outMemoryRemember from '../../companion/expected/branch_memory_remember.txt?raw';
@@ -48,7 +48,7 @@ export type Run = { label: string; output: string };
 export const SUPPORT_FILES: CompanionFile[] = [
   { name: 'llm.py', code: llmPy, language: 'python', note: 'call_model(): the only code that talks to a model. Fake by default; Claude with ATLAS_MODEL=claude.' },
   { name: 'fake_model.py', code: fakeModelPy, language: 'python', note: 'A scripted model so everything runs offline, with switchable quirks and two bad habits.' },
-  { name: 'papers.py', code: papersPy, language: 'python', note: 'Nine real papers with paraphrased summaries, and a read-only keyword search.' },
+  { name: 'places.py', code: placesPy, language: 'python', note: 'Nine real places in Florence with short notes, and a read-only keyword search.' },
 ];
 
 export type CheckpointId = 1 | 2 | 3 | 4 | 'permissions' | 'memory' | 'multi-agent';
@@ -114,7 +114,7 @@ export const CHECKPOINTS: Record<CheckpointId, Checkpoint> = {
     previous: strip(cp3),
     runs: [{ label: 'Replay + judge check', output: strip(out4) }],
     extra: [
-      { name: 'replay_set.jsonl', code: strip(replaySet), language: 'json', note: 'Five questions, each with papers a good answer could cite.' },
+      { name: 'replay_set.jsonl', code: strip(replaySet), language: 'json', note: 'Five questions, each with places a good answer could cite.' },
       { name: 'judge_labels.jsonl', code: strip(judgeLabels), language: 'json', note: 'Twelve claims a person labelled, used to check the judge.' },
     ],
   },
@@ -124,8 +124,8 @@ export const CHECKPOINTS: Record<CheckpointId, Checkpoint> = {
     file: file('branch_permissions.py', branchPermissionsPy),
     runs: [
       { label: 'Poisoned result', output: strip(outPerm) },
-      { label: '--save --yes', output: strip(outPermSave) },
-      { label: '--save --no', output: strip(outPermRefuse) },
+      { label: '--add --yes', output: strip(outPermAdd) },
+      { label: '--add --no', output: strip(outPermRefuse) },
     ],
     extra: [file('checkpoint_3.py', cp3, 'Imported for brief() and error(): the branch builds on checkpoint 3.')],
   },
@@ -135,7 +135,7 @@ export const CHECKPOINTS: Record<CheckpointId, Checkpoint> = {
     file: file('branch_memory.py', branchMemoryPy),
     runs: [
       { label: 'No memory', output: strip(outMemory) },
-      { label: '--remember year_from=2023', output: strip(outMemoryRemember) },
+      { label: '--remember child_age=4', output: strip(outMemoryRemember) },
     ],
     extra: [file('checkpoint_3.py', cp3, 'Imported for the agent prompt, the tool and handle_tool_call.')],
   },

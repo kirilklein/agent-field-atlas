@@ -2,14 +2,14 @@ $ python branch_memory.py
 memory: (none)
 
 call  tokens sent  keep last 2
-   1          104          104
-   2          379          379
-   3          506          506
-   4          700          561
-   5          830          643
-   6          965          688
- all        3,484        2,881   (17% less)
+   1          108          108
+   2          325          325
+   3          492          492
+   4          596          485
+   5          700          510
+   6          801          574
+ all        3,022        2,494   (17% less)
 
-papers seen this run: 5
-answer: ReAct interleaves reasoning traces with actions such as search [arXiv:2210.03629]. Toolformer trains a model to decide which API to call, when to call it and with what arguments, from self-labelled examples of helpful calls [arXiv:2302.04761].
-answer with trimming: Toolformer looks relevant, but its summary is no longer in the context [arXiv:2302.04761]. ReAct looks relevant, but its summary is no longer in the context [arXiv:2210.03629].
+places seen this run: 6
+answer: La Specola shows hundreds of preserved animals, from insects to a hippo, in Florence's natural history museum [place:la-specola]. Leonardo Interactive Museum has hands-on wooden models of Leonardo's machines that kids can turn and push [place:leonardo-interactive].
+answer with trimming: La Specola looks relevant, but its summary is no longer in the context [place:la-specola]. Leonardo Interactive Museum looks relevant, but its summary is no longer in the context [place:leonardo-interactive].

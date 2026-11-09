@@ -1,15 +1,15 @@
 $ python branch_multi_agent.py
-q1  one: 2/2 supported, 4 calls, ~1,049 tokens   + reviewer: 2/2, 5 calls, ~1,310 tokens
-q2  one: 3/3 supported, 4 calls, ~1,207 tokens   + reviewer: 2/2, 6 calls, ~1,672 tokens
-      reviewer - Toolformer was the first language model to use external tools: says more than the paper does (first)
-q3  one: 2/2 supported, 4 calls, ~1,211 tokens   + reviewer: 2/2, 5 calls, ~1,491 tokens
-q4  one: 2/3 supported, 4 calls, ~1,073 tokens   + reviewer: 2/2, 6 calls, ~1,494 tokens
-      reviewer - Giving agents a search tool roughly halves hallucination rates: cites a paper that is not in the search results
-q5  one: 2/2 supported, 4 calls, ~1,054 tokens   + reviewer: 2/2, 5 calls, ~1,330 tokens
+q1  one: 2/2 supported, 4 calls, ~985 tokens   + reviewer: 2/2, 5 calls, ~1,220 tokens
+q2  one: 3/3 supported, 4 calls, ~785 tokens   + reviewer: 2/2, 6 calls, ~1,215 tokens
+      reviewer - La Specola shows every kind of preserved animal, from insects to a hippo: says more than the place notes do (every)
+q3  one: 2/2 supported, 4 calls, ~886 tokens   + reviewer: 2/2, 5 calls, ~1,110 tokens
+q4  one: 2/3 supported, 4 calls, ~774 tokens   + reviewer: 2/2, 6 calls, ~1,197 tokens
+      reviewer - A rainy-day pass lets children into every museum for free: cites a place that is not in the search results
+q5  one: 2/2 supported, 4 calls, ~714 tokens   + reviewer: 2/2, 5 calls, ~942 tokens
 
 citation support  mean +7%   95% interval -12% to +25%   → can't tell yet
 model calls       mean +1.4   95% interval +0.7 to +2.1   → real difference
-tokens sent       mean +341   95% interval +222 to +459   → real difference
+tokens sent       mean +308   95% interval +173 to +443   → real difference
 
 The judge here is checkpoint 4's word-overlap stand-in. When the reviewer removes a claim
 the judge wrongly passed, this measurement cannot see the gain. Improve the judge

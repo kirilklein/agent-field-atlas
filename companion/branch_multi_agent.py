@@ -1,7 +1,7 @@
-"""Paper-search assistant · branch C: Multi-agent
+"""Rainy-day trip planner · branch C: Multi-agent
 
 A reviewer is a second call to the same model with a different job, less
-context and no tools: it reads the draft and the summaries it cites, and flags
+context and no tools: it reads the draft and the place notes it cites, and flags
 claims they do not support. The writer then revises once.
 
 Then both setups answer the same replay questions, and we compare them
@@ -13,17 +13,17 @@ Run:
 import json
 
 from checkpoint_3 import run_agent
-from checkpoint_4 import load_jsonl, retrieved_papers, score, split_claims
+from checkpoint_4 import load_jsonl, retrieved_places, score, split_claims
 from compare import paired
 from llm import call_model
 
 REVIEWER = {"role": "system", "content":
-            "You review a draft answer against the papers it cites. For each claim the "
+            "You review a draft answer against the places it cites. For each claim the "
             "cited summary does not support, write one line: '- <claim>: <reason>'. "
             "If every claim is supported, reply NO_ISSUES."}
 REVISER = {"role": "system", "content":
            "You revise a draft answer. Remove or soften every flagged claim and keep "
-           "one [arXiv:...] citation per sentence."}
+           "one [place:...] citation per sentence."}
 
 
 def tokens(messages):
@@ -41,11 +41,11 @@ def agent_cost(run):
 def answer_with_review(question):
     run = run_agent(question)
     calls, sent = agent_cost(run)
-    retrieved = retrieved_papers(run["messages"])
-    cited = {c["cites"]: {"title": retrieved[c["cites"]]["title"], "summary": retrieved[c["cites"]]["summary"]}
+    retrieved = retrieved_places(run["messages"])
+    cited = {c["cites"]: {"name": retrieved[c["cites"]]["name"], "summary": retrieved[c["cites"]]["summary"]}
              for c in split_claims(run["answer"]) if c["cites"] in retrieved}
 
-    review = [REVIEWER, {"role": "user", "content": json.dumps({"draft": run["answer"], "papers": cited})}]
+    review = [REVIEWER, {"role": "user", "content": json.dumps({"draft": run["answer"], "places": cited})}]
     feedback = call_model(review)["text"]
     calls, sent = calls + 1, sent + tokens(review)
     if feedback.strip() == "NO_ISSUES":
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     for item in load_jsonl("replay_set.jsonl"):
         single = run_agent(item["question"])
         s_calls, s_sent = agent_cost(single)
-        s_ok, s_n = supported_share(single["answer"], retrieved_papers(single["messages"]))
+        s_ok, s_n = supported_share(single["answer"], retrieved_places(single["messages"]))
 
         answer, retrieved, r_calls, r_sent, feedback = answer_with_review(item["question"])
         r_ok, r_n = supported_share(answer, retrieved)

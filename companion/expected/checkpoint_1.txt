@@ -1,4 +1,4 @@
 $ python checkpoint_1.py
-question: How do LLM agents decide when to call a tool?
-  model ▸ replies: '{"queries": ["LLM agents decide call tool", "language models learning to use tools"], "…'
-queries:  ['LLM agents decide call tool', 'language models learning to use tools']
+question: Rainy Saturday in Florence with a 4-year-old: what can we do?
+  model ▸ replies: '{"queries": ["Rainy Saturday Florence 4-year-old", "hands-on museums for children"], "a…'
+queries:  ['Rainy Saturday Florence 4-year-old', 'hands-on museums for children']

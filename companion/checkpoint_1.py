@@ -1,11 +1,11 @@
-"""Paper-search assistant · checkpoint 1 of 4: One model call
+"""Rainy-day trip planner · checkpoint 1 of 4: One model call
 
-Turn a research question into 2-4 search queries, and check the reply
+Turn a trip question into 2-4 search queries, and check the reply
 before the rest of the program relies on it.
 
 Run:
     python checkpoint_1.py
-    python checkpoint_1.py "Which benchmarks test tool-using agents?"
+    python checkpoint_1.py "Where can my kids see knights in armour?"
     python checkpoint_1.py --sloppy     # the fake model answers in prose first
 """
 import json
@@ -16,15 +16,16 @@ from llm import call_model, set_quirks, set_trace
 # -- 1 · One model call ---------------------------------------------------------
 
 PLANNER = {"role": "system", "content":
-           "Turn the research question into 2-4 short search queries. "
-           'Reply with JSON only: {"queries": [...], "year_from": null}.'}
+           "Turn the trip question into 2-4 short search queries, and note the "
+           "child's age if it is given. "
+           'Reply with JSON only: {"queries": [...], "age": null}.'}
 
 QUERY_SCHEMA = {
     "type": "object",
     "properties": {
         "queries": {"type": "array", "items": {"type": "string"},
                     "minItems": 2, "maxItems": 4},
-        "year_from": {"type": ["integer", "null"]},
+        "age": {"type": ["integer", "null"]},
     },
     "required": ["queries"],
 }
@@ -53,6 +54,6 @@ if __name__ == "__main__":
     if "--sloppy" in sys.argv:
         set_quirks({"prose_first"})
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    question = args[0] if args else "How do LLM agents decide when to call a tool?"
+    question = args[0] if args else "Rainy Saturday in Florence with a 4-year-old: what can we do?"
     print("question:", question)
     print("queries: ", plan_queries(question))

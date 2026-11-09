@@ -74,7 +74,7 @@ export function CheckpointView({ id }: Props) {
     }
   };
 
-  const folder = [cp.file.name, ...cp.needs.filter((n) => !n.endsWith('.jsonl')), 'llm.py', 'fake_model.py', 'papers.py'];
+  const folder = [cp.file.name, ...cp.needs.filter((n) => !n.endsWith('.jsonl')), 'llm.py', 'fake_model.py', 'places.py'];
 
   return (
     <section className="checkpoint" aria-label={isNumbered ? `Checkpoint ${id}` : 'Run the branch'}>

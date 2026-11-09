@@ -16,8 +16,8 @@ export function Cartouche({ onStart, reduced }: { onStart: () => void; reduced: 
         Agent Field Atlas
       </h1>
       <p className="cartouche__lede">
-        Build an LLM agent from scratch: a paper-search assistant in plain Python, from a single model call to an
-        evaluated agent.
+        Build an LLM agent from scratch: a trip planner for a rainy day in Florence, in plain Python, from a single
+        model call to an evaluated agent.
       </p>
       <Hub reduced={reduced} />
       <button type="button" className="btn btn--primary btn--start" onClick={onStart}>

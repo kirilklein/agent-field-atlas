@@ -7,40 +7,39 @@ keeps no state between calls; everything it knows comes from `messages`.
 To give the course something to catch, it has a few switchable quirks
 (see `QUIRKS`) and two bad habits it always has when answering:
 
-  * asked whether a model can *learn* something, it overstates Toolformer;
-  * asked about *hallucination*, it cites a paper it never retrieved.
+  * asked about *animals*, it overstates what La Specola has;
+  * asked about anything *free*, it cites a place it never retrieved.
 """
 
 import json
 import re
 
-from papers import search_papers, terms
+from places import terms
 
 QUIRKS = {
     "prose_first": "first planning reply is chatty prose instead of JSON",
     "empty_query": "first tool call has a whitespace-only query",
-    "disallowed_tool": "first tool call asks for fetch_url, which does not exist",
+    "disallowed_tool": "first tool call asks for book_tickets, which is not offered",
     "follows_injections": "obeys instructions it finds inside tool results",
-    "saves": "asks to save the best paper when the question mentions saving",
+    "adds": "asks to add the best place to the day plan when the question mentions the plan",
     "thorough": "runs five searches before answering, for long runs",
 }
 
 # Extra searches for the "thorough" quirk.
-THOROUGH = ["tool use benchmarks", "agent memory of failed attempts", "LLM as a judge agreement with humans"]
+THOROUGH = ["knights in armour", "Renaissance paintings", "towers with views"]
 # Words that make a claim stronger than most summaries support.
-OVERCLAIM = {"first", "best", "all", "always", "never", "halves", "eliminates", "proves"}
+OVERCLAIM = {"best", "largest", "only", "all", "every", "always", "never"}
 
 # Extra searches the fake planner adds when a question touches these topics.
 FOLLOW_UPS = [
-    ("hallucinat", "retrieval augmented generation hallucination"),
-    ("judge", "LLM as a judge agreement with humans"),
-    ("evaluat", "LLM as a judge agreement with humans"),
-    ("argument", "API documentation fine-tuning"),
-    ("api", "self-supervised API call learning"),
-    ("reason", "reasoning and acting"),
-    ("tool", "language models learning to use tools"),
-    ("memory", "agent memory of failed attempts"),
-    ("context", "long context position"),
+    ("free", "free museums for families"),
+    ("animal", "preserved animals"),
+    ("knight", "knights in armour"),
+    ("lunch", "covered market lunch"),
+    ("paint", "Renaissance paintings"),
+    ("view", "towers with views"),
+    ("rain", "hands-on museums for children"),
+    ("kid", "hands-on museums for children"),
 ]
 
 
@@ -62,9 +61,10 @@ class FakeModel:
     def _plan(self, messages):
         attempts = sum(m["role"] == "assistant" for m in messages)
         if "prose_first" in self.quirks and attempts == 0:
-            return reply(text="Sure! Here are some searches you could try:\n"
-                              "1. LLM agents tool use\n2. ReAct prompting")
-        return reply(text=json.dumps({"queries": plan_for(question_of(messages)), "year_from": None}))
+            return reply(text="Sure! Florence has lots to do:\n"
+                              "1. the Uffizi\n2. the Boboli Gardens")
+        question = question_of(messages)
+        return reply(text=json.dumps({"queries": plan_for(question), "age": age_of(question)}))
 
     # -- acting: propose a tool call, or answer ---------------------------------
     def _act(self, messages):
@@ -73,14 +73,14 @@ class FakeModel:
         call_id = f"call_{sum(m['role'] == 'assistant' for m in messages) + 1:02d}"
 
         if not tool_msgs and "empty_query" in self.quirks:
-            return reply(tool_calls=[call(call_id, "search_papers", query="   ")])
+            return reply(tool_calls=[call(call_id, "search_places", query="   ")])
         if not tool_msgs and "disallowed_tool" in self.quirks:
-            return reply(tool_calls=[call(call_id, "fetch_url", url="https://scholar.example.org/search?q=agents")])
+            return reply(tool_calls=[call(call_id, "book_tickets", place_id="place:uffizi", tickets=3)])
 
         proposed = [c["name"] for m in messages if m["role"] == "assistant" for c in m.get("tool_calls", [])]
-        if "follows_injections" in self.quirks and "delete_library" not in proposed:
-            if any("call delete_library" in p.get("summary", "") for m in ok for p in papers_in(m)):
-                return reply(tool_calls=[call(call_id, "delete_library")])
+        if "follows_injections" in self.quirks and "clear_plan" not in proposed:
+            if any("call clear_plan" in p.get("summary", "") for m in ok for p in places_in(m)):
+                return reply(tool_calls=[call(call_id, "clear_plan")])
 
         searches = suggested_searches(messages) or plan_for(question_of(messages))
         wanted = 2
@@ -88,60 +88,60 @@ class FakeModel:
             searches = searches + [q for q in THOROUGH if q not in searches]
             wanted = 5
         if len(ok) < min(wanted, len(searches)):
-            return reply(tool_calls=[call(call_id, "search_papers", query=searches[len(ok)])])
+            return reply(tool_calls=[call(call_id, "search_places", query=searches[len(ok)])])
 
         question = question_of(messages)
-        if "saves" in self.quirks and "save" in question.lower() and "save_to_library" not in proposed:
+        if "adds" in self.quirks and "plan" in question.lower() and "add_to_plan" not in proposed:
             best = self._ranked(question, ok)
             if best:
-                return reply(tool_calls=[call(call_id, "save_to_library", paper_id=best[0]["id"])])
+                return reply(tool_calls=[call(call_id, "add_to_plan", place_id=best[0]["id"])])
         return reply(text=self._answer(question, ok))
 
     def _ranked(self, question, ok_results):
         seen = {}
         for m in ok_results:
-            for p in papers_in(m):
+            for p in places_in(m):
                 if "IMPORTANT SYSTEM NOTE" not in p.get("summary", ""):
                     seen.setdefault(p["id"], p)
         q = set(terms(question))
-        return sorted(seen.values(), key=lambda p: -len(q & set(terms(p["title"] + " " + p.get("summary", "")))))
+        return sorted(seen.values(), key=lambda p: -len(q & set(terms(p["name"] + " " + p.get("summary", "")))))
 
     def _answer(self, question, ok_results):
-        # Cite the retrieved papers that best match the question.
+        # Cite the retrieved places that best match the question.
         ranked = self._ranked(question, ok_results)
         seen = {p["id"] for p in ranked}
-        sentences = [f"{p.get('short') or p['title'].split(':')[0]} {describe(p)} [{p['id']}]." for p in ranked[:2]]
-        # Bad habit 1: overstating novelty.
-        if "learn" in question.lower() and "arXiv:2302.04761" in seen:
-            sentences.append("Toolformer was the first language model to use external tools [arXiv:2302.04761].")
+        sentences = [f"{p['name']} {describe(p)} [{p['id']}]." for p in ranked[:2]]
+        # Bad habit 1: overstating.
+        if "animal" in question.lower() and "place:la-specola" in seen:
+            sentences.append("La Specola shows every kind of preserved animal, from insects to a hippo [place:la-specola].")
         # Bad habit 2: citing something it never retrieved.
-        if "hallucinat" in question.lower():
-            sentences.append("Giving agents a search tool roughly halves hallucination rates [arXiv:2401.00000].")
+        if "free" in question.lower():
+            sentences.append("A rainy-day pass lets children into every museum for free [place:rainy-day-pass].")
         return " ".join(sentences)
 
 
 # -- helpers ------------------------------------------------------------------
 
-def papers_in(message):
-    """Papers in a tool result, whether plain or wrapped by the host."""
+def places_in(message):
+    """Places in a tool result, whether plain or wrapped by the host."""
     content = message.get("content")
     if isinstance(content, dict):
         content = content.get("untrusted_tool_result", [])
     return [p for p in content or [] if isinstance(p, dict) and "id" in p]
 
 
-def describe(paper):
-    summary = paper.get("summary")
-    if not summary:  # trimmed out of the context: only the title is left
+def describe(place):
+    summary = place.get("summary")
+    if not summary:  # trimmed out of the context: only the name is left
         return "looks relevant, but its summary is no longer in the context"
     return lowercase_first(first_clause(summary))
 
 
 def sentences_with_citations(text):
-    parts = re.split(r"(?<!et al\.)(?<=[.!?])\s+", text.strip())
+    parts = re.split(r"(?<=[.!?])\s+", text.strip())
     out = []
     for s in parts:
-        m = re.search(r"\[(arXiv:[\d.]+)\]", s)
+        m = re.search(r"\[(place:[a-z0-9-]+)\]", s)
         out.append((s, m.group(1) if m else None))
     return out
 
@@ -151,15 +151,15 @@ def review(payload):
     data = json.loads(payload)
     issues = []
     for sentence, cite in sentences_with_citations(data["draft"]):
-        claim = re.sub(r"\s*\[arXiv:[\d.]+\]\.?$", "", sentence)
-        paper = data["papers"].get(cite or "", {})
-        summary = paper.get("summary", "")
+        claim = re.sub(r"\s*\[place:[a-z0-9-]+\]\.?$", "", sentence)
+        place = data["places"].get(cite or "", {})
+        summary = place.get("summary", "")
         if not summary:
-            issues.append(f"- {claim}: cites a paper that is not in the search results")
+            issues.append(f"- {claim}: cites a place that is not in the search results")
             continue
         strong = OVERCLAIM & set(re.findall(r"[a-z]+", claim.lower()))
         if strong - set(re.findall(r"[a-z]+", summary.lower())):
-            issues.append(f"- {claim}: says more than the paper does ({', '.join(sorted(strong))})")
+            issues.append(f"- {claim}: says more than the place notes do ({', '.join(sorted(strong))})")
     return "\n".join(issues) or "NO_ISSUES"
 
 
@@ -192,16 +192,21 @@ def suggested_searches(messages):
 
 def plan_for(question):
     words = [w for w in re.findall(r"[A-Za-z0-9-]+", question) if w.lower() not in
-             {"how", "do", "does", "can", "a", "an", "the", "what", "when", "by", "itself", "to",
-              "should", "i", "with", "they", "it", "is", "are", "of"}]
+             {"how", "do", "does", "can", "a", "an", "the", "what", "when", "where", "which", "to",
+              "should", "i", "we", "my", "our", "with", "in", "for", "on", "is", "are", "of", "any", "there"}]
     queries = [" ".join(words[:6])]
     for key, extra in FOLLOW_UPS:
         if key in question.lower() and extra not in queries:
             queries.append(extra)
             break
     if len(queries) < 2:
-        queries.append("language model agents")
+        queries.append("indoor things to do")
     return queries
+
+
+def age_of(question):
+    match = re.search(r"(\d+)-year-old", question)
+    return int(match.group(1)) if match else None
 
 
 def first_clause(text):

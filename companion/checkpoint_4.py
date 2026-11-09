@@ -1,7 +1,7 @@
-"""Paper-search assistant · checkpoint 4 of 4: Evaluation
+"""Rainy-day trip planner · checkpoint 4 of 4: Evaluation
 
 Replay a fixed set of questions through the agent and check every claim:
-was the cited paper actually retrieved, and does it support the claim?
+was the cited place actually retrieved, and does it support the claim?
 Then check the judge itself against claims a person labelled.
 
 Run:
@@ -13,20 +13,21 @@ import re
 import sys
 
 from llm import call_model, set_trace, using_fake
-from papers import PAPERS, search_papers, terms
+from places import PLACES, search_places, terms
 
 # -- 1 · One model call ---------------------------------------------------------
 
 PLANNER = {"role": "system", "content":
-           "Turn the research question into 2-4 short search queries. "
-           'Reply with JSON only: {"queries": [...], "year_from": null}.'}
+           "Turn the trip question into 2-4 short search queries, and note the "
+           "child's age if it is given. "
+           'Reply with JSON only: {"queries": [...], "age": null}.'}
 
 QUERY_SCHEMA = {
     "type": "object",
     "properties": {
         "queries": {"type": "array", "items": {"type": "string"},
                     "minItems": 2, "maxItems": 4},
-        "year_from": {"type": ["integer", "null"]},
+        "age": {"type": ["integer", "null"]},
     },
     "required": ["queries"],
 }
@@ -52,10 +53,10 @@ def plan_queries(question, retries=1):
 
 # -- 2 · Tool calling -----------------------------------------------------------
 
-SEARCH_PAPERS = {
-    "name": "search_papers",
-    "description": "Search the paper index. Returns up to 3 papers "
-                   "with id, title, year and summary. Read-only.",
+SEARCH_PLACES = {
+    "name": "search_places",
+    "description": "Search places in Florence. Returns up to 3 places "
+                   "with id, name, indoor, min_age and summary. Read-only.",
     "input_schema": {
         "type": "object",
         "properties": {"query": {"type": "string", "maxLength": 200}},
@@ -63,7 +64,7 @@ SEARCH_PAPERS = {
     },
 }
 
-ALLOWED_TOOLS = {"search_papers": search_papers}
+ALLOWED_TOOLS = {"search_places": search_places}
 MAX_QUERY = 200
 
 def handle_tool_call(call):
@@ -83,9 +84,9 @@ def handle_tool_call(call):
         return error(call, "invalid_arguments",
             f"query is over {MAX_QUERY} characters")
 
-    papers = ALLOWED_TOOLS[name](query.strip(), limit=3)
+    places = ALLOWED_TOOLS[name](query.strip(), limit=3)
     return {"tool_call_id": call["id"],
-            "status": "ok", "content": papers}
+            "status": "ok", "content": places}
 
 def error(call, code, msg):
     return {"tool_call_id": call["id"],
@@ -96,9 +97,9 @@ def error(call, code, msg):
 # -- 3 · Agent loop -------------------------------------------------------------
 
 AGENT = {"role": "system", "content":
-         "You help researchers find papers. Use search_papers to find evidence, "
-         "then answer in 2-4 sentences. End every sentence with exactly one "
-         "citation like [arXiv:2210.03629], using only IDs from your search results."}
+         "You help families plan a day out in Florence. Use search_places to find "
+         "options, then answer in 2-4 sentences. End every sentence with exactly one "
+         "citation like [place:uffizi], using only IDs from your search results."}
 
 
 def brief(question):
@@ -108,7 +109,7 @@ def brief(question):
 def run_agent(question, max_steps=6):
     messages = [AGENT, {"role": "user", "content": brief(question)}]
     for step in range(1, max_steps + 1):
-        reply = call_model(messages, tools=[SEARCH_PAPERS])
+        reply = call_model(messages, tools=[SEARCH_PLACES])
         messages.append({"role": "assistant", **reply})
         if not reply["tool_calls"]:
             return {"answer": reply["text"], "steps": step, "stop": "done", "messages": messages}
@@ -120,15 +121,15 @@ def run_agent(question, max_steps=6):
 
 # -- 4 · Evaluation -------------------------------------------------------------
 
-CITATION = re.compile(r"\[(arXiv:\d{4}\.\d{4,5})(?:v\d+)?\]")
+CITATION = re.compile(r"\[(place:[a-z0-9-]+)\]")
 
 
 def split_claims(answer):
-    """One claim per sentence, with the first arXiv citation in it (or None).
-    'Claim one [arXiv:1]. Claim two.' -> [{"text", "cites": "arXiv:1"}, {"text", "cites": None}]"""
+    """One claim per sentence, with the first place citation in it (or None).
+    'Claim one [place:a]. Claim two.' -> [{"text", "cites": "place:a"}, {"text", "cites": None}]"""
     claims = []
-    # Split after . ! or ?, but not after abbreviations such as "et al." or "e.g.".
-    for sentence in re.split(r"(?<!et al\.)(?<!e\.g\.)(?<!i\.e\.)(?<=[.!?])\s+", (answer or "").strip()):
+    # Split after . ! or ?, but not after abbreviations such as "e.g.".
+    for sentence in re.split(r"(?<!e\.g\.)(?<!i\.e\.)(?<=[.!?])\s+", (answer or "").strip()):
         if not sentence.strip():
             continue
         cite = CITATION.search(sentence)
@@ -137,7 +138,7 @@ def split_claims(answer):
     return claims
 
 
-def retrieved_papers(messages):
+def retrieved_places(messages):
     return {p["id"]: p for m in messages
             if m["role"] == "tool" and m["status"] == "ok" for p in m["content"]}
 
@@ -167,11 +168,11 @@ def score(answer, retrieved):
         if claim["cites"] is None:
             verdicts.append(("uncited", claim))
             continue
-        paper = retrieved.get(claim["cites"])
-        if paper is None:
+        place = retrieved.get(claim["cites"])
+        if place is None:
             verdicts.append(("fabricated", claim))
             continue
-        ok = judge_supports(claim["text"], paper["title"] + ". " + paper["summary"])
+        ok = judge_supports(claim["text"], place["name"] + ". " + place["summary"])
         verdicts.append(("supported" if ok else "unsupported", claim))
     supported = sum(v == "supported" for v, _ in verdicts)
     return supported / max(1, len(verdicts)), verdicts
@@ -199,7 +200,7 @@ def evaluate(replay_path="replay_set.jsonl"):
     for item in load_jsonl(replay_path):
         run = run_agent(item["question"])
         claims = split_claims(run["answer"])
-        _, verdicts = score({"claims": claims}, retrieved_papers(run["messages"]))
+        _, verdicts = score({"claims": claims}, retrieved_places(run["messages"]))
         ok = sum(v == "supported" for v, _ in verdicts)
         total += len(verdicts)
         supported += ok
@@ -220,8 +221,8 @@ def check_judge(labels_path="judge_labels.jsonl"):
     agree = 0
     misses = []
     for item in labels:
-        paper = next(p for p in PAPERS if p["id"] == item["paper"])
-        says = judge_supports(item["claim"], paper["title"] + ". " + paper["summary"])
+        place = next(p for p in PLACES if p["id"] == item["place"])
+        says = judge_supports(item["claim"], place["name"] + ". " + place["summary"])
         if says == item["supported"]:
             agree += 1
         else:

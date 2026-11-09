@@ -1,4 +1,4 @@
-# Paper-search assistant: runnable companion
+# Rainy-day trip planner: runnable companion
 
 The code behind the Agent Field Atlas, in plain Python (3.9+, standard library only).
 Each checkpoint is one complete file that contains everything from the previous one,
@@ -11,7 +11,7 @@ plus the new piece.
 | `checkpoint_3.py` | Agent loop | `python checkpoint_3.py --max-steps 2` |
 | `checkpoint_4.py` | Evaluation | `python checkpoint_4.py` |
 | `branch_permissions.py` | Permissions branch | `python branch_permissions.py` |
-| `branch_memory.py` | Context & memory branch | `python branch_memory.py --remember year_from=2023` |
+| `branch_memory.py` | Context & memory branch | `python branch_memory.py --remember child_age=4` |
 | `branch_multi_agent.py` | Multi-agent branch | `python branch_multi_agent.py` |
 | `compare.py` | Multi-agent branch (recorded real-model numbers) | `python compare.py` |
 
@@ -34,7 +34,7 @@ Shared pieces:
 - `llm.py` — `call_model(messages, tools, schema)`, the only code that talks to a model.
 - `fake_model.py` — a scripted model, so everything runs offline and the same way every time.
   It has a few switchable quirks and two bad habits, so the checks have something to catch.
-- `papers.py` — a nine-paper index and a read-only keyword `search_papers`.
+- `places.py` — nine real places in Florence, with short notes, and a read-only keyword `search_places`.
 - `replay_set.jsonl`, `judge_labels.jsonl`, `recorded_comparison.json` — evaluation fixtures.
 - `expected/` — what each command prints with the fake model. Re-record after changing a file.
 

@@ -1,5 +1,5 @@
-{"id": "q1", "question": "How do LLM agents interleave reasoning and tool use?", "expect_any": ["arXiv:2210.03629"]}
-{"id": "q2", "question": "Can a language model learn by itself when to call an API?", "expect_any": ["arXiv:2302.04761"]}
-{"id": "q3", "question": "What helps models call real APIs with correct arguments?", "expect_any": ["arXiv:2305.15334", "arXiv:2307.16789"]}
-{"id": "q4", "question": "Do agents hallucinate less when they can search?", "expect_any": ["arXiv:2005.11401"]}
-{"id": "q5", "question": "How should I evaluate answers with an LLM judge?", "expect_any": ["arXiv:2306.05685"]}
+{"id": "q1", "question": "Rainy Saturday in Florence with a 4-year-old: what can we do?", "expect_any": ["place:leonardo-interactive", "place:la-specola"]}
+{"id": "q2", "question": "Where can my kids see animals indoors?", "expect_any": ["place:la-specola"]}
+{"id": "q3", "question": "Which museum has knights in armour?", "expect_any": ["place:stibbert"]}
+{"id": "q4", "question": "Is there anything free for kids to do on a rainy day?", "expect_any": ["place:leonardo-interactive"]}
+{"id": "q5", "question": "Where can we have lunch indoors?", "expect_any": ["place:mercato-centrale"]}

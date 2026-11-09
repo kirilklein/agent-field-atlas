@@ -1,6 +1,6 @@
 # Agent Field Atlas
 
-An interactive learning map for engineers who want to understand LLM agents by building one: a paper-search assistant in plain Python, from one model call to an evaluated agent. Everything runs on recorded fixtures — no API key.
+An interactive learning map for engineers who want to understand LLM agents by building one: a trip planner that answers "Rainy Saturday in Florence with a 4-year-old: what can we do?", in plain Python, from one model call to an evaluated agent. Everything runs on recorded fixtures — no API key.
 
 ## Run
 
@@ -17,7 +17,7 @@ npm run build && npm run preview   # http://localhost:4173
 
 ## Python companion
 
-`companion/` holds the paper-search assistant itself: four runnable checkpoints (one per landmark), `compare.py` for the Multi-agent branch, a scripted fake model so everything runs offline, and an adapter for Claude (`ATLAS_MODEL=claude`). The atlas imports these files and their recorded output (`companion/expected/`) directly, so the lessons always show the real code. After changing a checkpoint, re-record its output; see `companion/README.md`.
+`companion/` holds the trip planner itself: four runnable checkpoints (one per landmark), `compare.py` for the Multi-agent branch, a scripted fake model so everything runs offline, and an adapter for Claude (`ATLAS_MODEL=claude`). The atlas imports these files and their recorded output (`companion/expected/`) directly, so the lessons always show the real code. After changing a checkpoint, re-record its output; see `companion/README.md`.
 
 ## How it's put together
 

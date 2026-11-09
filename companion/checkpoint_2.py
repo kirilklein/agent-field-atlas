@@ -1,6 +1,6 @@
-"""Paper-search assistant · checkpoint 2 of 4: Tool calling
+"""Rainy-day trip planner · checkpoint 2 of 4: Tool calling
 
-Give the model a search_papers tool. The model proposes a call; the host
+Give the model a search_places tool. The model proposes a call; the host
 validates it and only then runs the tool.
 
 Run:
@@ -12,20 +12,21 @@ import json
 import sys
 
 from llm import call_model, set_quirks, set_trace
-from papers import search_papers
+from places import search_places
 
 # -- 1 · One model call ---------------------------------------------------------
 
 PLANNER = {"role": "system", "content":
-           "Turn the research question into 2-4 short search queries. "
-           'Reply with JSON only: {"queries": [...], "year_from": null}.'}
+           "Turn the trip question into 2-4 short search queries, and note the "
+           "child's age if it is given. "
+           'Reply with JSON only: {"queries": [...], "age": null}.'}
 
 QUERY_SCHEMA = {
     "type": "object",
     "properties": {
         "queries": {"type": "array", "items": {"type": "string"},
                     "minItems": 2, "maxItems": 4},
-        "year_from": {"type": ["integer", "null"]},
+        "age": {"type": ["integer", "null"]},
     },
     "required": ["queries"],
 }
@@ -51,10 +52,10 @@ def plan_queries(question, retries=1):
 
 # -- 2 · Tool calling -----------------------------------------------------------
 
-SEARCH_PAPERS = {
-    "name": "search_papers",
-    "description": "Search the paper index. Returns up to 3 papers "
-                   "with id, title, year and summary. Read-only.",
+SEARCH_PLACES = {
+    "name": "search_places",
+    "description": "Search places in Florence. Returns up to 3 places "
+                   "with id, name, indoor, min_age and summary. Read-only.",
     "input_schema": {
         "type": "object",
         "properties": {"query": {"type": "string", "maxLength": 200}},
@@ -62,7 +63,7 @@ SEARCH_PAPERS = {
     },
 }
 
-ALLOWED_TOOLS = {"search_papers": search_papers}
+ALLOWED_TOOLS = {"search_places": search_places}
 MAX_QUERY = 200
 
 def handle_tool_call(call):
@@ -82,9 +83,9 @@ def handle_tool_call(call):
         return error(call, "invalid_arguments",
             f"query is over {MAX_QUERY} characters")
 
-    papers = ALLOWED_TOOLS[name](query.strip(), limit=3)
+    places = ALLOWED_TOOLS[name](query.strip(), limit=3)
     return {"tool_call_id": call["id"],
-            "status": "ok", "content": papers}
+            "status": "ok", "content": places}
 
 def error(call, code, msg):
     return {"tool_call_id": call["id"],
@@ -97,19 +98,19 @@ if __name__ == "__main__":
     scenario = sys.argv[sys.argv.index("--scenario") + 1] if "--scenario" in sys.argv else "valid"
     set_quirks({"valid": set(), "empty": {"empty_query"},
                 "disallowed": {"disallowed_tool"}}[scenario])
-    question = "How do LLM agents decide when to call a tool?"
+    question = "Rainy Saturday in Florence with a 4-year-old: what can we do?"
     messages = [
-        {"role": "system", "content": "You help researchers find papers. Use search_papers."},
+        {"role": "system", "content": "You help families plan a day out in Florence. Use search_places."},
         {"role": "user", "content": question + "\n\nSuggested searches: "
                                     + "; ".join(plan_queries(question))},
     ]
-    reply = call_model(messages, tools=[SEARCH_PAPERS])
+    reply = call_model(messages, tools=[SEARCH_PLACES])
     for call in reply["tool_calls"]:
         result = handle_tool_call(call)
         if result["status"] == "ok":
-            print(f"  tool  ▸ ran, {len(result['content'])} papers:")
-            for paper in result["content"]:
-                print(f"            {paper['id']}  {paper['title']}")
+            print(f"  tool  ▸ ran, {len(result['content'])} places:")
+            for place in result["content"]:
+                print(f"            {place['id']}  {place['name']}")
         else:
             print(f"  tool  ▸ never ran. The model receives:")
             print("           ", json.dumps(result))

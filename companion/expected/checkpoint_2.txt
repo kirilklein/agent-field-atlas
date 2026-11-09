@@ -1,7 +1,7 @@
 $ python checkpoint_2.py
-  model ▸ replies: '{"queries": ["LLM agents decide call tool", "language models learning to use tools"], "…'
-  model ▸ call_01 proposes search_papers(query='LLM agents decide call tool')
-  tool  ▸ ran, 3 papers:
-            arXiv:2302.04761  Toolformer: Language Models Can Teach Themselves to Use Tools
-            arXiv:2303.11366  Reflexion: Language Agents with Verbal Reinforcement Learning
-            arXiv:2305.15334  Gorilla: Large Language Model Connected with Massive APIs
+  model ▸ replies: '{"queries": ["Rainy Saturday Florence 4-year-old", "hands-on museums for children"], "a…'
+  model ▸ call_01 proposes search_places(query='Rainy Saturday Florence 4-year-old')
+  tool  ▸ ran, 3 places:
+            place:la-specola  La Specola
+            place:leonardo-interactive  Leonardo Interactive Museum
+            place:palazzo-vecchio  Palazzo Vecchio

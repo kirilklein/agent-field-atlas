@@ -61,7 +61,8 @@ export function Welcome({ onEnter }: { onEnter: () => void }) {
         <p className="kicker">A field atlas · Plate I</p>
         <h1 className="welcome__title">Agent Field Atlas</h1>
         <p className="welcome__lede">
-          A map for finding your way around LLM agents, by building one: a paper-search assistant in plain Python.
+          A map for finding your way around LLM agents, by building one: a trip planner for a rainy day in Florence, in
+          plain Python.
           Every run is recorded, so you need no API key.
         </p>
 

@@ -1,12 +1,12 @@
-{"claim": "ReAct interleaves reasoning traces with actions such as search", "paper": "arXiv:2210.03629", "supported": true}
-{"claim": "Toolformer trains a model to decide which API to call, when and with what arguments", "paper": "arXiv:2302.04761", "supported": true}
-{"claim": "Toolformer was the first language model to use external tools", "paper": "arXiv:2302.04761", "supported": false}
-{"claim": "Gorilla fine-tunes a model on API documentation to write accurate API calls", "paper": "arXiv:2305.15334", "supported": true}
-{"claim": "Gorilla shows that tool use eliminates hallucination", "paper": "arXiv:2305.15334", "supported": false}
-{"claim": "ToolLLM fine-tunes a model to plan and execute multi-step API calls", "paper": "arXiv:2307.16789", "supported": true}
-{"claim": "Reflexion updates the model's weights after each failure", "paper": "arXiv:2303.11366", "supported": false}
-{"claim": "Self-Refine uses one model to draft, critique and revise an answer", "paper": "arXiv:2303.17651", "supported": true}
-{"claim": "Lost in the Middle shows that models use information in the middle of a long context best", "paper": "arXiv:2307.03172", "supported": false}
-{"claim": "Zheng et al. measure how often language-model judges agree with human judges", "paper": "arXiv:2306.05685", "supported": true}
-{"claim": "Retrieval-augmented generation conditions answers on retrieved passages", "paper": "arXiv:2005.11401", "supported": true}
-{"claim": "Retrieval-augmented generation proves that retrieval removes all hallucinations", "paper": "arXiv:2005.11401", "supported": false}
+{"claim": "Museo Galileo shows historic telescopes, including two Galileo made himself", "place": "place:museo-galileo", "supported": true}
+{"claim": "Museo Galileo lets visitors look at the stars through Galileo's telescopes", "place": "place:museo-galileo", "supported": false}
+{"claim": "The Leonardo Interactive Museum has wooden models of machines that kids can push and turn", "place": "place:leonardo-interactive", "supported": true}
+{"claim": "Museo Stibbert has a hall of knights on horseback in armour", "place": "place:stibbert", "supported": true}
+{"claim": "Museo Stibbert has the largest hall of armoured knights on horseback", "place": "place:stibbert", "supported": false}
+{"claim": "La Specola shows preserved animals from insects to a hippo", "place": "place:la-specola", "supported": true}
+{"claim": "La Specola shows every kind of preserved animal, from insects to a hippo", "place": "place:la-specola", "supported": false}
+{"claim": "Palazzo Vecchio runs family tours through secret passages", "place": "place:palazzo-vecchio", "supported": true}
+{"claim": "The Uffizi Gallery has a free children's play room on the top floor", "place": "place:uffizi", "supported": false}
+{"claim": "Mercato Centrale serves lunch from food stalls on a covered floor", "place": "place:mercato-centrale", "supported": true}
+{"claim": "The Boboli Gardens stay dry and pleasant in heavy rain", "place": "place:boboli", "supported": false}
+{"claim": "Giotto's Bell Tower is a gentle climb for small children", "place": "place:giotto-tower", "supported": false}

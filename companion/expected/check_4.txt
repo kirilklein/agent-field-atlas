@@ -1,5 +1,5 @@
 $ python check.py 4
-✗ 4a  Teach the judge about overclaiming: 10/12 agree; still wrong on: 'Toolformer was the first language model to use external tools'
-✗ 4b  Check the expected papers: cites_expected is not defined
+✗ 4a  Teach the judge about overclaiming: 10/12 agree; still wrong on: 'Museo Stibbert has the largest hall of armoured knights on horseback'
+✗ 4b  Check the expected places: cites_expected is not defined
 
 0/2 passing
