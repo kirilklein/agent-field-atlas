@@ -88,11 +88,11 @@ export const SKETCHES: Record<RegionId, Sketch> = {
   evaluation: {
     nodes: ['Replay', 'Answer', 'Check', 'Score'],
     lines: [
-      { label: 'ask', text: 'q2 · Can a model learn by itself when to call an API?', tone: 'msg', node: 0 },
+      { label: 'ask', text: 'q2, q4 · from the replay set', tone: 'msg', node: 0 },
       { label: 'claim', text: 'Toolformer trains a model to decide which API to call [2302.04761]', tone: 'model', node: 1 },
       { label: 'check', text: 'paper retrieved · summary supports it', tone: 'ok', node: 2, mark: 'ok' },
-      { label: 'claim', text: 'Toolformer was the first model to use tools [2302.04761]', tone: 'model', node: 1 },
-      { label: 'check', text: 'paper retrieved · the summary never says “first”', tone: 'bad', node: 2, mark: 'bad' },
+      { label: 'claim', text: 'A search tool roughly halves hallucination rates [2401.00000]', tone: 'model', node: 1 },
+      { label: 'check', text: 'that paper was never retrieved', tone: 'bad', node: 2, mark: 'bad' },
       { label: 'score', text: '11/12 supported · 95% interval 65–99%', tone: 'host', node: 3, bar: 0.92 },
     ],
     concepts: {

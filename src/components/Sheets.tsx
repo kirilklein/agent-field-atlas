@@ -40,9 +40,12 @@ type RegionCardProps = {
   hovered: string | null;
   onSelect: (concept: string | null) => void;
   onOpen: (concept: string) => void;
+  /** Whether this landmark's animated inset is open on the map. */
+  inset: boolean;
+  onWatch: (open: boolean) => void;
 };
 
-export function RegionCard({ region, progress, reduced, selected, hovered, onSelect, onOpen }: RegionCardProps) {
+export function RegionCard({ region, progress, reduced, selected, hovered, onSelect, onOpen, inset, onWatch }: RegionCardProps) {
   const l = landmarkById[region];
   const i = MAIN_ROUTE.indexOf(region);
   const onward = l.kind === 'main' ? MAIN_ROUTE[i + 1] : l.from;
@@ -61,9 +64,16 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
         {l.title}
       </h2>
       <p className="region-card__builds">{l.builds}</p>
+      <button type="button" className="watch-link" onClick={() => onWatch(!inset)} aria-pressed={inset}>
+        <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+          {inset ? <path d="M3 2 H5 V10 H3 Z M7 2 H9 V10 H7 Z" fill="currentColor" /> : <path d="M3 1.8 L10 6 L3 10.2 Z" fill="currentColor" />}
+        </svg>
+        {inset ? 'Close the animation on the map' : 'Watch it work on the map'}
+      </button>
 
       <Sketch
         key={region}
+        hold={inset}
         sketch={sketch}
         highlight={focus ? sketch.concepts[focus] ?? null : null}
         reduced={reduced}

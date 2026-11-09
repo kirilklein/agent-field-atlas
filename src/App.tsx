@@ -4,10 +4,11 @@ import { Markers } from './components/Markers';
 import { Scene } from './components/Scene';
 import { Cartouche, Legend, RegionCard } from './components/Sheets';
 import { Workbench } from './components/Workbench';
+import { FieldInset, INSET_GAP, INSET_W } from './components/insets/FieldInset';
 import { lessonFor } from './data/lessons';
 import { LANDMARKS, landmarkById } from './data/map';
 import type { Point, RegionId } from './data/types';
-import { NO_INSETS, fit, toScreen, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
+import { NO_INSETS, camAt, fit, toScreen, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
 import { useMapGestures } from './lib/gestures';
 import { useProgress } from './lib/progress';
 import { ATLAS_BOX, regionBox, stopPoint } from './lib/geometry';
@@ -27,6 +28,8 @@ export default function App() {
   // A concept picked on the map or in the list: previewed, not yet opened.
   const [selected, setSelected] = useState<string | null>(null);
   const [hoveredConcept, setHoveredConcept] = useState<string | null>(null);
+  // The landmark whose animated field inset is open on the map.
+  const [inset, setInset] = useState<RegionId | null>(null);
   const depth = depthOf(route);
   const key = routeKey(route);
 
@@ -80,6 +83,49 @@ export default function App() {
   // Every route change animates (region → lesson too, as the panel opens); resizes jump.
   const { cam, progress, set: setFree, tweenTo, getCam } = useCamera(target, anchor, stage, key, reduced);
 
+  /* ---------- field inset ---------- */
+  // With room, the inset hangs off the landmark's right side and the camera slides
+  // the landmark left so both fit in the free part of the map. Without room
+  // (phones, narrow windows) it docks along the bottom and the landmark sits above it.
+  const freeL = wide ? SIDE_COLUMN : 0;
+  const freeR = stage.w - (compact ? 0 : 70);
+  const insetDocked = compact || freeR - freeL < INSET_W + INSET_GAP + 120;
+  const insetDock = insetDocked ? (compact ? { left: 8, right: 8 } : { left: freeL + 8, right: 78 }) : null;
+  const insetTarget = useMemo(() => {
+    if (!inset) return null;
+    const l = landmarkById[inset];
+    const at = insetDocked
+      ? { x: (freeL + freeR) / 2, y: Math.max(64, (stage.h - (compact ? 360 : 400)) / 2) }
+      : { x: freeL + Math.max(60, (freeR - freeL - (INSET_GAP + INSET_W - 36)) / 2), y: stage.h / 2 };
+    return camAt(l, at, target.k, stage);
+  }, [inset, insetDocked, freeL, freeR, stage, compact, target.k]);
+  const viewTarget = insetTarget ?? target;
+  const openInset = useCallback(
+    (id: RegionId) => {
+      setInset(id);
+      setSelected(null);
+    },
+    [],
+  );
+  const closeInset = useCallback(() => {
+    const was = inset;
+    setInset(null);
+    tweenTo(target, 460);
+    // Hand focus back to the button that opened it, once it is rendered again.
+    if (was) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-watch="${was}"]`)?.focus({ preventScroll: true }));
+  }, [inset, tweenTo, target]);
+  // Move the camera when the inset opens, or when the stage resizes under it.
+  const insetKey = inset ? `${inset}|${Math.round(stage.w)}x${Math.round(stage.h)}` : '';
+  const prevInsetKey = useRef('');
+  useEffect(() => {
+    const was = prevInsetKey.current;
+    prevInsetKey.current = insetKey;
+    if (insetKey === was) return;
+    // Closing is handled by closeInset (or by the route's own camera move).
+    if (insetTarget) tweenTo(insetTarget, was ? 0 : 560);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [insetKey]);
+
   /* ---------- free pan & zoom ---------- */
   const kMin = useMemo(() => fit(ATLAS_BOX, stage, NO_INSETS, { x: 40, y: 40 }, 1.25).k * 0.6, [stage]);
   const kMax = compact ? 3 : 3.4;
@@ -128,10 +174,10 @@ export default function App() {
     const c = getCam();
     tweenTo(clampCam({ ...c, cx: c.cx + dx / c.k, cy: c.cy + dy / c.k }), 160);
   };
-  const recenter = () => tweenTo(target, 420);
+  const recenter = () => tweenTo(viewTarget, 420);
   const offTarget =
     progress >= 1 &&
-    (Math.abs(cam.k / target.k - 1) > 0.01 || Math.hypot(cam.cx - target.cx, cam.cy - target.cy) * cam.k > 4);
+    (Math.abs(cam.k / viewTarget.k - 1) > 0.01 || Math.hypot(cam.cx - viewTarget.cx, cam.cy - viewTarget.cy) * cam.k > 4);
   const recenterLabel = route.region ? `Recenter on ${landmarkById[route.region].title}` : 'Show the whole trail';
 
   const onStageKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -201,7 +247,11 @@ export default function App() {
       const t = e.target as HTMLElement;
       if (t.closest('input, textarea, select, details')) return;
       e.preventDefault();
-      // Escape first closes a preview, then goes up a level.
+      // Escape first closes an inset or a preview, then goes up a level.
+      if (inset) {
+        closeInset();
+        return;
+      }
       if (depthOf(route) === 1 && selected) {
         const was = selected;
         setSelected(null);
@@ -212,7 +262,7 @@ export default function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [route, navigate, selected]);
+  }, [route, navigate, selected, inset, closeInset]);
 
   /* ---------- focus & scroll after a route change ---------- */
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -225,6 +275,7 @@ export default function App() {
     // Coming back from a lesson keeps that stop selected; any other move clears it.
     setSelected(route.region && !route.concept && prev.region === route.region && prev.concept ? prev.concept : null);
     setHoveredConcept(null);
+    setInset(null);
     if (firstRoute.current) {
       firstRoute.current = false;
       return;
@@ -328,7 +379,24 @@ export default function App() {
             minX={!compact && stage.w >= 900 && depth < 2 ? SIDE_COLUMN : 0}
             onHot={setHot}
             progress={learner}
+            inset={inset}
+            onWatch={openInset}
           />
+          {inset && route.region === inset && !route.concept && (() => {
+            const p = toScreen(cam, stage, landmarkById[inset]);
+            return (
+              <FieldInset
+                key={inset}
+                region={inset}
+                x={p.x}
+                y={p.y}
+                stage={stage}
+                dock={insetDock}
+                reduced={reduced}
+                onClose={closeInset}
+              />
+            );
+          })()}
           <div className="frame" aria-hidden="true">
             <span className="compass">N</span>
           </div>
@@ -357,6 +425,8 @@ export default function App() {
               hovered={hoveredConcept}
               onSelect={setSelected}
               onOpen={openConcept}
+              inset={inset === route.region}
+              onWatch={(open) => (open ? openInset(route.region!) : closeInset())}
             />
           </div>
         )}

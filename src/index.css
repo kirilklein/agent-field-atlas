@@ -2987,3 +2987,715 @@ g:hover > .viz__pairline {
   margin-left: auto;
   font-size: 12px;
 }
+
+/* ----- Field insets: animated diagrams that unfold from a landmark -------- */
+
+.watch {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  animation: watch-in 360ms ease-out 200ms both;
+}
+@keyframes watch-in {
+  from {
+    opacity: 0;
+  }
+}
+.watch__pill {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px 5px 9px;
+  border: 1px solid var(--copper);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--copper);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 6px 16px -10px rgba(30, 58, 49, 0.6);
+  transition: background-color 140ms, color 140ms;
+}
+.watch__pill::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 1.5px solid var(--copper);
+  opacity: 0;
+  animation: watch-ping 2.4s ease-out 900ms 2;
+}
+@keyframes watch-ping {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.92);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+}
+.watch__pill:hover,
+.watch__pill:focus-visible {
+  background: var(--copper);
+  color: var(--card);
+}
+.watch__pill:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--copper);
+}
+/* The pill sits on the side of the landmark away from its label. */
+.watch--right .watch__pill {
+  right: 30px;
+  top: 0;
+  translate: 0 -50%;
+}
+.watch--left .watch__pill {
+  left: 30px;
+  top: 0;
+  translate: 0 -50%;
+}
+.watch--below .watch__pill {
+  bottom: 30px;
+  left: 0;
+  translate: -50% 0;
+}
+.watch--above .watch__pill {
+  top: 30px;
+  left: 0;
+  translate: -50% 0;
+}
+
+.watch-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 12px;
+  padding: 4px 11px 4px 9px;
+  border: 1px solid var(--copper);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--copper);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.watch-link:hover,
+.watch-link[aria-pressed='true'] {
+  background: var(--copper-wash);
+}
+
+/* While an inset is open the stops step back; the landmark's own label is in the inset. */
+.markers.has-inset .stop.is-revealed {
+  opacity: 0.16;
+  pointer-events: none;
+  transition-delay: 0ms;
+}
+.lm.has-inset .lm__label {
+  opacity: 0;
+}
+
+.inset-leader {
+  position: absolute;
+  z-index: 4;
+  height: 0;
+  border-top: 1.5px solid var(--copper);
+  transform-origin: left center;
+  animation: leader-in 260ms ease-out both;
+}
+.inset-leader::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: -4.5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--copper);
+}
+@keyframes leader-in {
+  from {
+    transform: scaleX(0);
+  }
+}
+.inset {
+  position: absolute;
+  z-index: 5;
+  padding: 12px 14px 10px;
+  border: 1px solid var(--rule-strong);
+  border-top: 3px solid var(--copper);
+  border-radius: 6px;
+  background: var(--card);
+  box-shadow: 0 22px 44px -26px rgba(30, 58, 49, 0.6);
+  cursor: default;
+  touch-action: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  transform-origin: 0 50%;
+  animation: inset-in 340ms cubic-bezier(0.2, 0.9, 0.3, 1) 120ms both;
+}
+.inset:focus {
+  outline: none;
+}
+.inset:focus-visible {
+  box-shadow: 0 0 0 3px var(--copper-wash), 0 22px 44px -26px rgba(30, 58, 49, 0.6);
+}
+@keyframes inset-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+}
+.inset--docked {
+  transform-origin: 50% 100%;
+  animation-delay: 0ms;
+}
+.inset__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.inset__kicker {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+.inset__title {
+  margin: 1px 0 0;
+  font-family: var(--serif);
+  font-size: 21px;
+  font-weight: 520;
+  line-height: 1.15;
+}
+.inset__close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+}
+.inset__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 6px 0 4px;
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(30, 58, 49, 0.09) 1px, transparent 1.4px) 0 0 / 12px 12px,
+    #fffdf8;
+  transition: opacity 400ms ease-in;
+  font-family: var(--sans);
+}
+.inset__svg.is-fading {
+  opacity: 0;
+}
+.inset__caption {
+  display: flex;
+  gap: 9px;
+  min-height: 3.1em;
+  margin: 6px 0 8px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--pine);
+}
+.inset__num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 0.5px;
+  border-radius: 50%;
+  background: var(--pine);
+  color: var(--card);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+.inset__controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1px solid var(--rule);
+}
+.inset__btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 5px;
+  background: transparent;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--pine);
+  cursor: pointer;
+}
+.inset__btn:hover:not(:disabled) {
+  border-color: var(--pine);
+}
+.inset__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.inset__play {
+  min-width: 56px;
+}
+.inset__replay {
+  margin-left: auto;
+}
+.inset__dots {
+  display: flex;
+  gap: 3px;
+  margin: 0 0 0 6px;
+  padding: 0;
+  list-style: none;
+}
+.inset__dot {
+  display: block;
+  width: 14px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.inset__dot::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: auto;
+  border-radius: 50%;
+  border: 1.5px solid var(--sage-dark);
+  transition: background-color 200ms, transform 200ms;
+}
+.inset__dot.is-past::before {
+  background: var(--sage);
+  border-color: var(--sage);
+}
+.inset__dot.is-on::before {
+  background: var(--copper);
+  border-color: var(--copper);
+  transform: scale(1.25);
+}
+
+/* SVG vocabulary shared by every inset. */
+.ins-note {
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  fill: var(--ink-soft);
+}
+.ins-note.is-big {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 560;
+  letter-spacing: 0;
+  fill: var(--pine);
+}
+.ins-note.tone-ok {
+  fill: var(--pass);
+}
+.ins-note.tone-bad {
+  fill: var(--fail);
+}
+.ins-note.tone-warn {
+  fill: #8a5a12;
+}
+.ins-station rect {
+  fill: var(--card);
+  stroke: var(--pine);
+  stroke-width: 1.3;
+  transition: fill 220ms, stroke 220ms;
+}
+.ins-station text {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--pine);
+  transition: fill 220ms;
+}
+.ins-station .ins-station__sub {
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  fill: var(--ink-soft);
+}
+.ins-station.is-on rect {
+  fill: var(--pine);
+}
+.ins-station.is-on > text:first-of-type {
+  fill: var(--card);
+}
+.ins-station.is-ghost rect {
+  fill: transparent;
+  stroke: var(--sage-dark);
+  stroke-dasharray: 3 3;
+}
+.ins-station.is-ghost > text:first-of-type {
+  fill: var(--sage-dark);
+}
+.ins-station.is-bad rect {
+  stroke: var(--fail);
+  fill: var(--fail-wash);
+}
+.ins-station.is-bad > text:first-of-type {
+  fill: var(--fail);
+}
+.ins-wire {
+  fill: none;
+  stroke: var(--sage-2);
+  stroke-width: 1.5;
+}
+.ins-wire.is-ghost {
+  stroke-dasharray: 3 4;
+}
+.ins-wire.is-ask {
+  stroke: var(--copper);
+}
+.ins-orbit {
+  fill: none;
+  stroke: var(--sage-2);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+.ins-arrowhead {
+  fill: var(--sage-dark);
+}
+.ins-chip rect {
+  fill: #fff;
+  stroke-width: 1.2;
+}
+.ins-chip text {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+}
+.ins-chip.tone-model rect {
+  stroke: var(--viz-a);
+}
+.ins-chip.tone-model text {
+  fill: var(--viz-a);
+}
+.ins-chip.tone-tool rect {
+  stroke: var(--viz-b);
+}
+.ins-chip.tone-tool text {
+  fill: #8f4c1d;
+}
+.ins-chip.tone-ok rect {
+  stroke: var(--pass);
+  fill: #eef4ec;
+}
+.ins-chip.tone-ok text {
+  fill: var(--pass);
+}
+.ins-chip.tone-bad rect {
+  stroke: var(--fail);
+  fill: var(--fail-wash);
+}
+.ins-chip.tone-bad text {
+  fill: var(--fail);
+}
+.ins-chip.tone-host rect {
+  stroke: var(--pine);
+  fill: var(--code-bg);
+}
+.ins-chip.tone-host text {
+  fill: var(--pine);
+}
+.ins-mark circle {
+  stroke: none;
+}
+.ins-mark path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ins-mark.is-ok circle {
+  fill: var(--pass);
+}
+.ins-mark.is-bad circle {
+  fill: var(--fail);
+}
+.ins-token circle {
+  fill: var(--copper);
+}
+.ins-token .ins-token__halo {
+  fill: var(--copper);
+  opacity: 0.18;
+}
+.ins-card rect {
+  fill: #fff;
+  stroke: var(--rule-strong);
+}
+.ins-card text {
+  font-size: 8.5px;
+  font-weight: 500;
+  fill: var(--pine);
+}
+.ins-card.tone-model rect {
+  stroke: var(--viz-a);
+}
+.ins-card.tone-model text {
+  fill: var(--viz-a);
+}
+.ins-card.tone-tool rect {
+  stroke: var(--viz-b);
+}
+.ins-card.tone-tool text {
+  fill: #8f4c1d;
+}
+.ins-card.tone-ok rect {
+  stroke: var(--pass);
+  fill: #eef4ec;
+}
+.ins-card.tone-ok text {
+  fill: var(--pass);
+}
+.ins-card.tone-bad rect {
+  stroke: var(--fail);
+  fill: var(--fail-wash);
+}
+.ins-card.tone-bad text {
+  fill: var(--fail);
+}
+.ins-stack.is-on .ins-note {
+  fill: var(--copper);
+}
+.ins-ring__bg {
+  fill: none;
+  stroke: var(--sage-3);
+  stroke-width: 4;
+}
+.ins-ring {
+  fill: none;
+  stroke: var(--pine);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.ins-ring.is-budget {
+  stroke: var(--copper-2);
+  stroke-dasharray: 2 3;
+  stroke-linecap: butt;
+}
+.ins-ring__num {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  fill: var(--pine);
+}
+.ins-ring__of {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  fill: var(--ink-soft);
+}
+.ins-flag path {
+  fill: var(--pass);
+  stroke: var(--pass);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.ins-flag text {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  fill: var(--pass);
+}
+.ins-envelope rect,
+.ins-envelope path {
+  fill: #fff;
+  stroke: var(--copper);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+.ins-envelope text {
+  font-size: 8px;
+  font-weight: 600;
+  fill: var(--copper);
+}
+.ins-bubble rect {
+  fill: #fff;
+  stroke: var(--viz-a);
+  stroke-width: 1.3;
+}
+.ins-bubble path {
+  fill: none;
+  stroke: var(--viz-a);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+.ins-bubble text {
+  font-family: var(--mono);
+  font-size: 10px;
+  fill: var(--viz-a);
+}
+.ins-gate rect {
+  fill: var(--pine);
+}
+.ins-gate.is-bad .ins-gate__arm {
+  fill: var(--fail);
+}
+.ins-bin rect {
+  fill: #eef4ec;
+  stroke: var(--pass);
+  stroke-opacity: 0.5;
+}
+.ins-bin rect.is-bad {
+  fill: var(--fail-wash);
+  stroke: var(--fail);
+}
+.ins-dot {
+  fill: #fff;
+  stroke: var(--pine-2);
+  stroke-width: 1.3;
+  transition: fill 200ms, stroke 200ms;
+}
+.ins-dot.is-ok {
+  fill: var(--pass);
+  stroke: var(--pass);
+}
+.ins-dot.is-bad {
+  fill: var(--fail);
+  stroke: var(--fail);
+}
+.ins-dot__doubt {
+  fill: none;
+  stroke: var(--copper);
+  stroke-width: 1.5;
+}
+.ins-axis {
+  fill: none;
+  stroke: var(--pine-2);
+  stroke-width: 1;
+}
+.ins-tick {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  fill: var(--ink-soft);
+}
+.ins-whisker {
+  fill: none;
+  stroke: var(--viz-a);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.ins-whisker.is-ghost {
+  stroke: var(--viz-a);
+  opacity: 0.22;
+}
+.ins-whisker.is-ok {
+  stroke: var(--pass);
+}
+.ins-whisker.is-unsure {
+  stroke: var(--copper-2);
+}
+.ins-point {
+  fill: var(--viz-a);
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.ins-point.is-ok {
+  fill: var(--pass);
+}
+.ins-point.is-unsure {
+  fill: var(--copper);
+}
+.ins-zero {
+  stroke: var(--pine-2);
+  stroke-dasharray: 2 3;
+}
+.ins-row {
+  font-size: 9.5px;
+  font-weight: 500;
+  fill: var(--pine);
+}
+.ins-doc rect {
+  fill: #fff;
+  stroke: var(--rule-strong);
+}
+.ins-doc path {
+  stroke: var(--sage-dark);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.ins-doc path.is-struck {
+  stroke: var(--fail);
+}
+.ins-doc .ins-doc__bad {
+  fill: var(--fail-wash);
+  stroke: var(--fail);
+}
+.ins-doc__title {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--ink-soft);
+}
+.ins-doc__badtext {
+  font-family: var(--mono);
+  font-size: 7px;
+  fill: var(--fail);
+}
+.ins-person circle,
+.ins-person path {
+  fill: none;
+  stroke: var(--pine);
+  stroke-width: 1.6;
+}
+.ins-person.is-on circle,
+.ins-person.is-on path {
+  stroke: var(--copper);
+}
+.ins-shelf path {
+  stroke: var(--pine);
+  stroke-width: 1.6;
+}
+.ins-shelf rect,
+.ins-book {
+  fill: var(--viz-b);
+}
+.ins-shelf text {
+  font-size: 8.5px;
+  font-weight: 600;
+  fill: var(--ink-soft);
+}
+.ins-area {
+  fill: var(--copper-wash);
+}
+.ins-bar.is-base {
+  fill: var(--pine);
+}
+.ins-bar.is-hist {
+  fill: var(--copper-2);
+}
+.ins-bar.is-cut {
+  fill: none;
+  stroke: var(--copper-2);
+  stroke-dasharray: 2 2;
+}
+.ins-legend text {
+  font-size: 8.5px;
+  fill: var(--ink-soft);
+}
+.ins-file path {
+  fill: #fff;
+  stroke: var(--pass);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}

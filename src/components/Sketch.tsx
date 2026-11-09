@@ -7,6 +7,8 @@ type Props = {
   highlight: number[] | null;
   reduced: boolean;
   label: string;
+  /** Pause the loop (another animation has the stage). */
+  hold?: boolean;
 };
 
 const STEP_MS = 1150;
@@ -37,7 +39,7 @@ function Marked({ text, code, mark }: { text: string; code?: boolean; mark: 'ok'
  * the latest line. Loops while nothing is selected; with a concept selected it
  * shows the story up to that point and emphasises the lines it is about.
  */
-export function Sketch({ sketch, highlight, reduced, label }: Props) {
+export function Sketch({ sketch, highlight, reduced, label, hold = false }: Props) {
   const total = sketch.lines.length;
   const [shown, setShown] = useState(reduced ? total : 0);
   const [playing, setPlaying] = useState(!reduced);
@@ -60,7 +62,7 @@ export function Sketch({ sketch, highlight, reduced, label }: Props) {
 
   useEffect(() => {
     window.clearTimeout(timer.current);
-    if (!playing || reduced) return;
+    if (!playing || reduced || hold) return;
     if (fading) {
       // The whole trace has faded out; clear it and start again.
       timer.current = window.setTimeout(() => {
@@ -72,7 +74,7 @@ export function Sketch({ sketch, highlight, reduced, label }: Props) {
       timer.current = window.setTimeout(() => (shown >= total ? setFading(true) : setShown(shown + 1)), delay);
     }
     return () => window.clearTimeout(timer.current);
-  }, [playing, shown, total, reduced, fading]);
+  }, [playing, shown, total, reduced, fading, hold]);
 
   const hl = highlight ? new Set(highlight) : null;
   const latest = sketch.lines[Math.max(0, Math.min(shown, total) - 1)];

@@ -14,7 +14,7 @@ export type FreeCamera = {
   onDragChange: (dragging: boolean) => void;
 };
 
-const INTERACTIVE = 'button, a, input, select, textarea, .map-controls, .legend';
+const INTERACTIVE = 'button, a, input, select, textarea, .map-controls, .legend, .inset, .callout';
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
 /**
@@ -80,7 +80,7 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
 
     /* ----- wheel / trackpad pinch ----- */
     const onWheel = (e: WheelEvent) => {
-      if ((e.target as Element).closest('.map-controls, .legend')) return;
+      if ((e.target as Element).closest('.map-controls, .legend, .inset, .callout')) return;
       const zoomKey = e.ctrlKey || e.metaKey;
       if (o.current.compact && !zoomKey) {
         hint(`Use ${isMac ? '⌘' : 'Ctrl'} + scroll to zoom the map`);
@@ -105,6 +105,7 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       return { mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, dist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)) };
     };
     const onTouchStart = (e: TouchEvent) => {
+      if ((e.target as Element).closest('.inset')) return;
       if (e.touches.length === 2) {
         e.preventDefault();
         pinching = true;
@@ -119,6 +120,7 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
     };
     let oneFinger: Point | null = null;
     const onTouchMove = (e: TouchEvent) => {
+      if (!pinch && (e.target as Element).closest('.inset')) return;
       if (pinch && e.touches.length === 2) {
         e.preventDefault();
         const { mid, dist } = two(e.touches);
