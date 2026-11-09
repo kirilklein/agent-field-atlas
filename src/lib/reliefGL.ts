@@ -419,6 +419,7 @@ export class ReliefGL {
   private size: Size = { w: 1, h: 1 };
   private dpr = 1;
   private exag = 1;
+  private groundY = 0;
   private v = new Vector3();
   private last: View | null = null;
   /** The flat overview's scale (px per world unit): fine contours show from 1.35× it. */
@@ -522,6 +523,7 @@ export class ReliefGL {
     cam.lookAt(v.tx, v.ty, v.tz);
     cam.updateMatrixWorld();
     this.exag = v.exag;
+    this.groundY = v.ty;
   }
 
   draw(v: View) {
@@ -531,7 +533,7 @@ export class ReliefGL {
     u.exag.value = v.exag;
     // The same zoom fade as the flat map's fine contours, from the scale at the target.
     const k = this.size.h / (2 * Math.tan(rad(FOV) / 2)) / v.d;
-    u.minor.value = Math.min(1, Math.max(0, (k / this.overviewK - 1.35) / 0.55)) * (1 - v.exag);
+    u.minor.value = Math.min(1, Math.max(0, (k / this.overviewK - 1.35) / 0.55));
     // Haze only when looking across the model, none when looking straight down.
     const s = Math.min(1, Math.sin(v.theta) / Math.sin(rad(45)));
     u.haze.value = [v.d * 0.95, 0.42 * s * s];
@@ -541,6 +543,18 @@ export class ReliefGL {
   }
 
   /** World point on the surface → stage px, through the last drawn view. */
+  /** Stage point → world point where its ray meets the ground at the camera's target height. */
+  unproject(p: Point): Point | null {
+    const { w, h } = this.size;
+    const cam = this.camera;
+    const v = this.v.set((p.x / w) * 2 - 1, 1 - (p.y / h) * 2, 0.5).unproject(cam);
+    const o = cam.position;
+    const dy = v.y - o.y;
+    if (dy > -1e-6) return null;
+    const t = (this.groundY - o.y) / dy;
+    return { x: o.x + (v.x - o.x) * t, y: o.z + (v.z - o.z) * t };
+  }
+
   project(p: Point): Point {
     const v = this.v.set(p.x, liftAt(p.x, p.y) * this.exag, p.y).project(this.camera);
     return { x: ((v.x + 1) / 2) * this.size.w, y: ((1 - v.y) / 2) * this.size.h };
