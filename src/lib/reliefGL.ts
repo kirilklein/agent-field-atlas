@@ -22,6 +22,7 @@ import { DETAIL_EXTENT, heightAt } from '../data/terrain';
 import type { Point } from '../data/types';
 import type { Size } from './camera';
 import { PLATES as RELIEF } from './hillshade';
+import { Trees } from './reliefProps';
 import type { Theme } from './theme';
 import { FOV, MESH, liftAt, liftOf, type Framing, type View } from './relief';
 
@@ -93,6 +94,8 @@ const TRAIL_RES = 1;
 /** Distances are exact within RANGE world units of a line; FAR beyond. */
 const RANGE = 24;
 const FAR = 1000;
+/** Side of the coarse triangles the model is lit by, in world units. */
+const FACET = 34;
 
 const VERT = /* glsl */ `
 attribute float h;
@@ -133,7 +136,7 @@ uniform vec3 cPaper, cGrid, cContour, cIndex, cCopper, cWalked, cBranch, cPine, 
 uniform float gridA, contourA, indexA, minorA;
 uniform float rampH[RAMP_N];
 uniform vec3 rampC[RAMP_N];
-uniform float rampN, lightMax, bandMix;
+uniform float rampN, lightMax, bandMix, exag;
 uniform vec3 rShadow, rLight;
 uniform vec2 trailhead;
 uniform float minor;
@@ -202,11 +205,13 @@ void main() {
     float ph = mod(t.b * css, 13.0);
     float along = ph < 7.0 ? 0.0 : min(ph - 7.0, 13.0 - ph);
     float dash = length(vec2(along * dpr, px.y));
-    col = mix(col, cPaper, max(line(px.x, 10.0), line(px.y, 8.0)));
+    // In the model the main trail is a road; it narrows to the printed trail as the model flattens.
+    col = mix(col, cPaper, max(line(px.x, mix(10.0, 19.0, exag)), line(px.y, 8.0)));
     col = mix(col, cBranch, line(dash, 2.0));
-    col = mix(col, cCopper, line(px.x, 3.4));
+    col = mix(col, cCopper, line(px.x, mix(3.4, 11.0, exag)));
     bool onMain = t.r <= t.g + 0.01;
-    col = mix(col, onMain ? cWalked : cPine, onMain ? line(px.z, 4.4) : line(max(px.z, dash), 2.6));
+    col = mix(col, onMain ? cWalked : cPine, onMain ? line(px.z, mix(4.4, 11.0, exag)) : line(max(px.z, dash), 2.6));
+    col = mix(col, cPaper, line(px.x, 1.4) * exag * 0.9);
   }
 
   // The trailhead (dot and ring), as the SVG.
@@ -343,6 +348,18 @@ function terrainGeometry(segs: number): BufferGeometry {
     }
   }
   const L = (i: number, j: number) => lift[(j + 1) * (nx + 3) + (i + 1)];
+  // Low-poly light: slopes of a coarse triangulation, FACET world units on a side.
+  const cx = Math.ceil(w / FACET) + 1;
+  const cy = Math.ceil(hgt / FACET) + 1;
+  const coarse = new Float32Array(cx * cy);
+  for (let j = 0; j < cy; j++) {
+    for (let i = 0; i < cx; i++) {
+      const x = MESH.x0 + i * FACET;
+      const y = MESH.y0 + j * FACET;
+      coarse[j * cx + i] = liftOf(heightAt(x, y), x, y);
+    }
+  }
+  const C = (i: number, j: number) => coarse[Math.min(j, cy - 1) * cx + Math.min(i, cx - 1)];
   const M = (i: number, j: number) => hgt0[(j + 1) * (nx + 3) + (i + 1)];
   for (let j = 0; j <= ny; j++) {
     for (let i = 0; i <= nx; i++) {
@@ -353,10 +370,19 @@ function terrainGeometry(segs: number): BufferGeometry {
       pos[k * 3 + 1] = L(i, j);
       pos[k * 3 + 2] = y;
       h[k] = hgt0[(j + 1) * (nx + 3) + (i + 1)];
-      grad[k * 2] = (L(i + 1, j) - L(i - 1, j)) / (2 * sx);
-      grad[k * 2 + 1] = (L(i, j + 1) - L(i, j - 1)) / (2 * sy);
       hgrad[k * 2] = (M(i + 1, j) - M(i - 1, j)) / (2 * sx);
       hgrad[k * 2 + 1] = (M(i, j + 1) - M(i, j - 1)) / (2 * sy);
+      const u = (x - MESH.x0) / FACET;
+      const v = (y - MESH.y0) / FACET;
+      const ci = Math.min(cx - 2, Math.floor(u));
+      const cj = Math.min(cy - 2, Math.floor(v));
+      if (u - ci + (v - cj) < 1) {
+        grad[k * 2] = (C(ci + 1, cj) - C(ci, cj)) / FACET;
+        grad[k * 2 + 1] = (C(ci, cj + 1) - C(ci, cj)) / FACET;
+      } else {
+        grad[k * 2] = (C(ci + 1, cj + 1) - C(ci, cj + 1)) / FACET;
+        grad[k * 2 + 1] = (C(ci + 1, cj + 1) - C(ci + 1, cj)) / FACET;
+      }
     }
   }
   const idx = new Uint32Array(nx * ny * 6);
@@ -388,6 +414,7 @@ export class ReliefGL {
   private scene = new Scene();
   private camera = new PerspectiveCamera(FOV, 1, 1, 10000);
   private mesh: Mesh<BufferGeometry, ShaderMaterial>;
+  private trees: Trees;
   private trails: DataTexture | null = null;
   private size: Size = { w: 1, h: 1 };
   private dpr = 1;
@@ -444,6 +471,7 @@ export class ReliefGL {
     this.mesh = new Mesh(terrainGeometry(small ? 224 : 448), material);
     this.mesh.frustumCulled = false;
     this.scene.add(this.mesh);
+    this.trees = new Trees(this.scene, stretches().map((s) => s.pts), light);
   }
 
   /** Compile the shader off the main thread where the browser can (KHR_parallel_shader_compile). */
@@ -456,6 +484,7 @@ export class ReliefGL {
     const u = this.mesh.material.uniforms;
     for (const [k, v] of Object.entries({ ...plateUniforms(plate), ...reliefUniforms(theme) })) u[k].value = v.value;
     this.renderer.setClearColor(new Color().setRGB(...plate.paper, SRGBColorSpace), 1);
+    this.trees.setTheme(theme);
   }
 
   /** (Re)draw the trail field: on load, and when lessons are visited. */
@@ -507,6 +536,7 @@ export class ReliefGL {
     const s = Math.min(1, Math.sin(v.theta) / Math.sin(rad(45)));
     u.haze.value = [v.d * 0.95, 0.42 * s * s];
     u.hazeFar.value = v.d * 2.1;
+    this.trees.setExag(v.exag);
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -561,6 +591,7 @@ export class ReliefGL {
     this.mesh.geometry.dispose();
     this.mesh.material.dispose();
     this.trails?.dispose();
+    this.trees.dispose();
     this.renderer.dispose();
     // Hand the context back now rather than at garbage collection.
     if (!this.renderer.getContext().isContextLost()) this.renderer.forceContextLoss();
