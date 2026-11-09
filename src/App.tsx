@@ -474,8 +474,8 @@ export default function App() {
           onKeyDown={onStageKey}
         >
           <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} />
-          <div className="grain" aria-hidden="true" />
           {rs.available && !reduced && <div className="relief-model" ref={relief.attach} aria-hidden="true" />}
+          <div className="grain" aria-hidden="true" />
           <div className="fog" style={fogStyle} aria-hidden="true" />
           <LiveMarkers
             cam={cam}

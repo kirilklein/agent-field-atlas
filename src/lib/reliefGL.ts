@@ -38,16 +38,13 @@ const rgb = (hex: string): [number, number, number] => [1, 3, 5].map((i) => pars
 const C = {
   paper: rgb('#f3edde'),
   grid: rgb('#c3cfb9'),
-  contour: rgb('#b7c3a6'),
-  index: rgb('#94a487'),
-  minor: rgb('#c9d1ba'),
+  contour: rgb('#4e6246'),
+  index: rgb('#46583c'),
+  minor: rgb('#4e6246'),
   copper: rgb('#b4632a'),
   walked: rgb('#8a4416'),
   branch: rgb('#35554a'),
   pine: rgb('#1e3a31'),
-  /** Elevation tint, as hillshade.ts. */
-  valley: [230 / 255, 232 / 255, 214 / 255] as [number, number, number],
-  height: [248 / 255, 245 / 255, 236 / 255] as [number, number, number],
   /** Multiplied into slopes turned from the light: a cool sage-slate ink. */
   shadow: rgb('#a9b5b0'),
   /** Slopes facing the light lean towards the card. */
@@ -95,7 +92,7 @@ uniform float highlight;
 uniform float edge;
 uniform vec2 haze;      // depth at which haze starts, strength
 uniform float hazeFar;
-uniform vec3 cPaper, cGrid, cContour, cIndex, cCopper, cWalked, cBranch, cPine, cShadow, cLight, cMinor, cValley, cHeight;
+uniform vec3 cPaper, cGrid, cContour, cIndex, cCopper, cWalked, cBranch, cPine, cShadow, cLight, cMinor;
 uniform vec2 dots[DOTS];
 uniform vec2 trailhead;
 uniform float minor;
@@ -106,19 +103,42 @@ varying vec2 vG;
 varying vec3 vN;
 varying float vDepth;
 
+// Hypsometric ramp and relief inks, as hillshade.ts.
+const vec3 R0 = vec3(209.0, 215.0, 194.0) / 255.0;
+const vec3 R1 = vec3(220.0, 223.0, 202.0) / 255.0;
+const vec3 R2 = vec3(231.0, 229.0, 209.0) / 255.0;
+const vec3 R3 = vec3(239.0, 234.0, 215.0) / 255.0;
+const vec3 R4 = vec3(245.0, 240.0, 225.0) / 255.0;
+const vec3 R5 = vec3(249.0, 246.0, 235.0) / 255.0;
+const vec3 R6 = vec3(252.0, 250.0, 243.0) / 255.0;
+const vec3 RSHADOW = vec3(96.0, 118.0, 112.0) / 255.0;
+const vec3 RLIGHT = vec3(255.0, 251.0, 238.0) / 255.0;
+
+vec3 tint(float h) {
+  float f = h / 500.0;
+  float e = h + ((floor(f) + smoothstep(0.72, 1.0, fract(f))) * 500.0 - h) * 0.3;
+  if (e <= 600.0) return mix(R0, R1, clamp((e - 250.0) / 350.0, 0.0, 1.0));
+  if (e <= 1000.0) return mix(R1, R2, (e - 600.0) / 400.0);
+  if (e <= 1400.0) return mix(R2, R3, (e - 1000.0) / 400.0);
+  if (e <= 1800.0) return mix(R3, R4, (e - 1400.0) / 400.0);
+  if (e <= 2200.0) return mix(R4, R5, (e - 1800.0) / 400.0);
+  return mix(R5, R6, clamp((e - 2200.0) / 400.0, 0.0, 1.0));
+}
+
 // Coverage of a line of width w (CSS px) at distance d (device px) from its centre.
 float line(float d, float w) {
   return clamp(w * dpr * 0.5 + 0.5 - d, 0.0, 1.0);
 }
 
 void main() {
-  // The flat map's shaded relief (hillshade.ts): an elevation tint, greener
-  // valleys and paler heights, lit from the north-west at 45 degrees.
-  float te = clamp((vH - 450.0) / 1900.0, 0.0, 1.0);
-  vec3 col = te < 0.5 ? mix(cValley, cPaper, te * 2.0) : mix(cPaper, cHeight, te * 2.0 - 1.0);
+  // The flat map's shaded relief (hillshade.ts), lit from the north-west at 40 degrees.
+  vec3 col = tint(vH);
   vec2 dz = vG * 0.07;
-  float shadeL = (0.5 * dz.x + 0.5 * dz.y + 0.70711) / length(vec3(dz, 1.0));
-  col *= 1.0 + 0.12 * (shadeL - 0.70711);
+  float inv = 1.0 / length(vec3(dz, 1.0));
+  float rel = (0.54168 * (dz.x + dz.y) + 0.64279) * inv - 0.64279;
+  float c = 0.7 + 0.55 * smoothstep(300.0, 2400.0, vH);
+  col = mix(col, RSHADOW, min(0.5, (max(-rel, 0.0) * 1.1 + (1.0 - inv) * 0.1) * c));
+  col = mix(col, RLIGHT, min(0.75, max(rel, 0.0) * 2.4 * c));
 
   // Graticule every 125 world units.
   vec2 g = abs(fract(vW / 125.0 + 0.5) - 0.5) * 125.0;
@@ -133,10 +153,10 @@ void main() {
   // Fine 50 m contours fade in when close, as on the flat map (inside its detail area).
   if (minor > 0.0 && vW.x > detailBox.x && vW.y > detailBox.y && vW.x < detailBox.z && vW.y < detailBox.w) {
     float d50 = abs(fract(vH / 50.0 + 0.5) - 0.5) * 50.0 / hg;
-    col = mix(col, cMinor, line(d50, 0.5) * minor);
+    col = mix(col, cMinor, line(d50, 0.5) * 0.17 * minor);
   }
-  col = mix(col, cContour, line(d100, 0.7));
-  col = mix(col, cIndex, line(d500, 1.15));
+  col = mix(col, cContour, line(d100, 0.75) * 0.3);
+  col = mix(col, cIndex, line(d500, 1.3) * 0.6);
 
   // Trails, from the distance field. Widths are in screen px at the local scale.
   vec2 ex = dFdx(vW);
@@ -401,8 +421,6 @@ export class ReliefGL {
         cShadow: { value: C.shadow },
         cLight: { value: C.light },
         cMinor: { value: C.minor },
-        cValley: { value: C.valley },
-        cHeight: { value: C.height },
         minor: { value: 0 },
         detailBox: { value: [DETAIL_EXTENT.x0, DETAIL_EXTENT.y0, DETAIL_EXTENT.x1, DETAIL_EXTENT.y1] },
         dots: { value: dots },
