@@ -42,3 +42,14 @@ function Spurs({ region, revealed, project }: { region: RegionId; revealed: bool
     </svg>
   );
 }
+
+/** The compass mark, turned with the model so N points north. */
+export function LiveCompass({ relief }: { relief: Relief }) {
+  useSyncExternalStore(relief.subscribe, relief.getFrame);
+  const a = relief.northAngle();
+  return (
+    <span className="compass" style={a ? { rotate: `${a.toFixed(1)}deg` } : undefined}>
+      N
+    </span>
+  );
+}

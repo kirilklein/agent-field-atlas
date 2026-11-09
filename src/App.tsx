@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { MapControls } from './components/MapControls';
-import { LiveMarkers } from './components/LiveMarkers';
+import { LiveCompass, LiveMarkers } from './components/LiveMarkers';
 import { Scene } from './components/Scene';
 import { Cartouche, Legend, RegionCard } from './components/Sheets';
 import { Workbench } from './components/Workbench';
@@ -183,7 +183,11 @@ export default function App() {
     if (depth === 0) setMoved(false);
   }, [depth]);
   // A new target (route, diagram, resize): the flat camera jumps there and the model flies.
-  useEffect(() => relief.glide(), [relief, camTarget]);
+  // Opening something frames it north-up, as `fit` assumes.
+  useEffect(() => {
+    relief.resetTurn();
+    relief.glide();
+  }, [relief, camTarget]);
 
   /* ---------- free pan & zoom ---------- */
   const kMin = useMemo(() => fit(ATLAS_BOX, stage, NO_INSETS, { x: 40, y: 40 }, 1.25).k * 0.6, [stage]);
@@ -218,6 +222,7 @@ export default function App() {
       if (d) setMoved(true);
     },
     pick: (p) => (relief.showing ? relief.unproject(p) : null),
+    onTurn: inRelief ? (dPhi, dTheta) => relief.turn(dPhi, dTheta) : undefined,
   });
 
   const viewCentre = {
@@ -232,10 +237,15 @@ export default function App() {
   const panBy = (dx: number, dy: number) => {
     const c = getCam();
     setMoved(true);
-    tweenTo(clampCam({ ...c, cx: c.cx + dx / c.k, cy: c.cy + dy / c.k }), 160);
+    // On the model, screen directions follow its turn and tilt.
+    const a = inRelief ? relief.unproject(viewCentre) : null;
+    const b = inRelief ? relief.unproject({ x: viewCentre.x + dx, y: viewCentre.y + dy }) : null;
+    const d = a && b ? { x: b.x - a.x, y: b.y - a.y } : { x: dx / c.k, y: dy / c.k };
+    tweenTo(clampCam({ ...c, cx: c.cx + d.x, cy: c.cy + d.y }), 160);
   };
   const recenter = () => {
     setMoved(false);
+    relief.resetTurn();
     if (inRelief && depth === 0) {
       // Back to the whole trail: the model eases back to its framing.
       setFree(camTarget);
@@ -260,6 +270,12 @@ export default function App() {
   const onStageKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const step = 90;
+    const turns: Record<string, [number, number]> = { ArrowLeft: [-0.26, 0], ArrowRight: [0.26, 0], ArrowUp: [0, 0.12], ArrowDown: [0, -0.12] };
+    if (e.shiftKey && inRelief && turns[e.key]) {
+      relief.turn(...turns[e.key]);
+      e.preventDefault();
+      return;
+    }
     switch (e.key) {
       case '+':
       case '=':
@@ -448,7 +464,7 @@ export default function App() {
             relief.lookAt(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
           }}
           onPointerLeave={() => relief.lookAt(null)}
-          aria-label="Trail map. Drag to pan and scroll to zoom. With the map focused, arrow keys pan, plus and minus zoom, and 0 recenters."
+          aria-label="Trail map. Drag to pan, right-drag to turn and scroll to zoom. With the map focused, arrow keys pan, Shift and arrow keys turn and tilt, plus and minus zoom, and 0 recenters."
           onKeyDown={onStageKey}
         >
           <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} intro={inking} />
@@ -495,16 +511,16 @@ export default function App() {
             </>
           )}
           <div className="frame" aria-hidden="true">
-            <span className="compass">N</span>
+            <LiveCompass relief={relief} />
           </div>
           <Legend
-            gestureHint={compact ? null : 'Drag to pan · scroll to zoom'}
+            gestureHint={compact ? null : inRelief ? 'Drag to pan · right-drag to turn · scroll to zoom' : 'Drag to pan · scroll to zoom'}
             progress={learner}
           />
           <MapControls
             canZoomIn={cam.k < kMax - 1e-3}
             canZoomOut={cam.k > kMin + 1e-3}
-            canRecenter={offTarget || (depth === 0 && moved)}
+            canRecenter={offTarget || (depth === 0 && moved) || rs.turned}
             recenterLabel={recenterLabel}
             onZoomIn={() => zoomBy(1.5)}
             onZoomOut={() => zoomBy(1 / 1.5)}

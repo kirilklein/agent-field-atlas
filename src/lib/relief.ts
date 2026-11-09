@@ -75,8 +75,8 @@ const DRIFT_PHI = rad(2.4);
 const DRIFT_THETA = rad(1.1);
 const LOOK_PHI = rad(1.8);
 const LOOK_THETA = rad(1.1);
-const TURN_PHI = rad(14);
-const TURN_THETA = { lo: rad(-9), hi: rad(7) };
+/** Tilt from straight down that turning may reach. */
+const TILT = { lo: rad(15), hi: rad(65) };
 /** The idle drift settles after this long without the pointer moving, and rendering stops. */
 const DRIFT_MS = 45_000;
 
@@ -412,15 +412,25 @@ export class Relief {
     this.kick(true);
   }
 
-  /** Drag: turn the model a little (clamped). dx, dy in screen px. */
-  turn(dx: number, dy: number) {
+  /** Turn the model by dPhi (bearing, free) and tilt it by dTheta (clamped), in radians. */
+  turn(dPhi: number, dTheta: number) {
     if (this.state.phase !== 'relief') return;
-    this.orbit.phi = Math.min(TURN_PHI, Math.max(-TURN_PHI, this.orbit.phi - dx * 0.0032));
-    this.orbit.theta = Math.min(TURN_THETA.hi, Math.max(TURN_THETA.lo, this.orbit.theta - dy * 0.0026));
+    const base = (this.cam ? this.framing?.theta : this.base?.theta) ?? rad(52);
+    this.orbit.phi = Math.atan2(Math.sin(this.orbit.phi + dPhi), Math.cos(this.orbit.phi + dPhi));
+    this.orbit.theta = Math.min(TILT.hi - base, Math.max(TILT.lo - base, this.orbit.theta + dTheta));
     this.busyUntil = performance.now() + 400;
     this.wake();
     if (!this.state.turned) this.setState({ turned: true });
     this.kick(true);
+  }
+
+  /** Screen angle of north in degrees (0: north is up), for the compass. */
+  northAngle(): number {
+    const v = this.view;
+    if (!this.gl || !v || !this.showing) return 0;
+    const a = this.gl.project({ x: v.tx, y: v.tz });
+    const b = this.gl.project({ x: v.tx, y: v.tz - 60 });
+    return (Math.atan2(b.x - a.x, a.y - b.y) * 180) / Math.PI;
   }
 
   /** Recenter: ease the turn back to the default view. */

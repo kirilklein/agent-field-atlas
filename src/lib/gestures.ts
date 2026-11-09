@@ -14,6 +14,8 @@ export type FreeCamera = {
   onDragChange: (dragging: boolean) => void;
   /** Stage point → world point on the ground, when the 3D model is showing (null: use the flat camera). */
   pick?: (p: Point) => Point | null;
+  /** Turn the 3D model (bearing and tilt changes, radians); absent while the flat map shows. */
+  onTurn?: (dPhi: number, dTheta: number) => void;
 };
 
 const INTERACTIVE = 'button, a, input, select, textarea, .map-controls, .legend, .diagram-callout, .diagram-backdrop';
@@ -60,15 +62,17 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
     };
 
     /* ----- drag to pan (pointer events) ----- */
-    let drag: { id: number; start: Point; last: Point; moved: boolean } | null = null;
+    let drag: { id: number; start: Point; last: Point; moved: boolean; turn: boolean } | null = null;
     let pinching = false;
 
     const onPointerDown = (e: PointerEvent) => {
-      if (e.button !== 0 || pinching) return;
+      // Right button, or Ctrl/⌥ with the main button, turns the model instead of panning.
+      const turn = !!o.current.onTurn && (e.button === 2 || (e.button === 0 && (e.ctrlKey || e.altKey)));
+      if ((e.button !== 0 && !turn) || pinching) return;
       if ((e.target as Element).closest(INTERACTIVE)) return;
       if (e.pointerType === 'touch' && o.current.compact) return;
       const at = { x: e.clientX, y: e.clientY };
-      drag = { id: e.pointerId, start: at, last: at, moved: false };
+      drag = { id: e.pointerId, start: at, last: at, moved: false, turn };
       node.setPointerCapture(e.pointerId);
     };
     const onPointerMove = (e: PointerEvent) => {
@@ -79,6 +83,11 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       if (!drag.moved) {
         drag.moved = true;
         o.current.onDragChange(true);
+      }
+      if (drag.turn) {
+        o.current.onTurn?.((e.clientX - drag.last.x) * 0.006, (drag.last.y - e.clientY) * 0.004);
+        drag.last = { x: e.clientX, y: e.clientY };
+        return;
       }
       // The ground under the last pointer position follows the pointer.
       const prev = ground(local(drag.last.x, drag.last.y));
@@ -114,11 +123,15 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
     };
 
     /* ----- two-finger touch: pan + pinch ----- */
-    let pinch: { mid: Point; dist: number; k: number } | null = null;
+    let pinch: { mid: Point; dist: number; k: number; angle: number } | null = null;
     const two = (t: TouchList) => {
       const a = local(t[0].clientX, t[0].clientY);
       const b = local(t[1].clientX, t[1].clientY);
-      return { mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, dist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)) };
+      return {
+        mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+        dist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+        angle: Math.atan2(b.y - a.y, b.x - a.x),
+      };
     };
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
@@ -128,18 +141,21 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
           if (drag.moved) o.current.onDragChange(false);
           drag = null;
         }
-        const { mid, dist } = two(e.touches);
-        pinch = { mid, dist, k: o.current.getCam().k };
+        const { mid, dist, angle } = two(e.touches);
+        pinch = { mid, dist, k: o.current.getCam().k, angle };
       }
     };
     let oneFinger: Point | null = null;
     const onTouchMove = (e: TouchEvent) => {
       if (pinch && e.touches.length === 2) {
         e.preventDefault();
-        const { mid, dist } = two(e.touches);
+        const { mid, dist, angle } = two(e.touches);
         const k = o.current.clampK(pinch.k * (dist / pinch.dist));
         carry(ground(pinch.mid), ground(mid), k);
         pinch.mid = mid;
+        const twist = Math.atan2(Math.sin(angle - pinch.angle), Math.cos(angle - pinch.angle));
+        pinch.angle = angle;
+        o.current.onTurn?.(twist, 0);
         return;
       }
       if (o.current.compact && e.touches.length === 1) {
@@ -156,7 +172,13 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       if (e.touches.length === 0) oneFinger = null;
     };
 
+    // No browser menu over the map itself: the right button turns it.
+    const onContextMenu = (e: MouseEvent) => {
+      if (o.current.onTurn && !(e.target as Element).closest(INTERACTIVE)) e.preventDefault();
+    };
+
     node.addEventListener('pointerdown', onPointerDown);
+    node.addEventListener('contextmenu', onContextMenu);
     node.addEventListener('pointermove', onPointerMove);
     node.addEventListener('pointerup', endDrag);
     node.addEventListener('pointercancel', endDrag);
@@ -167,6 +189,7 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
     node.addEventListener('touchcancel', onTouchEnd);
     return () => {
       node.removeEventListener('pointerdown', onPointerDown);
+      node.removeEventListener('contextmenu', onContextMenu);
       node.removeEventListener('pointermove', onPointerMove);
       node.removeEventListener('pointerup', endDrag);
       node.removeEventListener('pointercancel', endDrag);
