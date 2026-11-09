@@ -146,7 +146,7 @@ export default function App() {
     reduced,
     modelMoves,
   );
-  const progress = rs.phase === 'down' || rs.phase === 'up' ? flightT : camProgress;
+  const progress = rs.phase === 'up' ? flightT : camProgress;
 
   useEffect(() => {
     relief.mount();
@@ -471,7 +471,7 @@ export default function App() {
             onHot={setHot}
             progress={learner}
           />
-          {inset && rs.phase !== 'down' && (
+          {inset && (
             <>
               <div className="diagram-backdrop" onClick={closeDiagram} aria-hidden="true" />
               {(() => {
