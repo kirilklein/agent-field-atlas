@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { RegionId } from '../../data/types';
 import { wilson } from '../../lib/stats';
-import { arcPath, lerp, onCircle, qbez, seg, shake, type Pt, type Step } from './engine';
+import { arcPath, lerp, onCircle, qbez, seg, shake, type Pt, type Range, type Step } from './engine';
 import { Card, Chip, Mark, Note, Station, Token } from './parts';
 
 /**
@@ -11,13 +11,23 @@ import { Card, Chip, Mark, Note, Station, Token } from './parts';
  */
 export type Story = {
   title: string;
-  /** Which step each concept stop is about. */
-  concepts: Record<string, number>;
+  /**
+   * Which steps each concept stop is about: one step, or an inclusive
+   * [from, to] range that the stop's lesson plays through.
+   */
+  concepts: Record<string, number | [number, number]>;
   steps: Step[];
   draw: (step: number, t: number) => ReactNode;
 };
 
 export const VIEW = { w: 360, h: 210 };
+
+/** The steps a concept stop plays, or null for the whole story. */
+export function conceptRange(story: Story, concept: string | null): Range | null {
+  const c = concept ? story.concepts[concept] : undefined;
+  if (c === undefined) return null;
+  return typeof c === 'number' ? { from: c, to: c } : { from: c[0], to: c[1] };
+}
 
 const near = (a: Pt, b: Pt, d = 14) => Math.hypot(a.x - b.x, a.y - b.y) < d;
 /** Opacity for something that appears in step k (between a and b) and stays. */
@@ -36,7 +46,7 @@ const live = (s: number, t: number, k1: number, k2: number, a = 0, b = 0.3) => {
 
 const oneCall: Story = {
   title: 'One round trip',
-  concepts: { 'the-request': 1, 'structured-output': 5, 'parse-a-reply': 3, checkpoint: 6 },
+  concepts: { 'the-request': [0, 1], 'parse-a-reply': [2, 3], 'structured-output': [4, 6], checkpoint: [0, 6] },
   steps: [
     { caption: 'Your code builds the request: a system message and the question.', move: 900 },
     { caption: 'One call sends the whole list. The model knows nothing else.' },
@@ -112,14 +122,14 @@ const oneCall: Story = {
 
 const toolCalling: Story = {
   title: 'Propose, check, run',
-  concepts: { 'declare-a-tool': 0, 'inspect-a-call': 2, 'errors-are-results': 6, checkpoint: 3 },
+  concepts: { 'declare-a-tool': [0, 1], 'inspect-a-call': [1, 3], 'errors-are-results': [4, 6], checkpoint: [0, 6] },
   steps: [
-    { caption: 'Your code describes one tool: a name, a description and an argument schema.', move: 1200 },
+    { caption: 'Your code describes one tool: a name, a description and an argument schema.', move: 1200, still: 0.6 },
     { caption: 'The model proposes a call: a tool name and arguments. It cannot run anything.' },
-    { caption: 'Your code checks it: on the allowlist, and the query is a real string. The gate opens.', move: 1500 },
+    { caption: 'Your code checks it: on the allowlist, and the query is a real string. The gate opens.', move: 1500, still: 0.75 },
     { caption: 'Only now does the tool run. The result goes back to the model.', move: 1400 },
     { caption: 'Next proposal: fetch_url, a tool it was never given.' },
-    { caption: 'Not on the allowlist, so nothing runs.', move: 1300 },
+    { caption: 'Not on the allowlist, so nothing runs.', move: 1300, still: 0.5 },
     { caption: 'The refusal goes back as a result, so the model can recover.', ms: 3400 },
   ],
   draw(s, t) {
@@ -198,6 +208,7 @@ const toolCalling: Story = {
 
 const L = { cx: 156, cy: 112, r: 66 };
 const ST = { model: 270, code: 360, tool: 450, messages: 540 };
+const PAPERS = ['ReAct', 'Toolformer', 'Reflexion'];
 const STACK: { label: string; tone: 'msg' | 'model' | 'tool' | 'ok'; k: number; a: number; b: number }[] = [
   { label: 'system', tone: 'msg', k: 0, a: 0, b: 0.35 },
   { label: 'question', tone: 'msg', k: 0, a: 0.3, b: 0.65 },
@@ -210,14 +221,14 @@ const STACK: { label: string; tone: 'msg' | 'model' | 'tool' | 'ok'; k: number; 
 
 const agentLoop: Story = {
   title: 'The loop',
-  concepts: { 'the-loop': 4, 'watch-a-run': 5, 'stop-conditions': 6, checkpoint: 7 },
+  concepts: { 'the-loop': [0, 4], 'watch-a-run': [0, 6], 'stop-conditions': [6, 7], checkpoint: [0, 7] },
   steps: [
     { caption: 'The message list starts with two messages: the instructions and the question.', move: 1000 },
     { caption: 'Step 1: the model reads the whole list and proposes a search.' },
     { caption: 'Your code checks the proposal. It is allowed.' },
     { caption: 'The tool runs and returns three papers.' },
     { caption: 'The proposal and its result join the list: four messages.', move: 1300 },
-    { caption: 'Step 2: the same loop again, with a longer list.', move: 3200, ms: 4200 },
+    { caption: 'Step 2: the same loop again, with a longer list.', move: 3200, ms: 4200, still: 0.78 },
     { caption: 'Step 3: an answer with no tool call. The loop ends: stop=done.', move: 1700, ms: 3200 },
     { caption: 'The other way out is the budget: at 8 steps your code stops it anyway.', ms: 3600 },
   ],
@@ -289,14 +300,33 @@ const agentLoop: Story = {
           })}
         </g>
 
-        <Chip x={354} y={16} anchor="end" text='search("…reasoning and tool")' opacity={lap1 ? live(s, t, 1, 4, 0.75, 1) : 0} />
-        <Chip x={354} y={16} anchor="end" text='search("reasoning and acting")' opacity={lap2 ? seg(t, 0.2, 0.3) * (1 - seg(t, 0.85, 0.95)) : 0} />
+        {/* The proposal sits above the model that made it. */}
+        <Chip x={stations.model.x + 50} y={17} text='search("…reasoning and tool")' opacity={lap1 ? live(s, t, 1, 4, 0.75, 1) : 0} />
+        <Chip x={stations.model.x + 50} y={17} text='search("reasoning and acting")' opacity={lap2 ? seg(t, 0.2, 0.3) * (1 - seg(t, 0.85, 0.95)) : 0} />
         <Mark x={stations.code.x + 52} y={stations.code.y} ok p={s === 2 ? seg(t, 0.8, 1) : s === 3 ? 1 - seg(t, 0.6, 0.9) : lap2 ? seg(t, 0.45, 0.5) * (1 - seg(t, 0.6, 0.7)) : 0} />
-        <Chip x={354} y={200} anchor="end" tone="tool" text="ReAct · Toolformer · Reflexion" opacity={s === 3 ? seg(t, 0.8, 1) : s === 4 ? 1 - seg(t, 0.5, 0.8) : 0} />
-        <Chip x={354} y={200} anchor="end" tone="tool" text="ReAct" opacity={lap2 ? seg(t, 0.68, 0.74) * (1 - seg(t, 0.84, 0.92)) : 0} />
+        {/* The papers the tool returned, beside the tool. */}
+        {PAPERS.map((label, i) => (
+          <Card
+            key={label}
+            x={stations.tool.x + 46}
+            y={stations.tool.y - 18 + i * 13}
+            w={66}
+            label={label}
+            tone="tool"
+            opacity={s === 3 ? seg(t, 0.7 + i * 0.1, 0.8 + i * 0.1) : s === 4 ? 1 - seg(t, 0.5, 0.8) : 0}
+          />
+        ))}
+        <Card
+          x={stations.tool.x + 46}
+          y={stations.tool.y - 18}
+          w={66}
+          label="ReAct"
+          tone="tool"
+          opacity={lap2 ? seg(t, 0.68, 0.74) * (1 - seg(t, 0.84, 0.92)) : 0}
+        />
 
         {/* The way out. */}
-        <g opacity={s === 6 ? seg(t, 0.7, 1) : s === 7 ? 1 : 0} className="ins-flag" transform={`translate(${done.x} ${done.y})`}>
+        <g opacity={s === 6 ? seg(t, 0.7, 1) : s === 7 ? 1 - 0.7 * seg(t, 0, 0.4) : 0} className="ins-flag" transform={`translate(${done.x} ${done.y})`}>
           <path d="M0 14 V-14 L14 -9 L0 -4" />
           <text x={0} y={28} textAnchor="middle">
             stop=done
@@ -323,10 +353,10 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
 
 const evaluation: Story = {
   title: 'Replay and score',
-  concepts: { 'replay-set': 0, 'score-a-replay': 2, 'trust-the-numbers': 3, checkpoint: 5 },
+  concepts: { 'replay-set': 0, 'score-a-replay': [1, 2], 'trust-the-numbers': [3, 5], checkpoint: [0, 5] },
   steps: [
     { caption: 'Replay 5 fixed questions. The answers make 12 cited claims.', move: 1100 },
-    { caption: 'The judge checks each claim: was the paper retrieved, and does it support the claim?', move: 4200, ms: 5000 },
+    { caption: 'The judge checks each claim: was the paper retrieved, and does it support the claim?', move: 4200, ms: 5000, still: 0.5 },
     { caption: '11 of 12 claims supported: 92%.' },
     { caption: `With only 12 claims, the 95% interval runs from ${pct(LO12)} to ${pct(HI12)}.`, move: 1300 },
     { caption: `At the same rate, 120 claims would narrow it to ${pct(LO120)}–${pct(HI120)}.`, move: 1400 },
@@ -351,6 +381,7 @@ const evaluation: Story = {
     const hi = lerp(HI12, HI120, tighten);
     const grow = s === 3 ? t : s > 3 ? 1 : 0;
     const p = 11 / 12;
+    const row12 = axis.y - 9 - 12 * seg(tighten, 0, 0.35);
 
     return (
       <>
@@ -401,15 +432,22 @@ const evaluation: Story = {
           <text className="ins-tick" x={axis.x1} y={axis.y + 12} textAnchor="middle">
             100%
           </text>
-          {tighten > 0 && <path className="ins-whisker is-ghost" d={`M${X(LO12)} ${axis.y - 9} H${X(HI12)}`} />}
-          <path className="ins-whisker" d={`M${X(p - (p - lo) * grow)} ${axis.y - 9} H${X(p + (hi - p) * grow)}`} />
-          <circle className="ins-point" cx={X(p)} cy={axis.y - 9} r={4} />
-          <Note x={X(lo) - 8} y={axis.y - 10} anchor="end" opacity={grow}>
-            {tighten > 0.5 ? `n=120: ${pct(lo)}–${pct(hi)}` : `n=12: ${pct(lo)}–${pct(hi)}`}
+          {/* n=12 rises to make room, so both intervals stay on screen to compare. */}
+          <path className="ins-whisker" d={`M${X(p - (p - LO12) * grow)} ${row12} H${X(p + (HI12 - p) * grow)}`} />
+          <circle className="ins-point" cx={X(p)} cy={row12} r={4} />
+          <Note x={X(LO12) - 8} y={row12 - 1} anchor="end" opacity={grow}>
+            n=12: {pct(LO12)}–{pct(HI12)}
           </Note>
+          <g opacity={seg(tighten, 0.35, 1)}>
+            <path className="ins-whisker" d={`M${X(lo)} ${axis.y - 9} H${X(hi)}`} />
+            <circle className="ins-point" cx={X(p)} cy={axis.y - 9} r={4} />
+            <Note x={X(LO120) - 8} y={axis.y - 10} anchor="end">
+              n=120: {pct(LO120)}–{pct(HI120)}
+            </Note>
+          </g>
         </g>
-        <Note x={judge.x} y={160} tone="warn" opacity={s === 5 ? seg(t, 0.3, 0.7) : 0}>
-          judge vs person: 10/12 agree
+        <Note x={judge.x} y={121} tone="warn" opacity={s === 5 ? seg(t, 0.3, 0.7) : 0}>
+          judge vs person: 10/12
         </Note>
       </>
     );
@@ -422,12 +460,12 @@ const evaluation: Story = {
 
 const permissions: Story = {
   title: 'Text can’t grant permission',
-  concepts: { 'read-only-tools': 3, 'untrusted-results': 2, 'run-it': 6 },
+  concepts: { 'untrusted-results': [0, 3], 'read-only-tools': [3, 6], 'run-it': [0, 6] },
   steps: [
     { caption: 'A search result contains an instruction, planted in the text.', move: 900 },
-    { caption: 'It is only text. It joins the messages and the model reads it.', move: 1300 },
+    { caption: 'It is only text. It joins the messages and the model reads it.', move: 1300, still: 0.55 },
     { caption: 'The model follows it and proposes delete_library().' },
-    { caption: 'Your code never offered that tool. Nothing happens.', move: 1200 },
+    { caption: 'Your code never offered that tool. Nothing happens.', move: 1200, still: 0.6 },
     { caption: 'Next: save_to_library("2210.03629"). It writes, so a person must agree.' },
     { caption: 'Your code asks. The person answers y.', move: 1300 },
     { caption: 'Saved: the library now has 2 papers. Text changed the proposal, never the permissions.', ms: 3800 },
@@ -509,7 +547,7 @@ const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
 
 const contextMemory: Story = {
   title: 'What every call resends',
-  concepts: { 'run-state': 1, 'cost-of-history': 2, 'saved-memory': 5, 'run-it': 4 },
+  concepts: { 'run-state': [0, 1], 'cost-of-history': [1, 4], 'saved-memory': 5, 'run-it': [0, 5] },
   steps: [
     { caption: 'Call 1 sends the instructions and the question: 104 tokens.' },
     { caption: 'Every later call resends the whole history, so each call is bigger than the last.', move: 3000, ms: 3800 },
@@ -613,7 +651,7 @@ const ROWS = [
 
 const multiAgent: Story = {
   title: 'Writer and reviewer',
-  concepts: { 'add-a-reviewer': 2, 'compare-on-evals': 5, 'run-it': 3 },
+  concepts: { 'add-a-reviewer': [0, 3], 'compare-on-evals': [4, 5], 'run-it': [0, 5] },
   steps: [
     { caption: 'The writer drafts an answer with search, as before.', move: 900 },
     { caption: 'A second call with a different job and no tools reviews the draft.', move: 1300 },
