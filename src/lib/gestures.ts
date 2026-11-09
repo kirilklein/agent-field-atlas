@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
 import type { Point } from '../data/types';
-import { camAt, toWorld, zoomAbout, type Cam, type Size } from './camera';
+import { toWorld, type Cam, type Size } from './camera';
 
 export type FreeCamera = {
   stage: Size;
@@ -12,10 +12,8 @@ export type FreeCamera = {
   clampK: (k: number) => number;
   onHint: (message: string) => void;
   onDragChange: (dragging: boolean) => void;
-  /** The 3D relief model is showing: drags turn it, and zooming in hands over to the flat map. */
-  relief?: () => boolean;
-  onTurn?: (dx: number, dy: number) => void;
-  onZoomIn?: () => void;
+  /** Stage point → world point on the ground, when the 3D model is showing (null: use the flat camera). */
+  pick?: (p: Point) => Point | null;
 };
 
 const INTERACTIVE = 'button, a, input, select, textarea, .map-controls, .legend, .diagram-callout, .diagram-backdrop';
@@ -52,9 +50,17 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       o.current.onHint(msg);
     };
 
+    /** Where a stage point lands: on the model's ground when it shows, else through the flat camera. */
+    const ground = (p: Point): Point => o.current.pick?.(p) ?? toWorld(o.current.getCam(), o.current.stage, p);
+    /** Move the camera so `from` (a world point) lands where `to` is now, at scale k. */
+    const carry = (from: Point, to: Point, k: number) => {
+      const c = o.current.getCam();
+      const f = c.k / k;
+      o.current.apply({ k, cx: from.x + (c.cx - to.x) * f, cy: from.y + (c.cy - to.y) * f });
+    };
+
     /* ----- drag to pan (pointer events) ----- */
-    let drag: { id: number; start: Point; last: Point; cam: Cam; moved: boolean; relief: boolean } | null = null;
-    const inRelief = () => o.current.relief?.() ?? false;
+    let drag: { id: number; start: Point; last: Point; moved: boolean } | null = null;
     let pinching = false;
 
     const onPointerDown = (e: PointerEvent) => {
@@ -62,7 +68,7 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       if ((e.target as Element).closest(INTERACTIVE)) return;
       if (e.pointerType === 'touch' && o.current.compact) return;
       const at = { x: e.clientX, y: e.clientY };
-      drag = { id: e.pointerId, start: at, last: at, cam: o.current.getCam(), moved: false, relief: inRelief() };
+      drag = { id: e.pointerId, start: at, last: at, moved: false };
       node.setPointerCapture(e.pointerId);
     };
     const onPointerMove = (e: PointerEvent) => {
@@ -74,19 +80,11 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
         drag.moved = true;
         o.current.onDragChange(true);
       }
-      const relief = inRelief();
-      if (relief !== drag.relief) {
-        // The model handed over (or took over) mid-drag: carry on from here.
-        drag = { ...drag, start: { x: e.clientX, y: e.clientY }, cam: o.current.getCam(), relief };
-        return;
-      }
-      if (relief) {
-        o.current.onTurn?.(e.clientX - drag.last.x, e.clientY - drag.last.y);
-        drag.last = { x: e.clientX, y: e.clientY };
-        return;
-      }
-      const c = drag.cam;
-      o.current.apply({ k: c.k, cx: c.cx - dx / c.k, cy: c.cy - dy / c.k });
+      // The ground under the last pointer position follows the pointer.
+      const prev = ground(local(drag.last.x, drag.last.y));
+      const now = ground(local(e.clientX, e.clientY));
+      carry(prev, now, o.current.getCam().k);
+      drag.last = { x: e.clientX, y: e.clientY };
     };
     const endDrag = (e: PointerEvent) => {
       if (!drag || e.pointerId !== drag.id) return;
@@ -104,10 +102,6 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
         return;
       }
       e.preventDefault();
-      if (inRelief()) {
-        if (e.deltaY < 0) o.current.onZoomIn?.();
-        return;
-      }
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
       const dy = Math.max(-120, Math.min(120, e.deltaY * unit));
       // Trackpad pinch arrives as ctrl+wheel with small deltas; give it more gain.
@@ -115,11 +109,12 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       const cam = o.current.getCam();
       const k = o.current.clampK(cam.k * factor);
       if (k === cam.k) return;
-      o.current.apply(zoomAbout(cam, o.current.stage, local(e.clientX, e.clientY), k));
+      const w = ground(local(e.clientX, e.clientY));
+      carry(w, w, k);
     };
 
     /* ----- two-finger touch: pan + pinch ----- */
-    let pinch: { world: Point; dist: number; k: number } | null = null;
+    let pinch: { mid: Point; dist: number; k: number } | null = null;
     const two = (t: TouchList) => {
       const a = local(t[0].clientX, t[0].clientY);
       const b = local(t[1].clientX, t[1].clientY);
@@ -134,8 +129,7 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
           drag = null;
         }
         const { mid, dist } = two(e.touches);
-        const cam = o.current.getCam();
-        pinch = { world: toWorld(cam, o.current.stage, mid), dist, k: cam.k };
+        pinch = { mid, dist, k: o.current.getCam().k };
       }
     };
     let oneFinger: Point | null = null;
@@ -143,12 +137,9 @@ export function useMapGestures(el: RefObject<HTMLElement | null>, opts: FreeCame
       if (pinch && e.touches.length === 2) {
         e.preventDefault();
         const { mid, dist } = two(e.touches);
-        if (inRelief()) {
-          if (dist / pinch.dist > 1.12) o.current.onZoomIn?.();
-          return;
-        }
         const k = o.current.clampK(pinch.k * (dist / pinch.dist));
-        o.current.apply(camAt(pinch.world, mid, k, o.current.stage));
+        carry(ground(pinch.mid), ground(mid), k);
+        pinch.mid = mid;
         return;
       }
       if (o.current.compact && e.touches.length === 1) {

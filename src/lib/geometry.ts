@@ -58,14 +58,16 @@ export function stopPoint(l: Landmark, i: number): Point {
   return { x: l.x + c.dx, y: l.y + c.dy };
 }
 
-/** A short, slightly bowed spur from a landmark to one of its concept stops. */
-export function spurPath(l: Landmark, i: number): string {
+/** A short, slightly bowed spur from a landmark to one of its concept stops: start, control, end. */
+export function spurCurve(l: Landmark, i: number): [Point, Point, Point] {
   const p = stopPoint(l, i);
-  const mx = (l.x + p.x) / 2;
-  const my = (l.y + p.y) / 2;
-  const nx = -(p.y - l.y) * 0.18;
-  const ny = (p.x - l.x) * 0.18;
-  return `M ${f(l.x)} ${f(l.y)} Q ${f(mx + nx)} ${f(my + ny)} ${f(p.x)} ${f(p.y)}`;
+  const c = { x: (l.x + p.x) / 2 - (p.y - l.y) * 0.18, y: (l.y + p.y) / 2 + (p.x - l.x) * 0.18 };
+  return [{ x: l.x, y: l.y }, c, p];
+}
+
+export function spurPath(l: Landmark, i: number): string {
+  const [a, c, b] = spurCurve(l, i);
+  return `M ${f(a.x)} ${f(a.y)} Q ${f(c.x)} ${f(c.y)} ${f(b.x)} ${f(b.y)}`;
 }
 
 export type Box = { x0: number; y0: number; x1: number; y1: number };
