@@ -11,6 +11,7 @@ import type { Point, RegionId } from './data/types';
 import { CALLOUT_GAP, DiagramCallout } from './components/insets/DiagramCallout';
 import { NO_INSETS, camAt, fit, toScreen, useCamera, useElementSize, useMediaQuery, zoomAbout, type Cam, type Insets } from './lib/camera';
 import { useMapGestures } from './lib/gestures';
+import { INTRO_VARS, useIntro } from './lib/intro';
 import { Relief, type Framing } from './lib/relief';
 import { useProgress } from './lib/progress';
 import { ATLAS_BOX, regionBox, stopPoint } from './lib/geometry';
@@ -32,6 +33,10 @@ export default function App() {
   const [hoveredConcept, setHoveredConcept] = useState<string | null>(null);
   const depth = depthOf(route);
   const key = routeKey(route);
+  const [relief] = useState(() => new Relief());
+  // With the 3D model, the lift into it is the opening; the trail draw-in is the flat fallback.
+  const intro = useIntro(!relief.getState().available);
+  const inking = intro === 'wait' || intro === 'run';
 
   // The last region visited: the anchor (and fading fog) when returning to the overview.
   const lastRegion = useRef<RegionId | null>(route.region);
@@ -122,7 +127,6 @@ export default function App() {
     [stage, wide, compact],
   );
 
-  const [relief] = useState(() => new Relief());
   const rs = useSyncExternalStore(relief.subscribe, relief.getState);
   const flightT = useSyncExternalStore(relief.subscribe, relief.getFlight);
   const inRelief = rs.ready && rs.phase !== 'flat';
@@ -275,12 +279,12 @@ export default function App() {
 
   // The model lifts out of the flat overview once it is ready, unless the
   // viewer is already moving the map around.
-  const intro = useRef(true);
+  const firstLift = useRef(true);
   useEffect(() => {
     if (depth !== 0 || flatHold || reduced || dragging || !rs.ready || offTarget || camProgress < 1) return;
     if (relief.getState().phase !== 'flat') return;
-    relief.rise(getCam(), intro.current ? 1500 : undefined);
-    intro.current = false;
+    relief.rise(getCam(), firstLift.current ? 1500 : undefined);
+    firstLift.current = false;
   }, [relief, depth, flatHold, reduced, dragging, rs.ready, offTarget, camProgress, getCam]);
 
   const onStageKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -413,7 +417,10 @@ export default function App() {
   });
 
   return (
-    <div className={`app depth-${depth} ${compact ? 'is-compact' : ''} ${lessonHasTrace ? 'has-trace' : ''}`} style={{ ['--panel-w' as string]: `${panelW}px` }}>
+    <div
+      className={`app depth-${depth} ${compact ? 'is-compact' : ''} ${lessonHasTrace ? 'has-trace' : ''} ${inking ? 'intro' : ''} ${intro === 'wait' ? 'intro--hold' : ''} ${intro === 'done' ? 'intro-done' : ''}`}
+      style={{ ['--panel-w' as string]: `${panelW}px`, ...(inking ? INTRO_VARS : null) }}
+    >
       <a
         className="skip"
         href="#main-sheet"
@@ -473,7 +480,7 @@ export default function App() {
           aria-label="Trail map. Drag to pan and scroll to zoom. With the map focused, arrow keys pan, plus and minus zoom, and 0 recenters."
           onKeyDown={onStageKey}
         >
-          <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} />
+          <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} intro={inking} />
           {rs.available && !reduced && <div className="relief-model" ref={relief.attach} aria-hidden="true" />}
           <div className="grain" aria-hidden="true" />
           <div className="fog" style={fogStyle} aria-hidden="true" />
