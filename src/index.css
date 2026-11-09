@@ -33,6 +33,16 @@
   --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   --topbar-h: 56px;
+
+  /* Vellum: the floating panels are tracing paper laid over the plate. */
+  --vellum: rgba(251, 248, 240, 0.7);
+  --vellum-dense: rgba(251, 248, 240, 0.86);
+  --vellum-blur: blur(2px) saturate(1.2);
+  --vellum-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0) 64px);
+  --vellum-fibre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='4' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.25 0 0 0 0 0.2 0.075 0 0 0 -0.012'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --vellum-edge: inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+  --vellum-lift: 0 1px 1px rgba(30, 58, 49, 0.05), 0 10px 18px -12px rgba(30, 58, 49, 0.26),
+    0 34px 64px -40px rgba(30, 58, 49, 0.5);
   color-scheme: light;
 }
 
@@ -2403,30 +2413,36 @@ g:hover > .viz__pairline {
     border-radius: 6px;
     animation: card-in 260ms ease-out;
   }
+  /* Mobile hero: the lede reads as the plate's statement, the button spans below it. */
   .cartouche {
-    padding: 14px 16px 14px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 4px 14px;
+    padding: 18px 18px 14px;
   }
-  .cartouche .kicker,
+  .cartouche .kicker {
+    margin-bottom: 6px;
+  }
   .cartouche__title,
-  .cartouche__meta,
   .motif,
   .hub {
     display: none;
   }
   .cartouche__lede {
-    margin: 0;
-    font-size: 13.5px;
-    line-height: 1.4;
+    margin: 0 0 14px;
+    font-family: var(--serif);
+    font-size: 19px;
+    line-height: 1.32;
+    letter-spacing: -0.005em;
+    color: var(--pine);
+    font-variation-settings: 'opsz' 24;
+    text-wrap: pretty;
   }
   .btn--start {
-    width: auto;
-    min-height: 42px;
-    font-size: 14.5px;
-    white-space: nowrap;
+    width: 100%;
+    min-height: 48px;
+    font-size: 15px;
+  }
+  .cartouche__meta {
+    margin-top: 10px;
+    font-size: 11.5px;
   }
   .region-card__title {
     font-size: 26px;
@@ -3499,4 +3515,100 @@ g:hover > .viz__pairline {
   stroke: var(--pass);
   stroke-width: 1.3;
   stroke-linejoin: round;
+}
+
+/* ------------------------------------------------------------------ */
+/* Vellum: floating panels as tracing paper over the plate             */
+/* ------------------------------------------------------------------ */
+/*
+ * The cartouche, region card, legend, map controls, stop callout, diagram
+ * callout and topbar share one material: a warm translucent sheet with a
+ * faint fibre, a lit top edge and a long soft shadow. The contours stay
+ * readable through it, softened by a small blur. Where backdrop-filter is
+ * missing the panels keep their opaque card background (the base rules
+ * above), so the translucency lives only inside the @supports block.
+ */
+
+.cartouche,
+.region-card,
+.legend,
+.map-controls,
+.callout,
+.diagram-callout {
+  background-image: var(--vellum-sheen), var(--vellum-fibre);
+  background-size: 100% 100%, 220px 220px;
+  background-repeat: no-repeat, repeat;
+  box-shadow: var(--vellum-edge), var(--vellum-lift);
+}
+.legend,
+.map-controls {
+  box-shadow: var(--vellum-edge), 0 1px 1px rgba(30, 58, 49, 0.05), 0 14px 28px -20px rgba(30, 58, 49, 0.45);
+}
+.cartouche,
+.region-card {
+  border-color: var(--rule);
+}
+.cartouche::before,
+.region-card::before {
+  border-color: rgba(30, 58, 49, 0.1);
+}
+.topbar {
+  background-image: var(--vellum-fibre);
+  background-size: 220px 220px;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.5), 0 10px 22px -20px rgba(30, 58, 49, 0.4);
+}
+
+/* The workbench is long reading: the same stock, just heavier and opaque. */
+.sheet--bench {
+  background-image: var(--vellum-sheen), var(--vellum-fibre);
+  background-size: 100% 100%, 220px 220px;
+  background-repeat: no-repeat, repeat;
+  box-shadow: var(--vellum-edge), var(--vellum-lift);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .cartouche,
+  .region-card,
+  .legend,
+  .map-controls,
+  .callout {
+    background-color: var(--vellum);
+    /* Secondary ink a step darker on vellum: AA (4.5:1) holds even with the
+       summit's tightest contours behind the sheet. */
+    --ink-soft: #4b5d54;
+    -webkit-backdrop-filter: var(--vellum-blur);
+    backdrop-filter: var(--vellum-blur);
+  }
+  /* Over the dimmed map the diagram's frame is vellum; the drawing keeps its own plate. */
+  .diagram-callout {
+    background-color: var(--vellum-dense);
+    --ink-soft: #4b5d54;
+    -webkit-backdrop-filter: var(--vellum-blur);
+    backdrop-filter: var(--vellum-blur);
+  }
+  .diagram-callout .inset__svg {
+    background:
+      radial-gradient(circle at 1px 1px, rgba(30, 58, 49, 0.09) 1px, transparent 1.4px) 0 0 / 12px 12px,
+      rgba(255, 253, 248, 0.82);
+  }
+  .topbar {
+    background-color: rgba(243, 237, 222, 0.8);
+    -webkit-backdrop-filter: var(--vellum-blur);
+    backdrop-filter: var(--vellum-blur);
+  }
+  /* Only a ghost of the map at the workbench; no blur, so panning stays cheap. */
+  .sheet--bench {
+    background-color: rgba(251, 248, 240, 0.965);
+  }
+  /* Small copper labels take the deeper copper (the hover ink) on vellum. */
+  .cartouche .motif__cap,
+  .region-card__builds-label,
+  .callout__kicker,
+  .diagram-callout .inset__kicker {
+    color: #8a4718;
+  }
+  /* The hub sits on the cartouche as an inset plate, a little denser than the sheet. */
+  .cartouche .hub {
+    background: rgba(242, 237, 225, 0.72);
+  }
 }
