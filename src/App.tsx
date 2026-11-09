@@ -351,6 +351,7 @@ export default function App() {
           onKeyDown={onStageKey}
         >
           <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} />
+          <div className="grain" aria-hidden="true" />
           <div className="fog" style={fogStyle} aria-hidden="true" />
           <Markers
             cam={cam}

@@ -390,19 +390,21 @@ pre {
 .relief {
   image-rendering: auto;
 }
+/* Contours are drawn in a translucent green-brown so they read the same over
+   the pale summit, the green valley tint and the shaded slopes. */
 .contour {
   fill: none;
-  stroke: #b7c3a6;
-  stroke-width: 0.7;
+  stroke: rgba(78, 98, 70, 0.3);
+  stroke-width: 0.75;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 .contour--index {
-  stroke: #94a487;
-  stroke-width: 1.15;
+  stroke: rgba(70, 88, 60, 0.6);
+  stroke-width: 1.3;
 }
 .contour--minor {
-  stroke: #c9d1ba;
+  stroke: rgba(78, 98, 70, 0.17);
   stroke-width: 0.5;
 }
 .contour-labels {
@@ -421,12 +423,13 @@ pre {
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: #7f9070;
+  color: #5f714f;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   padding: 0 3px;
-  background: var(--paper);
+  background: rgba(243, 237, 222, 0.82);
   border-radius: 2px;
+  box-shadow: 0 0 3px 1px rgba(243, 237, 222, 0.7);
 }
 
 .trail-casing {
@@ -502,6 +505,19 @@ pre {
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+/* Paper grain: a static noise tile over the map (under labels and cards), so
+   the relief reads as printed rather than airbrushed. The tile is rasterised
+   once; nothing here is recomputed while panning. */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.28;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.33 0 0 0 0 0.25 0 0 0 1.6 -0.62'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
 }
 
 .frame {

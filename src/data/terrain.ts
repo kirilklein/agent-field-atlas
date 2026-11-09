@@ -42,6 +42,56 @@ export function heightAt(x: number, y: number): number {
   return h;
 }
 
+/**
+ * `heightAt` sampled on a regular grid: `out[j * cols + i] = heightAt(x0 + i * step, y0 + j * step)`.
+ * Same formula, factored by axis (each Gaussian and the ripple split into an x
+ * part and a y part), so a large raster costs a few multiply-adds per cell
+ * instead of a dozen `exp` calls.
+ */
+export function heightGrid(x0: number, y0: number, step: number, cols: number, rows: number): Float32Array {
+  const n = BUMPS.length;
+  const gx = new Float64Array(n * cols);
+  const gy = new Float64Array(n * rows);
+  for (let b = 0; b < n; b++) {
+    const { x, y, h, sx, sy } = BUMPS[b];
+    for (let i = 0; i < cols; i++) {
+      const u = (x0 + i * step - x) / sx;
+      gx[b * cols + i] = h * Math.exp(-0.5 * u * u);
+    }
+    for (let j = 0; j < rows; j++) {
+      const v = (y0 + j * step - y) / sy;
+      gy[b * rows + j] = Math.exp(-0.5 * v * v);
+    }
+  }
+  // 22 sin(x/57 + 1.3) cos(y/71) + 14 sin(x/39 + 0.4 + y/39), the second term expanded.
+  const r1 = new Float64Array(cols);
+  const sa = new Float64Array(cols);
+  const ca = new Float64Array(cols);
+  for (let i = 0; i < cols; i++) {
+    const x = x0 + i * step;
+    r1[i] = 22 * Math.sin(x / 57 + 1.3);
+    sa[i] = 14 * Math.sin(x / 39 + 0.4);
+    ca[i] = 14 * Math.cos(x / 39 + 0.4);
+  }
+  const out = new Float32Array(cols * rows);
+  const col = new Float64Array(n);
+  for (let j = 0; j < rows; j++) {
+    const y = y0 + j * step;
+    const base = FLOOR + TILT * (1000 - y);
+    const cy = Math.cos(y / 71);
+    const cb = Math.cos(y / 39);
+    const sb = Math.sin(y / 39);
+    for (let b = 0; b < n; b++) col[b] = gy[b * rows + j];
+    const o = j * cols;
+    for (let i = 0; i < cols; i++) {
+      let h = base + r1[i] * cy + sa[i] * cb + ca[i] * sb;
+      for (let b = 0; b < n; b++) h += gx[b * cols + i] * col[b];
+      out[o + i] = h;
+    }
+  }
+  return out;
+}
+
 /** Elevation rounded the way a map prints it. */
 export function elevationLabel(x: number, y: number): string {
   return `${(Math.round(heightAt(x, y) / 10) * 10).toLocaleString('en-US')} m`;
