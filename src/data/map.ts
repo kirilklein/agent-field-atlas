@@ -19,6 +19,9 @@ export const LANDMARKS: Landmark[] = [
     question: 'What does the model actually get?',
     builds: 'Turn a research question into structured search queries.',
     idea: 'The model is a function: a message list goes in, a proposal comes out. Here the proposal is a query plan, and your code checks it before anything relies on it.',
+    sources: [
+      { title: 'Building effective AI agents', url: 'https://www.anthropic.com/research/building-effective-agents' },
+    ],
     concepts: [
       { id: 'the-request', title: 'Anatomy of a request', dx: -120, dy: 38, side: 'left' },
       { id: 'structured-output', title: 'Ask for structure', dx: -80, dy: -82, side: 'left' },
@@ -37,6 +40,9 @@ export const LANDMARKS: Landmark[] = [
     question: 'Who runs the tool?',
     builds: 'Give the model a search_papers(query) tool and validate its proposed arguments before execution.',
     idea: 'A proposal can be a request to act. The model names a tool and arguments; only your code can run it, so your code decides whether it runs.',
+    sources: [
+      { title: 'Writing effective tools for AI agents', url: 'https://www.anthropic.com/research/writing-tools-for-agents' },
+    ],
     concepts: [
       { id: 'declare-a-tool', title: 'Declare a tool', dx: -122, dy: -52, side: 'left' },
       { id: 'inspect-a-call', title: 'Inspect a call', dx: 92, dy: -96, side: 'right' },
@@ -55,6 +61,9 @@ export const LANDMARKS: Landmark[] = [
     question: 'Who chooses the next step?',
     builds: 'Feed results back into the next model call and stop when the task is done or the step budget runs out.',
     idea: 'Append the proposal and its result to the message list and call the same function again. The loop, and the decision to stop, belong to your code.',
+    sources: [
+      { title: 'Building effective AI agents', url: 'https://www.anthropic.com/research/building-effective-agents' },
+    ],
     concepts: [
       { id: 'the-loop', title: 'The loop', dx: -118, dy: -40, side: 'left' },
       { id: 'watch-a-run', title: 'Watch a run', dx: -48, dy: -118, side: 'left' },
@@ -73,6 +82,9 @@ export const LANDMARKS: Landmark[] = [
     question: 'Did it actually do the job?',
     builds: 'Replay a small set of questions and check that answers cite papers that support their claims.',
     idea: 'The model only ever sees messages, so you can record them, replay them and measure what it proposes. The numbers come with uncertainty, and so does the judge.',
+    sources: [
+      { title: 'Demystifying evals for AI agents', url: 'https://www.anthropic.com/research/demystifying-evals-for-ai-agents' },
+    ],
     concepts: [
       { id: 'replay-set', title: 'A replay set', dx: -122, dy: 40, side: 'left' },
       { id: 'score-a-replay', title: 'Score a replay', dx: -62, dy: -88, side: 'left' },
@@ -93,6 +105,9 @@ export const LANDMARKS: Landmark[] = [
     question: 'What can text make it do?',
     builds: 'Keep the assistant read-only and treat what tools return as untrusted data.',
     idea: 'Your code is the only part with side effects, so its allowlist is the security boundary. Text in a tool result can change what the model proposes, never what the host allows.',
+    sources: [
+      { title: 'The lethal trifecta for AI agents (Simon Willison)', url: 'https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/' },
+    ],
     concepts: [
       { id: 'read-only-tools', title: 'Read-only by default', dx: -18, dy: -98, side: 'right' },
       { id: 'untrusted-results', title: 'Untrusted results', dx: 18, dy: 96, side: 'right' },
@@ -111,6 +126,9 @@ export const LANDMARKS: Landmark[] = [
     question: 'What can the model see right now?',
     builds: 'Separate the state that lives inside one run from what you deliberately save across runs.',
     idea: 'The model remembers nothing between calls. Memory is whatever your code chooses to put back into the message list, and every token of it is paid for on every call.',
+    sources: [
+      { title: 'Effective context engineering for AI agents', url: 'https://www.anthropic.com/research/effective-context-engineering-for-ai-agents' },
+    ],
     concepts: [
       { id: 'run-state', title: 'State within a run', dx: -40, dy: -100, side: 'left' },
       { id: 'saved-memory', title: 'Memory across runs', dx: -92, dy: 82, side: 'left' },
@@ -131,6 +149,10 @@ export const LANDMARKS: Landmark[] = [
     question: 'When does a second agent pay off?',
     builds: 'Compare one assistant with an assistant plus a reviewer on citation accuracy, latency and cost.',
     idea: 'A second agent is another call to the same function, with different messages and no tools. Whether it helps is a measurement, with error bars.',
+    sources: [
+      { title: 'How we built our multi-agent research system', url: 'https://www.anthropic.com/research/multi-agent-research-system' },
+      { title: 'Building effective AI agents', url: 'https://www.anthropic.com/research/building-effective-agents' },
+    ],
     concepts: [
       { id: 'add-a-reviewer', title: 'Add a reviewer', dx: -46, dy: -98, side: 'left' },
       { id: 'compare-on-evals', title: 'Compare on the evals', dx: 52, dy: 96, side: 'right' },
