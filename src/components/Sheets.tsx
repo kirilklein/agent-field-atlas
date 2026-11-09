@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { LANDMARKS, MAIN_ROUTE, landmarkById } from '../data/map';
 import { TEASERS } from '../data/sketches';
-import { elevationLabel } from '../data/terrain';
 import type { RegionId } from '../data/types';
 import { TOTAL_STOPS, type Progress } from '../lib/progress';
 import { hrefFor } from '../lib/route';
@@ -63,8 +62,7 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
     <section className="region-card" aria-labelledby="region-title">
       <p className="kicker">
         {l.kind === 'main' ? `Landmark ${l.mark}` : `Branch ${l.mark} · from ${landmarkById[l.from!].title}`} ·{' '}
-        <span className="region-card__place">{l.title}</span> ·{' '}
-        {elevationLabel(l.x, l.y)}
+        <span className="region-card__place">{l.title}</span>
       </p>
       <h2 id="region-title" className="region-card__title" tabIndex={-1}>
         {l.question}
