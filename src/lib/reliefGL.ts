@@ -2,6 +2,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   ClampToEdgeWrapping,
+  Color,
   DataTexture,
   DataUtils,
   HalfFloatType,
@@ -9,6 +10,7 @@ import {
   Mesh,
   PerspectiveCamera,
   RGBAFormat,
+  SRGBColorSpace,
   Scene,
   ShaderMaterial,
   Vector2,
@@ -19,6 +21,7 @@ import { BRANCH_CURVES, LANDMARKS, MAIN_ROUTE, TRAILHEAD, landmarkById } from '.
 import { DETAIL_EXTENT, heightAt } from '../data/terrain';
 import type { Point } from '../data/types';
 import type { Size } from './camera';
+import type { Theme } from './theme';
 import { FOV, MESH, liftAt, liftOf, type Framing, type View } from './relief';
 
 /**
@@ -33,22 +36,41 @@ import { FOV, MESH, liftAt, liftOf, type Framing, type View } from './relief';
 
 const rgb = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number];
 
-/** Same colours as the SVG plate (index.css). */
-const C = {
-  paper: rgb('#f3edde'),
-  grid: rgb('#c3cfb9'),
-  contour: rgb('#4e6246'),
-  index: rgb('#46583c'),
-  minor: rgb('#4e6246'),
-  copper: rgb('#b4632a'),
-  walked: rgb('#8a4416'),
-  branch: rgb('#35554a'),
-  pine: rgb('#1e3a31'),
-  /** Multiplied into slopes turned from the light: a cool sage-slate ink. */
-  shadow: rgb('#a9b5b0'),
-  /** Slopes facing the light lean towards the card. */
-  light: rgb('#fcf9f1'),
+type RGB = [number, number, number];
+type Plate = {
+  paper: RGB; grid: RGB; contour: RGB; index: RGB; minor: RGB; copper: RGB; walked: RGB; branch: RGB; pine: RGB; head: RGB;
+  /** Multiplied into slopes turned from the light. */
+  shadow: RGB;
+  /** Slopes facing the light lean towards this. */
+  light: RGB;
+  /** Line opacities, as the SVG strokes. */
+  gridA: number; contourA: number; indexA: number; minorA: number;
+  night: number;
 };
+
+/** Same colours as the SVG plate (index.css), by day and at night. */
+const PLATES: Record<Theme, Plate> = {
+  light: {
+    paper: rgb('#f3edde'), grid: rgb('#c3cfb9'), contour: rgb('#4e6246'), index: rgb('#46583c'), minor: rgb('#4e6246'),
+    copper: rgb('#b4632a'), walked: rgb('#8a4416'), branch: rgb('#35554a'), pine: rgb('#1e3a31'), head: rgb('#1e3a31'),
+    shadow: rgb('#a9b5b0'), light: rgb('#fcf9f1'),
+    gridA: 0.45, contourA: 0.3, indexA: 0.6, minorA: 0.17, night: 0,
+  },
+  dark: {
+    paper: rgb('#0f1b17'), grid: rgb('#c4d6ba'), contour: rgb('#b8cfac'), index: rgb('#c6dcb8'), minor: rgb('#b8cfac'),
+    copper: rgb('#e48f50'), walked: rgb('#ffc58f'), branch: rgb('#c9ccb8'), pine: rgb('#ece4d0'), head: rgb('#f2a868'),
+    shadow: rgb('#a9b5b0'), light: rgb('#2a3a32'),
+    gridA: 0.072, contourA: 0.2, indexA: 0.4, minorA: 0.11, night: 1,
+  },
+};
+
+const plateUniforms = (p: Plate) => ({
+  cPaper: { value: p.paper }, cGrid: { value: p.grid }, cContour: { value: p.contour }, cIndex: { value: p.index },
+  cMinor: { value: p.minor }, cCopper: { value: p.copper }, cWalked: { value: p.walked }, cBranch: { value: p.branch },
+  cPine: { value: p.pine }, cHead: { value: p.head }, cShadow: { value: p.shadow }, cLight: { value: p.light },
+  gridA: { value: p.gridA }, contourA: { value: p.contourA }, indexA: { value: p.indexA }, minorA: { value: p.minorA },
+  night: { value: p.night },
+});
 
 /** Trail distance field: covers the trail network with a margin, at TRAIL_RES world units per texel. */
 const TRAIL_BOX = { x0: 150, y0: 130, x1: 880, y1: 1000 };
@@ -91,7 +113,8 @@ uniform float highlight;
 uniform float edge;
 uniform vec2 haze;      // depth at which haze starts, strength
 uniform float hazeFar;
-uniform vec3 cPaper, cGrid, cContour, cIndex, cCopper, cWalked, cBranch, cPine, cShadow, cLight, cMinor;
+uniform vec3 cPaper, cGrid, cContour, cIndex, cCopper, cWalked, cBranch, cPine, cHead, cShadow, cLight, cMinor;
+uniform float gridA, contourA, indexA, minorA, night;
 uniform vec2 trailhead;
 uniform float minor;
 uniform vec4 detailBox; // x0, y0, x1, y1
@@ -111,10 +134,22 @@ const vec3 R5 = vec3(249.0, 246.0, 235.0) / 255.0;
 const vec3 R6 = vec3(252.0, 250.0, 243.0) / 255.0;
 const vec3 RSHADOW = vec3(96.0, 118.0, 112.0) / 255.0;
 const vec3 RLIGHT = vec3(255.0, 251.0, 238.0) / 255.0;
+// At night: pine-black ground; shadows sink, lit slopes lift towards a moonlit sage.
+const vec3 N0 = vec3(11.0, 23.0, 19.0) / 255.0;
+const vec3 N1 = vec3(15.0, 27.0, 23.0) / 255.0;
+const vec3 N2 = vec3(21.0, 34.0, 29.0) / 255.0;
+const vec3 N3 = vec3(27.0, 40.0, 34.0) / 255.0;
+const vec3 NSHADOW = vec3(2.0, 8.0, 6.0) / 255.0;
+const vec3 NLIGHT = vec3(150.0, 178.0, 150.0) / 255.0;
 
 vec3 tint(float h) {
   float f = h / 500.0;
   float e = h + ((floor(f) + smoothstep(0.72, 1.0, fract(f))) * 500.0 - h) * 0.3;
+  if (night > 0.5) {
+    if (e <= 1000.0) return mix(N0, N1, clamp((e - 250.0) / 750.0, 0.0, 1.0));
+    if (e <= 1800.0) return mix(N1, N2, (e - 1000.0) / 800.0);
+    return mix(N2, N3, clamp((e - 1800.0) / 800.0, 0.0, 1.0));
+  }
   if (e <= 600.0) return mix(R0, R1, clamp((e - 250.0) / 350.0, 0.0, 1.0));
   if (e <= 1000.0) return mix(R1, R2, (e - 600.0) / 400.0);
   if (e <= 1400.0) return mix(R2, R3, (e - 1000.0) / 400.0);
@@ -135,14 +170,14 @@ void main() {
   float inv = 1.0 / length(vec3(dz, 1.0));
   float rel = (0.54168 * (dz.x + dz.y) + 0.64279) * inv - 0.64279;
   float c = 0.7 + 0.55 * smoothstep(300.0, 2400.0, vH);
-  col = mix(col, RSHADOW, min(0.5, (max(-rel, 0.0) * 1.1 + (1.0 - inv) * 0.1) * c));
-  col = mix(col, RLIGHT, min(0.75, max(rel, 0.0) * 2.4 * c));
+  col = mix(col, night > 0.5 ? NSHADOW : RSHADOW, min(0.5, (max(-rel, 0.0) * 1.1 + (1.0 - inv) * 0.1) * c));
+  col = mix(col, night > 0.5 ? NLIGHT : RLIGHT, min(night > 0.5 ? 0.3 : 0.75, max(rel, 0.0) * 2.4 * c));
 
   // Graticule every 125 world units.
   vec2 g = abs(fract(vW / 125.0 + 0.5) - 0.5) * 125.0;
   float gx = g.x / max(length(vec2(dFdx(vW.x), dFdy(vW.x))), 1e-5);
   float gy = g.y / max(length(vec2(dFdx(vW.y), dFdy(vW.y))), 1e-5);
-  col = mix(col, cGrid, max(line(gx, 0.6), line(gy, 0.6)) * 0.45);
+  col = mix(col, cGrid, max(line(gx, 0.6), line(gy, 0.6)) * gridA);
 
   // Contours every 100 m, index contours every 500 m.
   float hg = max(length(vec2(dFdx(vH), dFdy(vH))), 1e-5);
@@ -151,10 +186,10 @@ void main() {
   // Fine 50 m contours fade in when close, as on the flat map (inside its detail area).
   if (minor > 0.0 && vW.x > detailBox.x && vW.y > detailBox.y && vW.x < detailBox.z && vW.y < detailBox.w) {
     float d50 = abs(fract(vH / 50.0 + 0.5) - 0.5) * 50.0 / hg;
-    col = mix(col, cMinor, line(d50, 0.5) * 0.17 * minor);
+    col = mix(col, cMinor, line(d50, 0.5) * minorA * minor);
   }
-  col = mix(col, cContour, line(d100, 0.75) * 0.3);
-  col = mix(col, cIndex, line(d500, 1.3) * 0.6);
+  col = mix(col, cContour, line(d100, 0.75) * contourA);
+  col = mix(col, cIndex, line(d500, 1.3) * indexA);
 
   // Trails, from the distance field. Widths are in screen px at the local scale.
   vec2 ex = dFdx(vW);
@@ -178,7 +213,7 @@ void main() {
 
   // The trailhead (dot and ring), as the SVG.
   float th = length(vW - trailhead) / upx;
-  col = mix(col, cPine, max(line(th, 10.0), line(abs(th - 10.0 * dpr), 1.0)));
+  col = mix(col, cHead, max(line(th, 10.0), line(abs(th - 10.0 * dpr), 1.0)));
 
   // Light from the north-west, as the hillshade. Flat ground is untouched, so
   // the model flattened is exactly the printed plate. Slopes turned away take a
@@ -376,7 +411,6 @@ export class ReliefGL {
       failIfMajorPerformanceCaveat: true,
     });
     this.renderer.setPixelRatio(this.dpr);
-    this.renderer.setClearColor(0xf3edde, 1);
 
     const light = new Vector3(-0.5, Math.SQRT1_2, -0.5).normalize();
     const material = new ShaderMaterial({
@@ -402,17 +436,7 @@ export class ReliefGL {
         edge: { value: 260 },
         haze: { value: [0, 0] },
         hazeFar: { value: 1 },
-        cPaper: { value: C.paper },
-        cGrid: { value: C.grid },
-        cContour: { value: C.contour },
-        cIndex: { value: C.index },
-        cCopper: { value: C.copper },
-        cWalked: { value: C.walked },
-        cBranch: { value: C.branch },
-        cPine: { value: C.pine },
-        cShadow: { value: C.shadow },
-        cLight: { value: C.light },
-        cMinor: { value: C.minor },
+        ...plateUniforms(PLATES.light),
         minor: { value: 0 },
         detailBox: { value: [DETAIL_EXTENT.x0, DETAIL_EXTENT.y0, DETAIL_EXTENT.x1, DETAIL_EXTENT.y1] },
         trailhead: { value: new Vector2(TRAILHEAD.x, TRAILHEAD.y) },
@@ -426,6 +450,14 @@ export class ReliefGL {
   /** Compile the shader off the main thread where the browser can (KHR_parallel_shader_compile). */
   async prepare() {
     if (this.renderer.extensions.has('KHR_parallel_shader_compile')) await this.renderer.compileAsync(this.scene, this.camera);
+  }
+
+  /** Day or night plate. */
+  setTheme(theme: Theme) {
+    const plate = PLATES[theme];
+    const u = this.mesh.material.uniforms;
+    for (const [k, v] of Object.entries(plateUniforms(plate))) u[k].value = v.value;
+    this.renderer.setClearColor(new Color().setRGB(...plate.paper, SRGBColorSpace), 1);
   }
 
   /** (Re)draw the trail field: on load, and when lessons are visited. */

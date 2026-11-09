@@ -13,6 +13,7 @@ import { NO_INSETS, camAt, fit, toScreen, useCamera, useElementSize, useMediaQue
 import { useMapGestures } from './lib/gestures';
 import { INTRO_VARS, useIntro } from './lib/intro';
 import { Relief, type Framing } from './lib/relief';
+import { useTheme } from './lib/theme';
 import { useProgress } from './lib/progress';
 import { ATLAS_BOX, regionBox, stopPoint } from './lib/geometry';
 import { depthOf, hrefFor, parentOf, routeKey, useHashRoute } from './lib/route';
@@ -154,6 +155,8 @@ export default function App() {
     if (reduced) relief.shutdown();
   }, [relief, reduced]);
   useEffect(() => relief.setWalked(walked), [relief, walked]);
+  const theme = useTheme();
+  useEffect(() => relief.setTheme(theme), [relief, theme]);
   // Load three only for the overview, so a deep link into a lesson never pays for it.
   useEffect(() => {
     if (depth === 0 && !reduced && rs.available && stage.w > 1) relief.load();

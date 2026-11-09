@@ -1,6 +1,7 @@
 import { heightAt } from '../data/terrain';
 import type { Point } from '../data/types';
 import { ease, type Cam, type Size } from './camera';
+import type { Theme } from './theme';
 
 /**
  * The overview as a relief model: the same height field, raised and seen at an
@@ -125,6 +126,7 @@ export class Relief {
   private base: View | null = null;
   private view: View | null = null;
   private walked = '';
+  private theme: Theme = 'light';
   private paintedWalked = '';
 
   private orbit = { phi: 0, theta: 0 };
@@ -232,6 +234,7 @@ export class Relief {
         this.canvas = canvas;
         const small = Math.min(this.stage.w, this.stage.h) < 600;
         const gl = new mod.ReliefGL(canvas, { small });
+        gl.setTheme(this.theme);
         // Separate tasks, so the flat map stays responsive while the model is built.
         const alive = () => this.mounted && this.canvas === canvas;
         await new Promise((r) => setTimeout(r, 0));
@@ -311,6 +314,13 @@ export class Relief {
     if (!this.gl) return;
     this.gl.resize(stage);
     this.refit();
+    this.kick(true);
+  }
+
+  setTheme(theme: Theme) {
+    this.theme = theme;
+    if (!this.gl) return;
+    this.gl.setTheme(theme);
     this.kick(true);
   }
 
