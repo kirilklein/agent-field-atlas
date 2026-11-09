@@ -2521,6 +2521,212 @@ g:hover > .viz__pairline {
   }
 }
 
+/* ----- Intro: the plate is inked on first load of the overview ---------- */
+/* Times come from src/lib/intro.ts (--intro-* on .app, --at per element).    */
+/* Every keyframe animates *from* the blank state to the element's own style, */
+/* so removing .intro at the end (or on skip) changes nothing on screen.      */
+
+.intro {
+  --intro-play: running;
+}
+.intro--hold {
+  --intro-play: paused;
+}
+.intro .graticule,
+.intro .relief,
+.intro .contour,
+.intro .contour-label > span,
+.intro .intro-reveal,
+.intro .waypoint,
+.intro .trailhead,
+.intro .terrain-name > span,
+.intro .lm__mark,
+.intro .lm__mark::after,
+.intro .lm__label,
+.intro .sheet--intro > .cartouche,
+.intro .legend,
+.intro .map-controls,
+.intro .compass {
+  animation-fill-mode: both;
+  animation-play-state: var(--intro-play);
+}
+
+.intro .graticule {
+  animation-name: intro-fade;
+  animation-duration: 600ms;
+  animation-timing-function: ease-out;
+}
+.intro .relief {
+  animation-name: intro-fade;
+  animation-duration: var(--intro-relief-ms);
+  animation-delay: var(--intro-relief-at);
+  animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+}
+.intro .contour {
+  animation-name: intro-fade;
+  animation-duration: var(--intro-contour-ms);
+  animation-delay: var(--at);
+  animation-timing-function: ease-out;
+}
+.intro .contour-label > span {
+  animation-name: intro-fade;
+  animation-duration: 420ms;
+  animation-delay: var(--at);
+}
+
+/* The trail and branches are revealed through masks: a wide solid stroke drawn
+   with pathLength 1, so the dashed branches keep their own dash pattern. */
+.intro-reveal {
+  fill: none;
+  stroke: #fff;
+  stroke-linecap: butt;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+}
+.intro .intro-reveal {
+  animation-name: intro-draw;
+}
+.intro .intro-reveal--trail {
+  animation-duration: var(--intro-trail-ms);
+  animation-delay: var(--intro-trail-at);
+  animation-timing-function: var(--intro-trail-ease);
+}
+.intro .intro-reveal--branch {
+  animation-duration: var(--dur);
+  animation-delay: var(--at);
+  animation-timing-function: var(--intro-branch-ease);
+}
+.intro .trailhead {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-name: intro-stamp;
+  animation-duration: 480ms;
+  animation-delay: var(--intro-trailhead-at);
+  animation-timing-function: cubic-bezier(0.3, 1.5, 0.55, 1);
+}
+.intro .waypoint {
+  animation-name: intro-fade;
+  animation-duration: 360ms;
+  animation-delay: var(--at);
+}
+
+/* Landmarks are stamped as the pen reaches them; their names rise into place. */
+.intro .lm__mark {
+  animation-name: intro-stamp;
+  animation-duration: var(--intro-stamp-ms);
+  animation-delay: var(--at);
+  animation-timing-function: cubic-bezier(0.3, 1.45, 0.5, 1);
+}
+.intro .lm__mark::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 1.5px solid var(--copper);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation-name: intro-ripple;
+  animation-duration: 760ms;
+  animation-delay: var(--at);
+  animation-timing-function: cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+.intro .lm--branch .lm__mark::after {
+  border-color: var(--pine-2);
+}
+.intro .lm__label {
+  animation-name: intro-rise;
+  animation-duration: 560ms;
+  animation-delay: calc(var(--at) + 110ms);
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Place names settle in last, letter-spacing closing up as the ink dries. */
+.intro .terrain-name > span {
+  animation-name: intro-name;
+  animation-duration: var(--intro-names-ms);
+  animation-delay: var(--at);
+  animation-timing-function: cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.intro .terrain-name--trailhead > span {
+  animation-name: intro-fade;
+  animation-duration: 420ms;
+}
+
+.intro .sheet--intro > .cartouche {
+  animation-name: intro-card;
+  animation-duration: var(--intro-card-ms);
+  animation-delay: var(--intro-card-at);
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.intro .legend,
+.intro .map-controls,
+.intro .compass {
+  animation-name: intro-rise;
+  animation-duration: var(--intro-chrome-ms);
+  animation-delay: var(--intro-chrome-at);
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.intro .map-controls,
+.intro .compass {
+  animation-delay: calc(var(--intro-chrome-at) + 90ms);
+}
+
+/* Finished or skipped: the card is already in place, so it doesn't slide in again. */
+.intro-done .sheet--intro > .cartouche {
+  animation: none;
+}
+
+@keyframes intro-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes intro-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes intro-stamp {
+  from {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes intro-ripple {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  8% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.3);
+  }
+}
+@keyframes intro-rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+}
+@keyframes intro-name {
+  from {
+    opacity: 0;
+    letter-spacing: 0.32em;
+  }
+}
+@keyframes intro-card {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

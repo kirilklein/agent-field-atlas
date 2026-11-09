@@ -120,8 +120,45 @@ const ROUTE_POINTS: Point[] = (() => {
   return pts;
 })();
 
+function cubicLength(a: Point, c1: Point, c2: Point, b: Point): number {
+  const pts = sampleCubic(a, c1, c2, b, 96);
+  let len = 0;
+  for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+  return len;
+}
+
+/**
+ * Arc length along the main trail from the Trailhead to each main landmark, as a
+ * fraction of the whole trail (the summit is 1). The intro uses it to stamp each
+ * landmark exactly when the drawing trail reaches it.
+ */
+export const { TRAIL_LENGTH, TRAIL_FRACTIONS } = (() => {
+  const cum: [RegionId, number][] = [];
+  let prev: Point = TRAILHEAD;
+  let total = 0;
+  for (const id of MAIN_ROUTE) {
+    const l = landmarkById[id];
+    const dy = (prev.y - l.y) * 0.5;
+    total += cubicLength(prev, { x: prev.x, y: prev.y - dy }, { x: l.x, y: l.y + dy }, l);
+    cum.push([id, total]);
+    prev = l;
+  }
+  return {
+    TRAIL_LENGTH: total,
+    TRAIL_FRACTIONS: Object.fromEntries(cum.map(([id, s]) => [id, s / total])) as Partial<Record<RegionId, number>>,
+  };
+})();
+
+/** Length of each optional branch in world units (its stretch from the junction). */
+export const BRANCH_LENGTHS: Partial<Record<RegionId, number>> = Object.fromEntries(
+  LANDMARKS.filter((l) => l.kind === 'branch' && l.from).map((l) => {
+    const c = BRANCH_CURVES[l.id as keyof typeof BRANCH_CURVES];
+    return [l.id, cubicLength(landmarkById[l.from!], c.c1, c.c2, c.to)];
+  }),
+);
+
 export type ContourLevel = { level: number; index: boolean; d: string };
-export type ContourLabel = { x: number; y: number; angle: number; text: string };
+export type ContourLabel = { x: number; y: number; angle: number; text: string; level: number };
 
 export const TERRAIN = (() => {
   const grid = sampleGrid(heightAt, TERRAIN_EXTENT, 12);
@@ -135,7 +172,7 @@ export const TERRAIN = (() => {
     const lines = contourLines(grid, level).map((l) => simplify(l, 0.8)).filter((l) => l.length > 2);
     const index = level % INDEX_INTERVAL === 0;
     major.push({ level, index, d: lines.map(smoothPath).join(' ') });
-    if (index) labels.push(...placeLabels(lines, `${level.toLocaleString('en-US')}`));
+    if (index) labels.push(...placeLabels(lines, level));
   }
 
   const fine = sampleGrid(heightAt, DETAIL_EXTENT, 7);
@@ -151,7 +188,8 @@ export const TERRAIN = (() => {
 })();
 
 /** Up to two labels per index contour, inside the overview and clear of routes and names. */
-function placeLabels(lines: Point[][], text: string): ContourLabel[] {
+function placeLabels(lines: Point[][], level: number): ContourLabel[] {
+  const text = level.toLocaleString('en-US');
   const box = { x0: ATLAS_BOX.x0 - 60, x1: ATLAS_BOX.x1 + 120, y0: ATLAS_BOX.y0 - 20, y1: ATLAS_BOX.y1 - 40 };
   const candidates: { p: Point; angle: number; clearance: number }[] = [];
   for (const line of lines) {
@@ -174,7 +212,7 @@ function placeLabels(lines: Point[][], text: string): ContourLabel[] {
   for (const c of candidates) {
     if (picked.length === 2) break;
     if (picked.some((q) => Math.hypot(q.x - c.p.x, q.y - c.p.y) < 320)) continue;
-    picked.push({ x: c.p.x, y: c.p.y, angle: c.angle, text });
+    picked.push({ x: c.p.x, y: c.p.y, angle: c.angle, text, level });
   }
   return picked;
 }
