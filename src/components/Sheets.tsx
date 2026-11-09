@@ -190,16 +190,16 @@ export function Legend({ depth, gestureHint, progress }: { depth: 0 | 1 | 2; ges
         </li>
       </ul>
       {gestureHint && <p className="legend__gesture">{gestureHint}</p>}
-      <p className="legend__progress">
-        <span>
-          <strong>{progress.visited.size}</strong> of {TOTAL_STOPS} lessons visited
-        </span>
-        {progress.visited.size > 0 && (
+      {progress.visited.size > 0 && (
+        <p className="legend__progress">
+          <span>
+            <strong>{progress.visited.size}</strong> of {TOTAL_STOPS} lessons visited
+          </span>
           <button type="button" className="linkish" onClick={progress.reset}>
             Reset
           </button>
-        )}
-      </p>
+        </p>
+      )}
       <div className="scale" aria-label={`Scale: ${scales[depth]}`}>
         {scales.map((s, i) => (
           <span key={s} className={`scale__tick ${i === depth ? 'is-on' : ''}`}>

@@ -154,11 +154,11 @@ export function Scene({ cam, stage, focus, revealed, hot, detail, walked, intro 
       {intro && <RevealMasks width={r(26)} />}
       <Trails hot={hot} walked={walked} intro={intro} glow={night} />
 
-      {/* Concept waypoints: tiny unlabelled dots from afar, a hint of what's inside. */}
+      {/* Concept waypoints: shown for the hovered landmark, a hint of what's inside. */}
       <g aria-hidden="true">
         {LANDMARKS.map((l) =>
           l.concepts.map((_, i) => {
-            if (l.id === focus) return null;
+            if (l.id === focus || l.id !== hot) return null;
             const p = stopPoint(l, i);
             return <circle key={`${l.id}-${i}`} cx={p.x} cy={p.y} r={r(2.6)} className="waypoint" style={at(LANDMARK_AT[l.id] + 160 + i * 50)} />;
           }),

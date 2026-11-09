@@ -1102,20 +1102,6 @@ pre {
   align-items: center;
 }
 
-.lm__elev {
-  letter-spacing: 0.04em;
-  text-transform: none;
-}
-.lm.is-dimmed .lm__elev {
-  display: none;
-}
-.lm__kicker {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
 .lm__title {
   font-family: var(--serif);
   font-size: 23px;
@@ -2992,9 +2978,6 @@ g:hover > .viz__pairline {
   .lm--branch .lm__label {
     --gap: 8px;
   }
-  .lm__kicker {
-    font-size: 9px;
-  }
   .lm__title {
     font-size: 17px;
   }
@@ -3290,8 +3273,7 @@ g:hover > .viz__pairline {
 
 /* Phones: the overview is small, so keep only the trail, landmarks and their names. */
 .is-compact .terrain-names,
-.is-compact .contour-labels,
-.is-compact .lm__elev {
+.is-compact .contour-labels {
   display: none;
 }
 

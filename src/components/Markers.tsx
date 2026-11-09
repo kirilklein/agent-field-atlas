@@ -5,7 +5,6 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react
 import { TEASERS } from '../data/sketches';
 import { TERRAIN, stopPoint } from '../lib/geometry';
 import type { Progress } from '../lib/progress';
-import { elevationLabel } from '../data/terrain';
 import { CONTOUR_LABEL_LAG, LANDMARK_AT, NAME_AT, TRAILHEAD_LABEL_AT, contourAt, ms } from '../lib/intro';
 import type { Route } from '../lib/route';
 
@@ -67,7 +66,7 @@ export function Markers({ project, stage, route, focus, revealed, compact, onLan
           );
         })}
         <span className="terrain-name terrain-name--trailhead" style={{ ...at(th.x, th.y), ['--at' as string]: ms(TRAILHEAD_LABEL_AT) }}>
-          <span>Trailhead · {elevationLabel(TRAILHEAD.x, TRAILHEAD.y)}</span>
+          <span>Trailhead</span>
         </span>
       </div>
 
@@ -123,10 +122,6 @@ export function Markers({ project, stage, route, focus, revealed, compact, onLan
               )}
             </span>
             <span className="lm__label" aria-hidden="true">
-              <span className="lm__kicker">
-                {l.kind === 'main' ? `${l.mark} · Main trail` : 'Optional branch'}
-                <span className="lm__elev"> · {elevationLabel(l.x, l.y)}</span>
-              </span>
               <span className="lm__title">{l.title}</span>
             </span>
           </button>

@@ -16,7 +16,6 @@ import {
   WebGLRenderer,
 } from 'three';
 import { BRANCH_CURVES, LANDMARKS, MAIN_ROUTE, TRAILHEAD, landmarkById } from '../data/map';
-import { stopPoint } from './geometry';
 import { DETAIL_EXTENT, heightAt } from '../data/terrain';
 import type { Point } from '../data/types';
 import type { Size } from './camera';
@@ -93,7 +92,6 @@ uniform float edge;
 uniform vec2 haze;      // depth at which haze starts, strength
 uniform float hazeFar;
 uniform vec3 cPaper, cGrid, cContour, cIndex, cCopper, cWalked, cBranch, cPine, cShadow, cLight, cMinor;
-uniform vec2 dots[DOTS];
 uniform vec2 trailhead;
 uniform float minor;
 uniform vec4 detailBox; // x0, y0, x1, y1
@@ -178,11 +176,7 @@ void main() {
     col = mix(col, onMain ? cWalked : cPine, onMain ? line(px.z, 4.4) : line(max(px.z, dash), 2.6));
   }
 
-  // Concept waypoints (r 2.6 px, faint) and the trailhead (dot and ring), as the SVG.
-  for (int i = 0; i < DOTS; i++) {
-    float d = length(vW - dots[i]) / upx;
-    col = mix(col, cBranch, line(d, 5.2) * 0.5);
-  }
+  // The trailhead (dot and ring), as the SVG.
   float th = length(vW - trailhead) / upx;
   col = mix(col, cPine, max(line(th, 10.0), line(abs(th - 10.0 * dpr), 1.0)));
 
@@ -385,9 +379,7 @@ export class ReliefGL {
     this.renderer.setClearColor(0xf3edde, 1);
 
     const light = new Vector3(-0.5, Math.SQRT1_2, -0.5).normalize();
-    const dots = LANDMARKS.flatMap((l) => l.concepts.map((_, i) => stopPoint(l, i))).map((p) => new Vector2(p.x, p.y));
     const material = new ShaderMaterial({
-      defines: { DOTS: dots.length },
       vertexShader: VERT,
       fragmentShader: FRAG,
       uniforms: {
@@ -423,7 +415,6 @@ export class ReliefGL {
         cMinor: { value: C.minor },
         minor: { value: 0 },
         detailBox: { value: [DETAIL_EXTENT.x0, DETAIL_EXTENT.y0, DETAIL_EXTENT.x1, DETAIL_EXTENT.y1] },
-        dots: { value: dots },
         trailhead: { value: new Vector2(TRAILHEAD.x, TRAILHEAD.y) },
       },
     });
