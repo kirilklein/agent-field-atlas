@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { ElevationProbe } from './components/ElevationProbe';
 import { MapControls } from './components/MapControls';
 import { Markers } from './components/Markers';
 import { Scene } from './components/Scene';
@@ -357,6 +358,7 @@ export default function App() {
           onKeyDown={onStageKey}
         >
           <Scene cam={cam} stage={stage} focus={focus} revealed={revealed} hot={hot} detail={detail} walked={walked} intro={inking} />
+          <div className="grain" aria-hidden="true" />
           <div className="fog" style={fogStyle} aria-hidden="true" />
           <Markers
             cam={cam}
@@ -397,6 +399,7 @@ export default function App() {
               })()}
             </>
           )}
+          <ElevationProbe host={stageRef} cam={cam} stage={stage} />
           <div className="frame" aria-hidden="true">
             <span className="compass">N</span>
           </div>

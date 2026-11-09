@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { landmarkById } from '../data/map';
 import type { RegionId } from '../data/types';
+import { transitionRoute } from './viewTransition';
 
 export type Route = { region: RegionId | null; concept: string | null };
 
@@ -41,9 +42,16 @@ export function routeKey(r: Route): string {
 /** The URL hash is the single source of truth for where the camera should be. */
 export function useHashRoute(): [Route, (r: Route) => void] {
   const [route, setRoute] = useState<Route>(() => parseHash(window.location.hash));
+  const current = useRef(route);
 
   useEffect(() => {
-    const onChange = () => setRoute(parseHash(window.location.hash));
+    const onChange = () => {
+      const next = parseHash(window.location.hash);
+      const prev = current.current;
+      if (hrefFor(next) === hrefFor(prev)) return;
+      current.current = next;
+      transitionRoute(prev, next, () => setRoute(next));
+    };
     window.addEventListener('hashchange', onChange);
     return () => window.removeEventListener('hashchange', onChange);
   }, []);

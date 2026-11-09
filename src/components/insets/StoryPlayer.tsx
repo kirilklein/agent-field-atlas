@@ -1,24 +1,50 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { RegionId } from '../../data/types';
 import { useStory } from './engine';
-import { STORIES, VIEW } from './stories';
+import { STORIES, VIEW, conceptRange } from './stories';
 
 type Props = {
   region: RegionId;
-  /** A concept to show: the diagram jumps to its step and pauses there. */
+  /** A concept to show: the diagram plays that concept's steps once and rests on the last. */
   concept: string | null;
   reduced: boolean;
+  /** Hold the diagram on this step (paused), e.g. the trace step someone selected. */
+  pinned?: number | null;
+  /** Called whenever the shown step changes, e.g. to highlight matching code. */
+  onStep?: (step: number) => void;
 };
 
 /** The landmark's mechanism as a small boxes-and-arrows diagram, step by step. */
-export function StoryPlayer({ region, concept, reduced }: Props) {
+export function StoryPlayer({ region, concept, reduced, pinned = null, onStep }: Props) {
   const story = STORIES[region];
-  const focus = concept ? story.concepts[concept] ?? null : null;
-  const { step, t, playing, fading, goTo, toggle, replay } = useStory(story.steps, reduced, focus ?? 0, focus === null);
+  const range = conceptRange(story, concept);
+  const { step, t, playing, fading, from, to, goTo, toggle, replay } = useStory(story.steps, {
+    reduced,
+    range,
+    autoplay: pinned === null,
+    loop: range === null,
+  });
+
+  // A different concept on the same player: play its steps from the start.
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (reduced) goTo(from);
+    else replay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [from, to]);
 
   useEffect(() => {
-    if (focus !== null) goTo(focus);
-  }, [focus, goTo]);
+    if (pinned !== null) goTo(pinned);
+  }, [pinned, goTo]);
+
+  useEffect(() => {
+    onStep?.(step);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   return (
     <figure
@@ -61,7 +87,7 @@ export function StoryPlayer({ region, concept, reduced }: Props) {
             <li key={i}>
               <button
                 type="button"
-                className={`inset__dot ${i === step ? 'is-on' : ''} ${i < step ? 'is-past' : ''}`}
+                className={`inset__dot ${i === step ? 'is-on' : ''} ${i < step ? 'is-past' : ''} ${range && i >= from && i <= to ? 'is-range' : ''}`}
                 onClick={() => goTo(i)}
                 aria-label={`Step ${i + 1}: ${st.caption}`}
                 aria-current={i === step ? 'step' : undefined}
