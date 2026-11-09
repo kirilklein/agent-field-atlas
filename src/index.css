@@ -28,12 +28,179 @@
   --rule-strong: rgba(30, 58, 49, 0.28);
   --halo: 0 0 2px var(--paper), 0 0 3px var(--paper), 0 0 5px var(--paper), 0 0 8px var(--paper);
 
+  /* Channels for translucent washes: rgba(var(--ink-rgb), 0.05) etc. */
+  --ink-rgb: 30, 58, 49;
+  --paper-rgb: 243, 237, 222;
+  --card-rgb: 251, 248, 240;
+  --copper-rgb: 180, 99, 42;
+  --pass-rgb: 60, 106, 76;
+  --fail-rgb: 154, 58, 44;
+  --viz-a-rgb: 43, 123, 181;
+  --fog-mid: 0.62;
+  --fog-far: 0.82;
+
+  /* Surfaces and inks beyond the core palette. */
+  --sheet: #fffdf8;
+  --ink-mid: #3d5249;
+  --ink-faint: #7d8c80;
+  --ink-disabled: #b3bdb3;
+  --copper-ink: #8a4718;
+  --on-solid: #fff;
+  --diagram-fill: #fff;
+  --pass-wash: #e3eee1;
+  --pass-wash-2: #dde9dc;
+  --pass-wash-3: #dfeadf;
+  --pass-tint: #eef4ec;
+  --paper-card-bg: #f6f8f0;
+  --fail-wash-2: #f7ebe4;
+  --fail-ink: #6e2418;
+  --fail-ink-2: #5a3a32;
+  --skip-ink: #8a978d;
+  --warn: #8a5a12;
+  --warn-ink: #7a5212;
+  --warn-wash: #f3e6c9;
+  --model-ink: #574477;
+  --model-wash: #e9e2f0;
+  --judge-ink: #3e5566;
+  --judge-wash: #e4e9ee;
+  --viz-a-ink: #1d5a87;
+  --viz-a-wash: #dce8f2;
+  --viz-b-ink: #8f4c1d;
+  --terminal-good: #a9d8a4;
+
+  /* Map */
+  --graticule: var(--sage-2);
+  --contour: #b7c3a6;
+  --contour-index: #94a487;
+  --contour-minor: #c9d1ba;
+  --contour-ink: #7f9070;
+  --place-ink: var(--sage-dark);
+  --trail-walked: #8a4416;
+  --pin-bg: var(--card);
+  --pin-ink: currentColor;
+  --pin-border: var(--pine);
+  --pin-glow: 0 1px 0 4px rgba(30, 58, 49, 0.06);
+
+  /* Code */
+  --code-ln: #9aa79a;
+  --tok-kw: #1d4a3c;
+  --tok-str: #8c5426;
+  --tok-com: #77877b;
+  --tok-fn: #2e6a62;
+  --tok-key: #35554a;
+  --tok-deco: #6b5a8c;
+
+  /* Shadows */
+  --shadow-ctl: 0 8px 20px -14px rgba(30, 58, 49, 0.55);
+  --shadow-card: 0 14px 34px -26px rgba(30, 58, 49, 0.5);
+  --shadow-panel: 0 18px 40px -24px rgba(30, 58, 49, 0.45), 0 2px 0 rgba(30, 58, 49, 0.04);
+  --shadow-pop: 0 16px 34px -20px rgba(30, 58, 49, 0.55);
+  --shadow-float: 0 24px 48px -28px rgba(30, 58, 49, 0.6);
+
   --serif: 'Newsreader Variable', 'Newsreader', 'Iowan Old Style', Georgia, serif;
   --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
   --topbar-h: 56px;
   color-scheme: light;
+}
+
+/* The atlas at night: a pine-black ground, contours in pale sage, the trail lit. */
+:root[data-theme='dark'] {
+  --paper: #0f1b17;
+  --paper-deep: #0b1512;
+  --card: #16231e;
+  --code-bg: #101c18;
+  --pine: #ece4d0;
+  --pine-2: #c9ccb8;
+  --ink-soft: #9bab9f;
+  --sage: #6f866c;
+  --sage-dark: #93a88e;
+  --sage-2: #34473d;
+  --sage-3: #22332b;
+  --copper: #e48f50;
+  --copper-2: #f2a868;
+  --copper-wash: #3a2719;
+  --pass: #82c294;
+  --fail: #ec8a74;
+  --fail-wash: #3a211b;
+  --viz-a: #6cb1e4;
+  --viz-b: #e5965c;
+  --terminal-bg: #09120f;
+  --terminal-fg: #e6e2d3;
+  --terminal-dim: #8fa196;
+  --terminal-bad: #f0a48a;
+  --rule: rgba(236, 228, 208, 0.12);
+  --rule-strong: rgba(236, 228, 208, 0.22);
+
+  --ink-rgb: 236, 228, 208;
+  --paper-rgb: 15, 27, 23;
+  --card-rgb: 22, 35, 30;
+  --copper-rgb: 228, 143, 80;
+  --pass-rgb: 130, 194, 148;
+  --fail-rgb: 236, 138, 116;
+  --viz-a-rgb: 108, 177, 228;
+  --fog-mid: 0.6;
+  --fog-far: 0.84;
+
+  --sheet: #1a2924;
+  --ink-mid: #cdd0c0;
+  --ink-faint: #85978b;
+  --ink-disabled: #4b5c53;
+  --copper-ink: #f3b47f;
+  --on-solid: #0f1b17;
+  --diagram-fill: #1a2924;
+  --pass-wash: #1d3527;
+  --pass-wash-2: #1d3527;
+  --pass-wash-3: #1d3527;
+  --pass-tint: #172a20;
+  --paper-card-bg: #16271f;
+  --fail-wash-2: #35201b;
+  --fail-ink: #f4b6a6;
+  --fail-ink-2: #e2c0b6;
+  --skip-ink: #7d8e84;
+  --warn: #e8b766;
+  --warn-ink: #edc480;
+  --warn-wash: #3a2f19;
+  --model-ink: #cbbbec;
+  --model-wash: #2a2540;
+  --judge-ink: #b8cce0;
+  --judge-wash: #212d38;
+  --viz-a-ink: #a9d0f0;
+  --viz-a-wash: #1a2d3d;
+  --viz-b-ink: #eda977;
+  --terminal-good: #a9d8a4;
+
+  --graticule: rgba(196, 214, 186, 0.16);
+  --contour: rgba(184, 207, 172, 0.2);
+  --contour-index: rgba(198, 220, 184, 0.4);
+  --contour-minor: rgba(184, 207, 172, 0.11);
+  --contour-ink: #7f977a;
+  --place-ink: #b5c4ab;
+  --trail-walked: #ffc58f;
+  --pin-bg: radial-gradient(circle at 50% 38%, #2c3b31 0%, #18261f 70%);
+  --pin-ink: #fbf1dc;
+  --pin-border: #efe2c4;
+  --pin-glow: 0 0 0 5.5px rgba(242, 168, 104, 0.6), 0 0 26px 9px rgba(242, 168, 104, 0.26);
+
+  --code-ln: #56685f;
+  --tok-kw: #9ed2b5;
+  --tok-str: #e9b385;
+  --tok-com: #7a8f84;
+  --tok-fn: #8fd0c4;
+  --tok-key: #d2dacb;
+  --tok-deco: #bba8e2;
+
+  --shadow-ctl: 0 10px 24px -12px rgba(0, 0, 0, 0.7);
+  --shadow-card: 0 22px 44px -22px rgba(0, 0, 0, 0.75), 0 1px 0 rgba(236, 228, 208, 0.04) inset;
+  --shadow-panel: 0 24px 54px -22px rgba(0, 0, 0, 0.8), 0 1px 0 rgba(236, 228, 208, 0.04) inset;
+  --shadow-pop: 0 20px 40px -18px rgba(0, 0, 0, 0.75);
+  --shadow-float: 0 30px 60px -24px rgba(0, 0, 0, 0.85);
+  color-scheme: dark;
+}
+:root[data-theme='dark'] ::selection {
+  background: rgba(228, 143, 80, 0.38);
+  color: #fbf1dc;
 }
 
 *,
@@ -123,7 +290,7 @@ pre {
   align-items: center;
   gap: 18px;
   padding: 0 20px;
-  background: rgba(243, 237, 222, 0.94);
+  background: rgba(var(--paper-rgb), 0.94);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--rule);
 }
@@ -210,7 +377,7 @@ pre {
 }
 .btn--ghost:hover:not(:disabled) {
   border-color: var(--pine);
-  background: rgba(30, 58, 49, 0.05);
+  background: rgba(var(--ink-rgb), 0.05);
 }
 .btn:disabled {
   opacity: 0.38;
@@ -221,6 +388,44 @@ pre {
   min-height: 34px;
   padding: 5px 13px;
   font-size: 13.5px;
+}
+
+/* Day / night plate switch: two small engraved tabs. */
+.theme-toggle {
+  flex: none;
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+}
+.theme-toggle__btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 160ms, color 160ms;
+}
+.theme-toggle__btn:hover {
+  color: var(--pine);
+}
+.theme-toggle__btn[aria-pressed='true'] {
+  background: var(--pine);
+  color: var(--paper);
+}
+.theme-toggle__btn[aria-pressed='true']:last-child {
+  background: var(--copper-wash);
+  color: var(--copper-2);
+  box-shadow: inset 0 0 0 1px rgba(var(--copper-rgb), 0.45);
+}
+.theme-toggle__btn:focus-visible {
+  outline-offset: 1px;
 }
 
 .icon-btn {
@@ -300,7 +505,7 @@ pre {
   background: var(--card);
   border: 1px solid var(--rule-strong);
   border-radius: 6px;
-  box-shadow: 0 8px 20px -14px rgba(30, 58, 49, 0.55);
+  box-shadow: var(--shadow-ctl);
   overflow: hidden;
   cursor: default;
 }
@@ -322,14 +527,14 @@ pre {
 @media (hover: hover) {
   .map-ctl:hover:not(:disabled) {
     background: var(--copper-wash);
-    color: #8a4718;
+    color: var(--copper-ink);
   }
 }
 .map-ctl:active:not(:disabled) {
   background: var(--copper-wash);
 }
 .map-ctl:disabled {
-  color: #b3bdb3;
+  color: var(--ink-disabled);
   cursor: default;
 }
 .map-ctl:focus-visible {
@@ -352,7 +557,7 @@ pre {
   max-width: calc(100% - 48px);
   padding: 9px 16px;
   border-radius: 6px;
-  background: rgba(30, 58, 49, 0.88);
+  background: rgba(var(--ink-rgb), 0.88);
   color: var(--card);
   font-size: 14px;
   font-weight: 500;
@@ -382,7 +587,7 @@ pre {
   fill: var(--paper);
 }
 .graticule line {
-  stroke: var(--sage-2);
+  stroke: var(--graticule);
   stroke-width: 0.6;
   opacity: 0.45;
   vector-effect: non-scaling-stroke;
@@ -392,17 +597,17 @@ pre {
 }
 .contour {
   fill: none;
-  stroke: #b7c3a6;
+  stroke: var(--contour);
   stroke-width: 0.7;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 .contour--index {
-  stroke: #94a487;
+  stroke: var(--contour-index);
   stroke-width: 1.15;
 }
 .contour--minor {
-  stroke: #c9d1ba;
+  stroke: var(--contour-minor);
   stroke-width: 0.5;
 }
 .contour-labels {
@@ -421,7 +626,7 @@ pre {
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: #7f9070;
+  color: var(--contour-ink);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   padding: 0 3px;
@@ -438,6 +643,14 @@ pre {
 }
 .trail-casing--branch {
   stroke-width: 8;
+}
+.trail-glow {
+  fill: none;
+  stroke: var(--copper-2);
+  stroke-width: 14;
+  stroke-linecap: round;
+  opacity: 0.55;
+  vector-effect: non-scaling-stroke;
 }
 .trail {
   fill: none;
@@ -514,7 +727,7 @@ pre {
   content: '';
   position: absolute;
   inset: 3px;
-  border: 1px solid rgba(30, 58, 49, 0.08);
+  border: 1px solid rgba(var(--ink-rgb), 0.08);
 }
 .compass {
   position: absolute;
@@ -568,7 +781,7 @@ pre {
   font-style: italic;
   font-size: 15px;
   letter-spacing: 0.14em;
-  color: var(--sage-dark);
+  color: var(--place-ink);
   text-shadow: var(--halo);
 }
 .terrain-name--trailhead > span {
@@ -612,9 +825,10 @@ pre {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--card);
-  border: 1.5px solid var(--pine);
-  box-shadow: 0 0 0 4px var(--paper), 0 1px 0 4px rgba(30, 58, 49, 0.06);
+  background: var(--pin-bg);
+  color: var(--pin-ink);
+  border: 1.5px solid var(--pin-border);
+  box-shadow: 0 0 0 4px var(--paper), var(--pin-glow);
   font-family: var(--serif);
   font-size: 14px;
   font-weight: 600;
@@ -815,7 +1029,7 @@ pre {
   flex-direction: column;
   gap: 8px;
   padding: 10px 12px;
-  background: rgba(251, 248, 240, 0.9);
+  background: rgba(var(--card-rgb), 0.9);
   border: 1px solid var(--rule);
   border-radius: 4px;
   font-size: 11.5px;
@@ -903,7 +1117,7 @@ pre {
   background: var(--card);
   border: 1px solid var(--rule-strong);
   border-radius: 6px;
-  box-shadow: 0 18px 40px -24px rgba(30, 58, 49, 0.45), 0 2px 0 rgba(30, 58, 49, 0.04);
+  box-shadow: var(--shadow-panel);
   animation: bench-in 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 @keyframes bench-in {
@@ -920,7 +1134,7 @@ pre {
   background: var(--card);
   border: 1px solid var(--rule-strong);
   border-radius: 4px;
-  box-shadow: 0 14px 34px -26px rgba(30, 58, 49, 0.5);
+  box-shadow: var(--shadow-card);
   animation: card-in 280ms ease-out;
 }
 .cartouche::before,
@@ -1018,7 +1232,7 @@ pre {
   cursor: pointer;
 }
 .concept-link:hover {
-  background: rgba(30, 58, 49, 0.045);
+  background: rgba(var(--ink-rgb), 0.045);
 }
 .concept-link__n {
   display: grid;
@@ -1036,7 +1250,7 @@ pre {
   padding: 1px 7px;
   border-radius: 999px;
   background: var(--copper-wash);
-  color: #8a4718;
+  color: var(--copper-ink);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -1291,7 +1505,7 @@ pre {
   font-family: var(--mono);
   font-size: 11.5px;
   color: var(--ink-soft);
-  background: rgba(30, 58, 49, 0.035);
+  background: rgba(var(--ink-rgb), 0.035);
 }
 .code__scroll {
   position: relative;
@@ -1314,7 +1528,7 @@ pre {
   width: 3.4ch;
   margin-right: 1.4ch;
   text-align: right;
-  color: #9aa79a;
+  color: var(--code-ln);
   user-select: none;
 }
 .code.has-highlight .code__line {
@@ -1322,7 +1536,7 @@ pre {
 }
 .code.has-highlight .code__line.is-hot {
   opacity: 1;
-  background: rgba(180, 99, 42, 0.13);
+  background: rgba(var(--copper-rgb), 0.13);
   box-shadow: inset 3px 0 0 var(--copper);
 }
 .code.has-highlight .code__line.is-hot .code__ln {
@@ -1351,28 +1565,28 @@ pre {
 }
 
 .tok-kw {
-  color: #1d4a3c;
+  color: var(--tok-kw);
   font-weight: 600;
 }
 .tok-str {
-  color: #8c5426;
+  color: var(--tok-str);
 }
 .tok-com {
-  color: #77877b;
+  color: var(--tok-com);
   font-style: italic;
 }
 .tok-fn {
-  color: #2e6a62;
+  color: var(--tok-fn);
 }
 .tok-num {
-  color: #8c5426;
+  color: var(--tok-str);
 }
 .tok-key {
-  color: #35554a;
+  color: var(--tok-key);
   font-weight: 500;
 }
 .tok-deco {
-  color: #6b5a8c;
+  color: var(--tok-deco);
 }
 
 /* ----- Trace stepper --------------------------------------------------- */
@@ -1478,7 +1692,7 @@ pre {
   font-size: 10.5px;
 }
 .rail__step:hover {
-  background: rgba(30, 58, 49, 0.04);
+  background: rgba(var(--ink-rgb), 0.04);
   color: var(--pine);
 }
 .rail__step.is-past {
@@ -1510,7 +1724,7 @@ pre {
   border: 1px solid var(--rule-strong);
   border-left: 4px solid var(--pine-2);
   border-radius: 5px;
-  background: #fffdf8;
+  background: var(--sheet);
 }
 .step.tone-ok {
   border-left-color: var(--pass);
@@ -1558,24 +1772,24 @@ pre {
   background: currentColor;
 }
 .actor--model {
-  background: #e9e2f0;
-  color: #574477;
+  background: var(--model-wash);
+  color: var(--model-ink);
 }
 .actor--host {
   background: var(--pine);
   color: var(--card);
 }
 .actor--tool {
-  background: #dde9dc;
+  background: var(--pass-wash-2);
   color: var(--pass);
 }
 .actor--loop {
   background: var(--copper-wash);
-  color: #8a4718;
+  color: var(--copper-ink);
 }
 .actor--judge {
-  background: #e4e9ee;
-  color: #3e5566;
+  background: var(--judge-wash);
+  color: var(--judge-ink);
 }
 .step__title {
   margin: 0 0 4px;
@@ -1588,7 +1802,7 @@ pre {
 .step__summary {
   margin: 0 0 12px;
   font-size: 14.5px;
-  color: #3d5249;
+  color: var(--ink-mid);
 }
 .step__blocks {
   display: grid;
@@ -1604,11 +1818,11 @@ pre {
 }
 .blk.tone-ok .code,
 .blk--json.tone-ok .code {
-  border-color: rgba(60, 106, 76, 0.4);
+  border-color: rgba(var(--pass-rgb), 0.4);
 }
 .blk.tone-error .code {
-  border-color: rgba(154, 58, 44, 0.45);
-  background: #f7ebe4;
+  border-color: rgba(var(--fail-rgb), 0.45);
+  background: var(--fail-wash-2);
 }
 .blk__raw {
   margin: 0;
@@ -1622,8 +1836,8 @@ pre {
   overflow-wrap: anywhere;
 }
 .blk--text.tone-warn .blk__raw {
-  border-color: rgba(154, 58, 44, 0.4);
-  background: #f7ebe4;
+  border-color: rgba(var(--fail-rgb), 0.4);
+  background: var(--fail-wash-2);
 }
 .blk__call {
   display: block;
@@ -1668,25 +1882,25 @@ pre {
 }
 .check--pass .check__icon {
   background: var(--pass);
-  color: #fff;
+  color: var(--on-solid);
 }
 .check--fail {
   background: var(--fail-wash);
 }
 .check--fail .check__icon {
   background: var(--fail);
-  color: #fff;
+  color: var(--on-solid);
 }
 .check--fail .check__label {
   font-weight: 600;
-  color: #6e2418;
+  color: var(--fail-ink);
 }
 .check--skip {
-  color: #8a978d;
+  color: var(--skip-ink);
 }
 .check--skip .check__icon {
   background: var(--sage-3);
-  color: #8a978d;
+  color: var(--skip-ink);
 }
 .check__detail {
   grid-column: 2;
@@ -1714,7 +1928,7 @@ pre {
 }
 .chip--match {
   border-color: var(--pass);
-  background: #e3eee1;
+  background: var(--pass-wash);
 }
 .allow__verdict {
   font-size: 13px;
@@ -1741,9 +1955,9 @@ pre {
   display: grid;
   gap: 2px;
   padding: 9px 12px;
-  border: 1px solid rgba(60, 106, 76, 0.3);
+  border: 1px solid rgba(var(--pass-rgb), 0.3);
   border-radius: 4px;
-  background: #f6f8f0;
+  background: var(--paper-card-bg);
 }
 .paper__title {
   font-family: var(--serif);
@@ -1765,7 +1979,7 @@ pre {
 .fixture-note {
   margin: 8px 0 0;
   font-size: 11.5px;
-  color: #7d8c80;
+  color: var(--ink-faint);
 }
 
 .notrun {
@@ -1780,7 +1994,7 @@ pre {
   gap: 9px;
   font-size: 16px;
   font-weight: 600;
-  color: #6e2418;
+  color: var(--fail-ink);
 }
 .notrun__icon {
   font-size: 22px;
@@ -1789,7 +2003,7 @@ pre {
 .notrun__reason {
   margin: 6px 0 0;
   font-size: 13.5px;
-  color: #5a3a32;
+  color: var(--fail-ink-2);
 }
 .notrun__reason code {
   font-size: 12px;
@@ -1913,8 +2127,8 @@ pre {
   color: var(--pine-2);
 }
 .badge--run {
-  background: #dce8f2;
-  color: #1d5a87;
+  background: var(--viz-a-wash);
+  color: var(--viz-a-ink);
 }
 
 /* ----- Checkpoint ------------------------------------------------------- */
@@ -2006,7 +2220,7 @@ pre {
   max-height: 460px;
 }
 .code--file .code__line.is-hot {
-  background: rgba(43, 123, 181, 0.12) !important;
+  background: rgba(var(--viz-a-rgb), 0.12) !important;
   box-shadow: inset 3px 0 0 var(--viz-a) !important;
 }
 .code--file.has-highlight .code__line {
@@ -2085,7 +2299,7 @@ g:hover > .viz__b {
 }
 .viz__pt {
   fill: var(--viz-a);
-  stroke: #fffdf8;
+  stroke: var(--sheet);
   stroke-width: 2;
 }
 .viz__pt--b {
@@ -2220,8 +2434,8 @@ g:hover > .viz__pairline {
 .tk__save {
   padding: 1px 7px;
   border-radius: 999px;
-  background: #dce8f2;
-  color: #1d5a87;
+  background: var(--viz-a-wash);
+  color: var(--viz-a-ink);
   font-size: 12px;
   font-weight: 600;
 }
@@ -2290,15 +2504,15 @@ g:hover > .viz__pairline {
   font-size: 10px;
 }
 .chip--real {
-  background: #dfeadf;
+  background: var(--pass-wash-3);
   color: var(--pass);
 }
 .chip--real::before {
   content: '●';
 }
 .chip--unsure {
-  background: #f3e6c9;
-  color: #7a5212;
+  background: var(--warn-wash);
+  color: var(--warn-ink);
 }
 .chip--unsure::before {
   content: '?';
@@ -2308,7 +2522,7 @@ g:hover > .viz__pairline {
   padding: 12px 14px;
   border: 1px solid var(--rule-strong);
   border-radius: 6px;
-  background: #fffdf8;
+  background: var(--sheet);
   margin-bottom: 12px;
 }
 .power__title {
@@ -2544,7 +2758,7 @@ g:hover > .viz__pairline {
 
 .trail-walked {
   fill: none;
-  stroke: #8a4416;
+  stroke: var(--trail-walked);
   stroke-width: 4.4;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
@@ -2576,7 +2790,7 @@ g:hover > .viz__pairline {
   opacity: 0.6;
 }
 .stop.is-visited .stop__dot {
-  background: #e3eee1;
+  background: var(--pass-wash);
   border-color: var(--pass);
   color: var(--pass);
 }
@@ -2586,7 +2800,7 @@ g:hover > .viz__pairline {
   color: var(--card);
 }
 .concept-link.is-visited .concept-link__n {
-  background: #e3eee1;
+  background: var(--pass-wash);
   border-color: var(--pass);
   color: var(--pass);
   font-family: var(--sans);
@@ -2619,7 +2833,7 @@ g:hover > .viz__pairline {
 /* ----- Exercises --------------------------------------------------------- */
 
 .terminal__good {
-  color: #a9d8a4;
+  color: var(--terminal-good);
 }
 .practice {
   display: grid;
@@ -2645,7 +2859,7 @@ g:hover > .viz__pairline {
   padding: 10px 12px;
   border: 1px solid var(--rule);
   border-radius: 5px;
-  background: #fffdf8;
+  background: var(--sheet);
 }
 .exercise__title {
   margin: 0 0 4px;
@@ -2709,7 +2923,7 @@ g:hover > .viz__pairline {
 /* ----- Selectable stops and previews ------------------------------------- */
 
 .concept-list li.is-selected {
-  background: rgba(180, 99, 42, 0.06);
+  background: rgba(var(--copper-rgb), 0.06);
 }
 .concept-list li.is-selected .concept-link {
   font-weight: 600;
@@ -2741,7 +2955,7 @@ g:hover > .viz__pairline {
   border: 1px solid var(--rule-strong);
   border-radius: 6px;
   background: var(--card);
-  box-shadow: 0 16px 34px -20px rgba(30, 58, 49, 0.55);
+  box-shadow: var(--shadow-pop);
   animation: callout-in 220ms ease-out;
   pointer-events: auto;
 }
@@ -2907,8 +3121,8 @@ g:hover > .viz__pairline {
   margin: 6px 0 4px;
   border-radius: 4px;
   background:
-    radial-gradient(circle at 1px 1px, rgba(30, 58, 49, 0.09) 1px, transparent 1.4px) 0 0 / 12px 12px,
-    #fffdf8;
+    radial-gradient(circle at 1px 1px, rgba(var(--ink-rgb), 0.09) 1px, transparent 1.4px) 0 0 / 12px 12px,
+    var(--sheet);
   transition: opacity 400ms ease-in;
   font-family: var(--sans);
 }
@@ -3012,7 +3226,7 @@ g:hover > .viz__pairline {
   position: absolute;
   inset: 0;
   z-index: 4;
-  background: rgba(243, 237, 222, 0.55);
+  background: rgba(var(--paper-rgb), 0.55);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   cursor: pointer;
@@ -3034,7 +3248,7 @@ g:hover > .viz__pairline {
   border-top: 3px solid var(--copper);
   border-radius: 8px;
   background: var(--card);
-  box-shadow: 0 24px 48px -28px rgba(30, 58, 49, 0.6);
+  box-shadow: var(--shadow-float);
   cursor: default;
   transform-origin: 0 50%;
   animation: diagram-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1) 80ms both;
@@ -3111,7 +3325,7 @@ g:hover > .viz__pairline {
   fill: var(--fail);
 }
 .ins-note.tone-warn {
-  fill: #8a5a12;
+  fill: var(--warn);
 }
 .ins-station rect {
   fill: var(--card);
@@ -3176,7 +3390,7 @@ g:hover > .viz__pairline {
   fill: var(--sage-dark);
 }
 .ins-chip rect {
-  fill: #fff;
+  fill: var(--diagram-fill);
   stroke-width: 1.2;
 }
 .ins-chip text {
@@ -3194,11 +3408,11 @@ g:hover > .viz__pairline {
   stroke: var(--viz-b);
 }
 .ins-chip.tone-tool text {
-  fill: #8f4c1d;
+  fill: var(--viz-b-ink);
 }
 .ins-chip.tone-ok rect {
   stroke: var(--pass);
-  fill: #eef4ec;
+  fill: var(--pass-tint);
 }
 .ins-chip.tone-ok text {
   fill: var(--pass);
@@ -3222,7 +3436,7 @@ g:hover > .viz__pairline {
 }
 .ins-mark path {
   fill: none;
-  stroke: #fff;
+  stroke: var(--on-solid);
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -3241,7 +3455,7 @@ g:hover > .viz__pairline {
   opacity: 0.18;
 }
 .ins-card rect {
-  fill: #fff;
+  fill: var(--diagram-fill);
   stroke: var(--rule-strong);
 }
 .ins-card text {
@@ -3259,11 +3473,11 @@ g:hover > .viz__pairline {
   stroke: var(--viz-b);
 }
 .ins-card.tone-tool text {
-  fill: #8f4c1d;
+  fill: var(--viz-b-ink);
 }
 .ins-card.tone-ok rect {
   stroke: var(--pass);
-  fill: #eef4ec;
+  fill: var(--pass-tint);
 }
 .ins-card.tone-ok text {
   fill: var(--pass);
@@ -3319,7 +3533,7 @@ g:hover > .viz__pairline {
 }
 .ins-envelope rect,
 .ins-envelope path {
-  fill: #fff;
+  fill: var(--diagram-fill);
   stroke: var(--copper);
   stroke-width: 1.3;
   stroke-linejoin: round;
@@ -3330,7 +3544,7 @@ g:hover > .viz__pairline {
   fill: var(--copper);
 }
 .ins-bubble rect {
-  fill: #fff;
+  fill: var(--diagram-fill);
   stroke: var(--viz-a);
   stroke-width: 1.3;
 }
@@ -3352,7 +3566,7 @@ g:hover > .viz__pairline {
   fill: var(--fail);
 }
 .ins-bin rect {
-  fill: #eef4ec;
+  fill: var(--pass-tint);
   stroke: var(--pass);
   stroke-opacity: 0.5;
 }
@@ -3361,7 +3575,7 @@ g:hover > .viz__pairline {
   stroke: var(--fail);
 }
 .ins-dot {
-  fill: #fff;
+  fill: var(--diagram-fill);
   stroke: var(--pine-2);
   stroke-width: 1.3;
   transition: fill 200ms, stroke 200ms;
@@ -3407,7 +3621,7 @@ g:hover > .viz__pairline {
 }
 .ins-point {
   fill: var(--viz-a);
-  stroke: #fff;
+  stroke: var(--diagram-fill);
   stroke-width: 1.5;
 }
 .ins-point.is-ok {
@@ -3426,7 +3640,7 @@ g:hover > .viz__pairline {
   fill: var(--pine);
 }
 .ins-doc rect {
-  fill: #fff;
+  fill: var(--diagram-fill);
   stroke: var(--rule-strong);
 }
 .ins-doc path {
@@ -3495,8 +3709,93 @@ g:hover > .viz__pairline {
   fill: var(--ink-soft);
 }
 .ins-file path {
-  fill: #fff;
+  fill: var(--diagram-fill);
   stroke: var(--pass);
   stroke-width: 1.3;
   stroke-linejoin: round;
+}
+
+/* ------------------------------------------------------------------ */
+/* Night plate: what changes beyond the tokens                          */
+/* ------------------------------------------------------------------ */
+
+[data-theme='dark'] .trail {
+  stroke-width: 3.2;
+}
+[data-theme='dark'] .trail-casing {
+  stroke-width: 8;
+}
+[data-theme='dark'] .trail-hot.is-hot {
+  opacity: 0.32;
+}
+[data-theme='dark'] .branch {
+  stroke-width: 1.8;
+}
+[data-theme='dark'] .branch.is-hot {
+  stroke: var(--copper-2);
+}
+[data-theme='dark'] .waypoint {
+  fill: var(--sage-dark);
+  opacity: 0.55;
+}
+[data-theme='dark'] .terrain-name > span {
+  font-weight: 340;
+}
+[data-theme='dark'] .lm__title {
+  text-shadow: var(--halo), 0 0 18px rgba(var(--paper-rgb), 0.9);
+}
+/* Landmarks read as lit pins: a warm core ring and a soft lamp halo. */
+[data-theme='dark'] .lm .lm__mark {
+  border-width: 1.5px;
+}
+[data-theme='dark'] .lm--branch .lm__mark {
+  border-color: var(--sage-dark);
+  color: var(--pine-2);
+  box-shadow: 0 0 0 4px var(--paper);
+}
+[data-theme='dark'] .lm:hover .lm__mark,
+[data-theme='dark'] .lm:focus-visible .lm__mark {
+  color: var(--copper-ink);
+}
+[data-theme='dark'] .lm.is-selected .lm__mark {
+  background: var(--copper);
+  border-color: var(--copper-2);
+  color: var(--on-solid);
+  box-shadow: 0 0 0 4px var(--paper), 0 0 0 6px var(--copper-2), 0 0 22px 6px rgba(242, 168, 104, 0.35);
+}
+[data-theme='dark'] .trailhead circle {
+  fill: var(--copper-2);
+}
+[data-theme='dark'] .trailhead .trailhead-ring {
+  fill: none;
+  stroke: var(--copper-2);
+  opacity: 0.6;
+}
+[data-theme='dark'] .frame::after {
+  border-color: rgba(var(--ink-rgb), 0.06);
+}
+/* Solid pine buttons become cream on the dark ground; keep their ink dark. */
+[data-theme='dark'] .btn--primary {
+  color: var(--paper);
+}
+[data-theme='dark'] .btn--primary:hover {
+  background: #fff6e4;
+}
+[data-theme='dark'] .btn--start span {
+  color: var(--copper);
+}
+[data-theme='dark'] .map-hint {
+  color: var(--paper);
+}
+[data-theme='dark'] .diagram-backdrop {
+  background: rgba(var(--paper-rgb), 0.62);
+}
+[data-theme='dark'] .terminal {
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+[data-theme='dark'] .code.has-highlight .code__line.is-hot {
+  background: rgba(var(--copper-rgb), 0.16);
+}
+[data-theme='dark'] .viz__pt {
+  stroke: var(--card);
 }

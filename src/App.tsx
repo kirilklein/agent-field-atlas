@@ -4,6 +4,7 @@ import { Markers } from './components/Markers';
 import { Scene } from './components/Scene';
 import { Cartouche, Legend, RegionCard } from './components/Sheets';
 import { Workbench } from './components/Workbench';
+import { ThemeToggle } from './components/ThemeToggle';
 import { lessonFor } from './data/lessons';
 import { LANDMARKS, landmarkById } from './data/map';
 import type { Point, RegionId } from './data/types';
@@ -216,7 +217,7 @@ export default function App() {
     const r = Math.hypot(b.x1 - b.x0, b.y1 - b.y0) * 0.5 * cam.k + (compact ? 70 : 120);
     fogStyle = {
       opacity: fogOpacity,
-      background: `radial-gradient(circle at ${c.x}px ${c.y}px, rgba(243,237,222,0) ${r * 0.72}px, rgba(243,237,222,0.62) ${r * 1.08}px, rgba(243,237,222,0.82) ${r * 1.7}px)`,
+      background: `radial-gradient(circle at ${c.x}px ${c.y}px, rgba(var(--paper-rgb),0) ${r * 0.72}px, rgba(var(--paper-rgb),var(--fog-mid)) ${r * 1.08}px, rgba(var(--paper-rgb),var(--fog-far)) ${r * 1.7}px)`,
     };
   }
 
@@ -330,6 +331,7 @@ export default function App() {
             ))}
           </ol>
         </nav>
+        <ThemeToggle />
         <button type="button" className="btn btn--ghost back" onClick={goUp} disabled={depth === 0} aria-label="Back up one level">
           <span aria-hidden="true">↑ </span>Back
         </button>
