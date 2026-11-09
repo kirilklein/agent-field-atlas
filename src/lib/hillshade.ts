@@ -17,7 +17,7 @@ type Plate = { ramp: [number, RGB][]; shadow: RGB; light: RGB; lightMax: number;
  * The toy plate is a diorama: saturated grass, sand, rock and snow in hard
  * 500 m terraces, with plum shadows.
  */
-const PLATES: Record<Theme, Plate> = {
+export const PLATES: Record<Theme, Plate> = {
   light: {
     ramp: [
       [250, [209, 215, 194]],
