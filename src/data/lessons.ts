@@ -434,6 +434,31 @@ def allowed(name, confirmed_by_user=False):
       prompt: 'Compare an injected result with an ordinary one.',
     },
   },
+  'permissions/who-approves': {
+    why: 'The obvious answer, “ask the user”, breaks. So does the obvious fix.',
+    steps: [
+      'This detour leaves the trip planner for a coding agent, where these designs were tried for real.',
+      'Design A asks a person before every edit and command. Claude Code’s default mode still asks before edits and most shell commands.',
+      'After thirty prompts, people stop reading. Anthropic calls this approval fatigue.',
+      'Design B skips the prompts. Claude Code has a flag for it, and its docs say to use it only inside a container or VM.',
+      'Design C writes the routine answers down as rules (deny first, then ask, then allow) and runs shell commands in a sandbox that limits files and network.',
+      'Step through all three with the same task. Watch where each one breaks.',
+    ],
+    terms: [
+      { term: 'Approval fatigue', def: 'When prompts come so often that people approve without reading.' },
+      { term: 'Permission rule', def: 'A pattern like `Bash(npm test *)` that decides deny, ask or allow without a prompt.' },
+      { term: 'Sandbox', def: 'Limits set by the operating system on what a command can touch: which folders, which hosts.' },
+    ],
+    sources: [
+      { title: 'Beyond permission prompts: making Claude Code more secure and autonomous (Anthropic)', url: 'https://www.anthropic.com/engineering/claude-code-sandboxing' },
+      { title: 'Configure permissions (Claude Code docs)', url: 'https://code.claude.com/docs/en/permissions' },
+    ],
+    interaction: {
+      kind: 'trace',
+      traceId: 'who-approves',
+      prompt: 'Run the same task under three designs.',
+    },
+  },
 
   /* B · Context & memory --------------------------------------------- */
   'context-memory/run-state': {

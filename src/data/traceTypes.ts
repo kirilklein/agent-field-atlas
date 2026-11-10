@@ -30,6 +30,8 @@ export type TraceScenario = {
   label: string;
   /** One line describing the input under test. */
   input: string;
+  /** This scenario's own listing, when scenarios are different designs. */
+  code?: string;
   steps: TraceStep[];
 };
 

@@ -249,7 +249,7 @@ export function TraceView({ trace, prompt, reduced }: Props) {
         <p className="trace__code-caption">
           <code>{trace.file}</code> — highlighting {describeLines(step.lines)}
         </p>
-        <CodeBlock code={trace.code} language="python" label={trace.file} highlight={step.lines} follow smooth={!reduced} className="code--trace" />
+        <CodeBlock code={scenario.code ?? trace.code} language="python" label={trace.file} highlight={step.lines} follow smooth={!reduced} className="code--trace" />
       </div>
     </section>
   );

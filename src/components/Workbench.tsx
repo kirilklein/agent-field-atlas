@@ -41,9 +41,11 @@ export const Workbench = forwardRef<HTMLHeadingElement, Props>(function Workbenc
         <h2 id="wb-title" ref={headingRef} tabIndex={-1} className="wb__title">
           {c.title}
         </h2>
-        <p className="wb__builds">
-          <span>This stretch builds:</span> {l.builds}
-        </p>
+        {!c.detour && (
+          <p className="wb__builds">
+            <span>This stretch builds:</span> {l.builds}
+          </p>
+        )}
         <button type="button" className="icon-btn wb__close" onClick={onClose} aria-label={`Close lesson, back to ${l.title}`}>
           <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
             <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -53,7 +55,7 @@ export const Workbench = forwardRef<HTMLHeadingElement, Props>(function Workbenc
 
       {lesson ? (
         <>
-          <StoryPlayer key={`${region}/${concept}`} region={region} concept={concept} reduced={reduced} />
+          {!c.detour && <StoryPlayer key={`${region}/${concept}`} region={region} concept={concept} reduced={reduced} />}
           <p className="wb__why">
             <strong>Why it matters.</strong> {inlineCode(lesson.why)}
           </p>

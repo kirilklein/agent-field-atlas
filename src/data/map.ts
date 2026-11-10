@@ -112,6 +112,7 @@ export const LANDMARKS: Landmark[] = [
       { id: 'read-only-tools', title: 'Read-only by default', dx: -18, dy: -98, side: 'right' },
       { id: 'untrusted-results', title: 'Untrusted results', dx: 18, dy: 96, side: 'right' },
       { id: 'run-it', title: 'Run the branch', dx: -90, dy: 66, side: 'left' },
+      { id: 'who-approves', title: 'Detour: who approves?', dx: -112, dy: -34, side: 'left', detour: true },
     ],
   },
   {

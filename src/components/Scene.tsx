@@ -167,8 +167,8 @@ export function Scene({ cam, stage, focus, revealed, hot, detail, walked, intro 
 
       {focus && (
         <g className={`spurs ${revealed ? 'is-revealed' : ''}`} aria-hidden="true">
-          {landmarkById[focus].concepts.map((_, i) => (
-            <path key={i} d={spurPath(landmarkById[focus], i)} className="spur" />
+          {landmarkById[focus].concepts.map((c, i) => (
+            <path key={i} d={spurPath(landmarkById[focus], i)} className={c.detour ? 'spur spur--detour' : 'spur'} />
           ))}
         </g>
       )}

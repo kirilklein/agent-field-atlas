@@ -20,6 +20,7 @@ export type ConceptStop = {
   dx: number;
   dy: number;
   side: LabelSide;
+  detour?: true;
 };
 
 export type Landmark = {

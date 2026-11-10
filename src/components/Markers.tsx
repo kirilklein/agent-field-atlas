@@ -125,7 +125,7 @@ export function Markers({ project, stage, route, focus, revealed, compact, onLan
             <button
               type="button"
               data-concept={c.id}
-              className={`stop side-${compact ? 'below' : c.side} ${visible ? 'is-revealed' : ''} ${active ? 'is-active' : ''} ${progress.has(focus, c.id) ? 'is-visited' : ''}`}
+              className={`stop side-${compact ? 'below' : c.side} ${c.detour ? 'stop--detour' : ''} ${visible ? 'is-revealed' : ''} ${active ? 'is-active' : ''} ${progress.has(focus, c.id) ? 'is-visited' : ''}`}
               style={{ ...at(p.x, p.y), ['--i' as string]: i }}
               tabIndex={visible || route.region === focus ? 0 : -1}
               aria-hidden={route.region === focus ? undefined : true}

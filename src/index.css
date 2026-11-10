@@ -674,6 +674,10 @@ pre {
 .spurs.is-revealed .spur {
   opacity: 0.9;
 }
+.spur--detour {
+  stroke: var(--copper);
+  stroke-dasharray: 5 4;
+}
 .trailhead circle {
   fill: var(--pine);
 }
@@ -1020,6 +1024,10 @@ pre {
 }
 .stop.is-revealed .stop__dot {
   scale: 1;
+}
+.stop--detour .stop__dot {
+  border-style: dashed;
+  border-color: var(--copper);
 }
 .stop__label {
   position: absolute;
