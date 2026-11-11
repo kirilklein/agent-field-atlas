@@ -9,6 +9,8 @@ import cp4 from '../../companion/checkpoint_4.py?raw';
 import comparePy from '../../companion/compare.py?raw';
 import fakeModelPy from '../../companion/fake_model.py?raw';
 import llmPy from '../../companion/llm.py?raw';
+import claudeModelPy from '../../companion/claude_model.py?raw';
+import tracingPy from '../../companion/tracing.py?raw';
 import placesPy from '../../companion/places.py?raw';
 import judgeLabels from '../../companion/judge_labels.jsonl?raw';
 import replaySet from '../../companion/replay_set.jsonl?raw';
@@ -47,6 +49,8 @@ export type Run = { label: string; output: string };
 
 export const SUPPORT_FILES: CompanionFile[] = [
   { name: 'llm.py', code: llmPy, language: 'python', note: 'call_model(): the only code that talks to a model. Fake by default; Claude with ATLAS_MODEL=claude.' },
+  { name: 'claude_model.py', code: claudeModelPy, language: 'python', note: 'The Claude adapter that llm.py uses with ATLAS_MODEL=claude. It converts messages to and from Claude’s format.' },
+  { name: 'tracing.py', code: tracingPy, language: 'python', note: 'Prints the model ▸ and host ▸ lines you see in the terminal output.' },
   { name: 'fake_model.py', code: fakeModelPy, language: 'python', note: 'A scripted model so everything runs offline, with switchable quirks and two bad habits.' },
   { name: 'places.py', code: placesPy, language: 'python', note: 'Nine real places in Florence with short notes, and a read-only keyword search.' },
 ];

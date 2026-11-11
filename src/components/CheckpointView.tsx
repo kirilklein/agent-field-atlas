@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { CHECKPOINTS, CHECK_PY, EXERCISES, SUPPORT_FILES, addedLines, type CheckpointId } from '../data/companion';
 import { inlineCode } from '../lib/highlight';
 import { CodeBlock } from './CodeBlock';
@@ -58,6 +59,8 @@ export function CheckpointView({ id }: Props) {
   };
   const copy = () => {
     const selectInstead = () => {
+      const unfold = codeRef.current?.querySelector<HTMLButtonElement>('.code__fold-all[aria-expanded="false"]');
+      flushSync(() => unfold?.click());
       const pre = codeRef.current?.querySelector('pre');
       const sel = window.getSelection();
       if (!pre || !sel) return;
@@ -74,7 +77,7 @@ export function CheckpointView({ id }: Props) {
     }
   };
 
-  const folder = [cp.file.name, ...cp.needs.filter((n) => !n.endsWith('.jsonl')), 'llm.py', 'fake_model.py', 'places.py'];
+  const folder = [cp.file.name, ...cp.needs.filter((n) => !n.endsWith('.jsonl')), ...SUPPORT_FILES.map((f) => f.name)];
 
   return (
     <section className="checkpoint" aria-label={isNumbered ? `Checkpoint ${id}` : 'Run the branch'}>
@@ -116,7 +119,7 @@ export function CheckpointView({ id }: Props) {
       <p className="cp__note" aria-live="polite">
         {fileIdx === 0
           ? cp.previous
-            ? `${added.length} lines are new since checkpoint ${Number(id) - 1}; they are highlighted.`
+            ? `${added.length} lines are new since checkpoint ${Number(id) - 1}; they are highlighted, and the rest is folded.`
             : isNumbered
               ? 'The first checkpoint: every line is new.'
               : `A branch file: it imports ${listOf(cp.needs.filter((n) => n.endsWith('.py')))} instead of copying them.`
@@ -130,6 +133,7 @@ export function CheckpointView({ id }: Props) {
           label={file.name}
           highlight={fileIdx === 0 && added.length ? added : undefined}
           follow
+          fold
           className="code--file"
         />
       </div>
@@ -175,6 +179,7 @@ export function CheckpointView({ id }: Props) {
                 label={`solutions/${cp.file.name}`}
                 highlight={solutionAdded}
                 follow
+                fold
                 className="code--file"
               />
             </>
