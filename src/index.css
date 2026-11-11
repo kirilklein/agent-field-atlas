@@ -2346,6 +2346,48 @@ pre {
 .code--file .code__scroll {
   max-height: 460px;
 }
+.code__fold-all {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--pine);
+  cursor: pointer;
+}
+.code__fold {
+  display: inline-block;
+  width: 2ch;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--code-ln);
+  text-align: left;
+  cursor: pointer;
+}
+span.code__fold {
+  cursor: auto;
+}
+.code__fold::before {
+  content: '▸';
+}
+.code__fold[aria-expanded='true']::before {
+  content: '▾';
+}
+span.code__fold::before {
+  content: '';
+}
+.code__more {
+  margin-left: 1.5ch;
+  padding: 0 6px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--code-ln);
+  user-select: none;
+  cursor: pointer;
+}
 .code--file .code__line.is-hot {
   background: rgba(var(--viz-a-rgb), 0.12) !important;
   box-shadow: inset 3px 0 0 var(--viz-a) !important;

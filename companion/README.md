@@ -32,6 +32,8 @@ Each check drives your code with a scripted model, so it tests your logic, not t
 Shared pieces:
 
 - `llm.py` — `call_model(messages, tools, schema)`, the only code that talks to a model.
+- `claude_model.py` — the Claude adapter that `llm.py` calls with `ATLAS_MODEL=claude`.
+- `tracing.py` — prints the `model ▸` and `host ▸` lines.
 - `fake_model.py` — a scripted model, so everything runs offline and the same way every time.
   It has a few switchable quirks and two bad habits, so the checks have something to catch.
 - `places.py` — nine real places in Florence, with short notes, and a read-only keyword `search_places`.
