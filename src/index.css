@@ -4333,6 +4333,74 @@ g:hover > .viz__pairline {
   font-size: 14px;
   color: var(--ink-soft);
 }
+.welcome__what {
+  margin: 10px 0 28px;
+}
+.welcome__what p {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-mid);
+}
+.welcome__route {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14.5px;
+}
+.welcome__route li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 0;
+}
+.welcome__route li + li {
+  border-top: 1px dashed var(--rule);
+}
+.welcome__route span {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--copper);
+}
+.welcome__route a,
+.welcome__words a {
+  color: var(--pine);
+}
+.welcome__route em {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.welcome__route-note {
+  margin-bottom: 28px;
+}
+.welcome__words {
+  margin: 0 0 26px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  font-size: 14px;
+}
+.welcome__words summary {
+  cursor: pointer;
+  color: var(--ink-mid);
+}
+.welcome__words dl {
+  margin: 10px 0 0;
+}
+.welcome__words div {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px dashed var(--rule);
+}
+.welcome__words dt {
+  font-weight: 500;
+}
+.welcome__words dd {
+  margin: 0;
+  color: var(--ink-soft);
+}
 .welcome__steps {
   margin: 0 0 30px;
   padding: 0;
@@ -4417,6 +4485,16 @@ g:hover > .viz__pairline {
   .welcome__step svg {
     width: 40px;
     height: 40px;
+  }
+  .welcome__route li {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .welcome__route em {
+    grid-column: 2;
+  }
+  .welcome__words div {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 }
 

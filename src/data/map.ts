@@ -109,8 +109,8 @@ export const LANDMARKS: Landmark[] = [
       { title: 'The lethal trifecta for AI agents (Simon Willison)', url: 'https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/' },
     ],
     concepts: [
-      { id: 'read-only-tools', title: 'Read-only by default', dx: -18, dy: -98, side: 'right' },
       { id: 'untrusted-results', title: 'Untrusted results', dx: 18, dy: 96, side: 'right' },
+      { id: 'read-only-tools', title: 'Read-only by default', dx: -18, dy: -98, side: 'right' },
       { id: 'run-it', title: 'Run the branch', dx: -90, dy: 66, side: 'left' },
       { id: 'who-approves', title: 'Detour: who approves?', dx: -112, dy: -34, side: 'left', detour: true },
     ],
@@ -131,9 +131,9 @@ export const LANDMARKS: Landmark[] = [
       { title: 'Effective context engineering for AI agents', url: 'https://www.anthropic.com/research/effective-context-engineering-for-ai-agents' },
     ],
     concepts: [
+      { id: 'cost-of-history', title: 'What history costs', dx: 74, dy: 104, side: 'right' },
       { id: 'run-state', title: 'State within a run', dx: -40, dy: -100, side: 'left' },
       { id: 'saved-memory', title: 'Memory across runs', dx: -92, dy: 82, side: 'left' },
-      { id: 'cost-of-history', title: 'What history costs', dx: 74, dy: 104, side: 'right' },
       { id: 'run-it', title: 'Run the branch', dx: 60, dy: -100, side: 'right' },
     ],
   },
@@ -142,7 +142,7 @@ export const LANDMARKS: Landmark[] = [
     title: 'Multi-agent',
     kind: 'branch',
     mark: 'C',
-    from: 'agent-loop',
+    from: 'evaluation',
     x: 770,
     y: 330,
     side: 'right',
@@ -173,7 +173,7 @@ export const landmarkById = Object.fromEntries(LANDMARKS.map((l) => [l.id, l])) 
 export const BRANCH_CURVES: Record<'permissions' | 'context-memory' | 'multi-agent', CubicSeg> = {
   permissions: { c1: { x: 680, y: 610 }, c2: { x: 720, y: 548 }, to: { x: 815, y: 560 } },
   'context-memory': { c1: { x: 360, y: 448 }, c2: { x: 300, y: 488 }, to: { x: 215, y: 470 } },
-  'multi-agent': { c1: { x: 520, y: 398 }, c2: { x: 640, y: 318 }, to: { x: 770, y: 330 } },
+  'multi-agent': { c1: { x: 600, y: 260 }, c2: { x: 680, y: 330 }, to: { x: 770, y: 330 } },
 };
 
 /** Place names, set where the terrain actually has those features (see terrain.ts). */

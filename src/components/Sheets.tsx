@@ -54,7 +54,7 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
   const l = landmarkById[region];
   const i = MAIN_ROUTE.indexOf(region);
   const onward = l.kind === 'main' ? MAIN_ROUTE[i + 1] : l.from;
-  const branches = LANDMARKS.filter((b) => b.from === region);
+  const branches = LANDMARKS.filter((b) => (onward ? b.from === region : b.kind === 'branch'));
   const focus = hovered ?? selected;
   const firstUnvisited = l.concepts.find((c) => !progress.has(region, c.id)) ?? l.concepts[0];
   // Go deeper stays open per landmark, and opens itself when a stop is picked on the map.
@@ -96,13 +96,18 @@ export function RegionCard({ region, progress, reduced, selected, hovered, onSel
       </div>
       {branches.length > 0 && (
         <p className="region-card__branches">
-          Side trips:{' '}
+          {onward ? 'Branches from here: ' : 'Where next: walk the branches, '}
           {branches.map((b, n) => (
             <span key={b.id}>
               {n > 0 && ' · '}
               <a href={hrefFor({ region: b.id, concept: null })}>{b.title}</a>
             </span>
           ))}
+          {!onward && (
+            <>
+              . Then run the planner on a real model: <code>ATLAS_MODEL=claude python checkpoint_3.py</code>
+            </>
+          )}
         </p>
       )}
 
