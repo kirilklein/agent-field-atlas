@@ -15,6 +15,7 @@ import placesPy from '../../companion/places.py?raw';
 import judgeLabels from '../../companion/judge_labels.jsonl?raw';
 import replaySet from '../../companion/replay_set.jsonl?raw';
 import recordedComparison from '../../companion/recorded_comparison.json?raw';
+import groundingCases from '../../companion/grounding_cases.json?raw';
 import out1 from '../../companion/expected/checkpoint_1.txt?raw';
 import out1Sloppy from '../../companion/expected/checkpoint_1_sloppy.txt?raw';
 import out2 from '../../companion/expected/checkpoint_2.txt?raw';
@@ -163,6 +164,9 @@ export const COMPARE_PY: CompanionFile = { name: 'compare.py', code: strip(compa
 export const COMPARE_OUTPUT = strip(outCompare);
 export const REPLAY_SET = strip(replaySet);
 export const CHECKPOINT_4_OUTPUT = strip(out4);
+export const CHECKPOINT_3_OUTPUT = strip(out3);
+export const PLACES_PY = strip(placesPy);
+export const GROUNDING_CASES_JSON = groundingCases;
 
 /** The running example, read from checkpoint 3 and its recorded run. */
 export const EXAMPLE = {

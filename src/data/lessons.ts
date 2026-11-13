@@ -12,7 +12,8 @@ export type Interaction =
   | { kind: 'compare' }
   | { kind: 'checkpoint'; id: CheckpointId }
   | { kind: 'tokens' }
-  | { kind: 'interval' };
+  | { kind: 'interval' }
+  | { kind: 'scene'; id: 'two-florences' };
 
 export type Lesson = {
   /** One sentence: why this concept matters. Backticks mark inline code here and below. */
@@ -306,6 +307,16 @@ else:
     ],
     example: { label: 'python checkpoint_4.py', language: 'text', code: CHECKPOINT_4_OUTPUT },
     interaction: { kind: 'interval' },
+  },
+  'evaluation/two-florences': {
+    why: 'An answer can sound right and still say more than its sources.',
+    steps: [
+      'Every phrase in an answer should trace back to a passage in a tool result.',
+      'Mark the phrase you think goes beyond the sources, then reveal what the tool results establish.',
+      'Where no passage says it, the phrase is unverified. Rewrite it to say only what the closest passage says.',
+      'Then try a fresh case with no hints.',
+    ],
+    interaction: { kind: 'scene', id: 'two-florences' },
   },
 
   /* Checkpoints ------------------------------------------------------ */

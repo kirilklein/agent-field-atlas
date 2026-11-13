@@ -4548,3 +4548,703 @@ g:hover > .viz__pairline {
 .topbar {
   box-shadow: inset 0 -2px 0 var(--edge);
 }
+
+/* ------------------------------------------------------------------ */
+/* Two Florences: a full-stage scene lesson (TwoFlorences.tsx)         */
+/* ------------------------------------------------------------------ */
+/* Its own dusk palette in both themes. Text sits on scrims, never on   */
+/* the painting. Final states are the base styles; motion only leads   */
+/* into them, so reduced motion shows everything already in place.     */
+
+.workbench--scene {
+  padding-top: 16px;
+}
+.workbench--scene .wb__head {
+  margin-bottom: 10px;
+}
+.workbench--scene .wb__title {
+  font-size: 26px;
+}
+/* The scene covers the whole stage on wide layouts; nothing of the map may show beside it. */
+.has-scene:not(.is-compact) .stage {
+  visibility: hidden;
+}
+.tf-about {
+  margin: 18px 0 0;
+}
+
+.tf {
+  --tf-ink: #f6ead8;
+  --tf-ink-soft: #cdbfae;
+  --tf-warm: #ffc977;
+  --tf-cool: #a9c6e4;
+  --tf-stamp: #ff6b4f;
+  --tf-ok: #9fd38a;
+  --tf-focus: #ffe08a;
+  --tf-gutter: 76px;
+  --tf-pad: 28px;
+  position: relative;
+  margin: 0 -28px;
+  min-height: max(540px, calc(100svh - var(--topbar-h) - 150px));
+  overflow: clip;
+  isolation: isolate;
+  background: #120d18;
+  color: var(--tf-ink);
+  color-scheme: dark;
+}
+
+/* ----- The painting ----- */
+.tf__painting {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.tf__frame {
+  position: sticky;
+  top: 0;
+  height: min(100%, 100svh);
+  overflow: hidden;
+}
+.tf-street {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.tf-canvas {
+  opacity: 0.4;
+  mix-blend-mode: soft-light;
+}
+.tf-refl {
+  animation: tf-shimmer 3.4s ease-in-out infinite alternate;
+}
+@keyframes tf-shimmer {
+  0% {
+    opacity: 0.78;
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.86;
+  }
+}
+
+/* The seam: the cool copy opens out of a slit at the vanishing point. */
+.tf__cool {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 50% 0 50%);
+  transition: clip-path 800ms cubic-bezier(0.65, 0, 0.25, 1) 220ms;
+}
+.tf:not(.tf--predict) .tf__cool {
+  clip-path: inset(0 0 0 50%);
+}
+.tf__seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: linear-gradient(to bottom, rgba(255, 243, 214, 0), #fff3d6 10%, #fff3d6 90%, rgba(255, 243, 214, 0));
+  box-shadow:
+    0 0 6px 2px rgba(255, 244, 220, 0.9),
+    0 0 18px 4px rgba(255, 214, 150, 0.7),
+    0 0 48px 10px rgba(255, 190, 120, 0.3);
+  opacity: 0;
+  transform: scaleY(0);
+  transform-origin: 50% 47%;
+  transition:
+    transform 420ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 160ms;
+}
+.tf__seam::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 196, 120, 0),
+    rgba(255, 196, 120, 0.26) 42%,
+    rgba(255, 246, 225, 0.4) 50%,
+    rgba(150, 190, 235, 0.26) 58%,
+    rgba(150, 190, 235, 0)
+  );
+  transition: width 900ms ease-out 200ms;
+}
+.tf:not(.tf--predict) .tf__seam {
+  opacity: 1;
+  transform: scaleY(1);
+}
+.tf:not(.tf--predict) .tf__seam::before {
+  width: 170px;
+}
+
+.tf__rain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='220'%3E%3Cpath d='M10 0l-4 26M58 70l-4 26M100 140l-4 26M34 170l-4 22M84 20l-3 20M112 96l-3 18' stroke='%23d6e2ff' stroke-opacity='.5' stroke-width='1.1' stroke-linecap='round'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='140'%3E%3Cpath d='M20 10l-2 14M70 60l-2 14M45 110l-2 12M8 76l-2 10' stroke='%23d6e2ff' stroke-opacity='.32' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size:
+    120px 220px,
+    90px 140px;
+  animation: tf-rain 0.6s linear infinite;
+}
+@keyframes tf-rain {
+  from {
+    background-position:
+      0 0,
+      0 0;
+  }
+  to {
+    background-position:
+      0 220px,
+      0 140px;
+  }
+}
+.tf__vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 46%, rgba(5, 3, 8, 0) 52%, rgba(5, 3, 8, 0.6) 100%);
+}
+
+/* ----- Text over the painting ----- */
+.tf__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px var(--tf-pad) 16px;
+}
+.tf-scrim {
+  background: rgba(16, 11, 20, 0.84);
+  border: 1px solid rgba(255, 236, 210, 0.14);
+  border-radius: 12px;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+.tf :focus-visible {
+  outline: 3px solid var(--tf-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(10, 6, 12, 0.85);
+}
+
+.tf__top,
+.tf__panel {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 10px 16px;
+}
+.tf .tf__top:focus {
+  outline: none;
+  box-shadow: none;
+}
+.tf__toprow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.tf__toprow .tf-btn {
+  margin-left: auto;
+}
+.tf__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tf-ink-soft);
+}
+.tf__steps li {
+  padding: 3px 9px;
+  border: 1px solid rgba(255, 236, 210, 0.2);
+  border-radius: 999px;
+}
+.tf__steps li.is-done {
+  color: var(--tf-ink);
+  border-color: rgba(255, 236, 210, 0.4);
+}
+.tf__steps li.is-current {
+  background: var(--tf-warm);
+  border-color: var(--tf-warm);
+  color: #1d1210;
+}
+.tf__note {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--tf-ink-soft);
+}
+.tf__badge {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--tf-warm);
+  color: #24140c;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tf__badge--recorded {
+  background: rgba(255, 236, 210, 0.16);
+  color: var(--tf-ink);
+}
+.tf__question {
+  margin: 8px 0 0;
+  font-size: 16.5px;
+  line-height: 1.4;
+}
+.tf__label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tf-ink-soft);
+}
+
+/* Two columns whose gutter is the seam: content is symmetric, so the gutter sits at 50%. */
+.tf__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--tf-gutter);
+  row-gap: 10px;
+  align-items: start;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+.tf__side {
+  align-self: end;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(10, 7, 12, 0.78);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tf__side--promised {
+  justify-self: end;
+  text-align: right;
+  color: var(--tf-warm);
+}
+.tf__side--established {
+  justify-self: start;
+  color: var(--tf-cool);
+}
+.tf--predict .tf__side--established {
+  color: var(--tf-ink-soft);
+}
+.tf-row {
+  margin: 0;
+  padding: 6px 14px;
+  background: rgba(30, 16, 20, 0.86);
+  border-color: rgba(255, 201, 119, 0.28);
+  font-size: 17px;
+  line-height: 2.25;
+}
+.tf-slot {
+  padding: 10px 14px;
+  background: rgba(10, 17, 28, 0.88);
+  border-color: rgba(169, 198, 228, 0.28);
+}
+.tf-slot.is-empty {
+  padding: 0;
+}
+
+/* Inline, so a phrase wraps with its sentence; the padding is cancelled by the margin. */
+.tf-phrase {
+  display: inline;
+  margin: 0 -0.2em;
+  padding: 0.55em 0.2em;
+  cursor: pointer;
+  background: linear-gradient(var(--tf-band, transparent), var(--tf-band, transparent)) center / 100% 1.5em no-repeat;
+  text-decoration: underline solid var(--tf-line, transparent) 1.5px;
+  text-underline-offset: 0.3em;
+}
+.tf--first-case.tf--predict .tf-phrase {
+  --tf-band: rgba(255, 201, 119, 0.1);
+  --tf-line: rgba(255, 201, 119, 0.85);
+  text-decoration-style: dashed;
+}
+.tf--first-case.tf--predict .tf-phrase:hover {
+  --tf-band: rgba(255, 201, 119, 0.22);
+}
+.tf--fresh.tf--predict .tf-phrase:hover {
+  --tf-band: rgba(255, 236, 210, 0.12);
+}
+.tf--predict .tf-phrase[aria-pressed='true'] {
+  --tf-band: var(--tf-warm);
+  --tf-line: transparent;
+  color: #1d1210;
+}
+.tf:not(.tf--predict) .tf-phrase {
+  --tf-band: rgba(255, 236, 210, 0.07);
+  --tf-line: rgba(255, 236, 210, 0.4);
+}
+.tf:not(.tf--predict) .tf-phrase:hover {
+  --tf-line: rgba(255, 236, 210, 0.8);
+}
+.tf:not(.tf--predict) .tf-phrase.is-open {
+  --tf-band: rgba(255, 201, 119, 0.2);
+  --tf-line: var(--tf-warm);
+}
+.tf:not(.tf--predict) .tf-phrase.is-unverified.is-open {
+  --tf-band: rgba(255, 107, 79, 0.18);
+  --tf-line: var(--tf-stamp);
+}
+.tf:not(.tf--predict) .tf-phrase.is-revised {
+  --tf-band: rgba(159, 211, 138, 0.18);
+  --tf-line: var(--tf-ok);
+  color: #e3f6d6;
+}
+.tf .tf-phrase:focus-visible {
+  outline: 3px solid var(--tf-focus);
+  outline-offset: -0.35em;
+}
+.tf-differs {
+  font-style: normal;
+  font-weight: 700;
+  color: #ffd2c6;
+  text-decoration: underline wavy var(--tf-stamp) 1.5px;
+  text-underline-offset: 4px;
+}
+
+/* Evidence */
+.tf-passage {
+  margin: 0;
+  animation: tf-fade 320ms ease-out 650ms both;
+}
+.tf-passage.is-first {
+  animation-delay: 1400ms;
+}
+.tf-passage__label {
+  margin: 0 0 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tf-cool);
+}
+.tf-passage blockquote {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: #eef5ff;
+}
+.tf-passage figcaption {
+  margin-top: 4px;
+}
+.tf-passage code {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(169, 198, 228, 0.12);
+  color: #c4d6ea;
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+.tf-unverified {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+  animation: tf-fade 320ms ease-out 650ms both;
+}
+.tf-unverified .tf-passage {
+  flex-basis: 100%;
+}
+.tf-unverified.is-first {
+  animation-delay: 1400ms;
+}
+.tf-unverified .tf-passage {
+  animation: none;
+}
+.tf-unverified .tf-passage__label {
+  color: var(--tf-ink-soft);
+}
+.tf-stamp {
+  display: inline-block;
+  margin: 0 0 4px;
+  padding: 3px 12px;
+  border: 3px double var(--tf-stamp);
+  border-radius: 6px;
+  background: rgba(255, 107, 79, 0.1);
+  color: var(--tf-stamp);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+.tf-unverified__why {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #ffd9cf;
+}
+
+/* Trace lines: underline the phrase, lead to the seam, cross it to the passage. */
+.tf__traces {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.tf-trace {
+  --tf-line: var(--tf-warm);
+  --d: 0ms;
+}
+.tf-trace.is-first {
+  --d: 750ms;
+}
+.tf-trace--unverified {
+  --tf-line: var(--tf-stamp);
+}
+.tf-trace--revised {
+  --tf-line: var(--tf-ok);
+}
+.tf-trace__under,
+.tf-trace__line {
+  fill: none;
+  stroke: var(--tf-line);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+}
+.tf-trace__under {
+  animation: tf-draw 260ms ease-out var(--d) both;
+}
+.tf-trace__leader {
+  fill: none;
+  stroke: var(--tf-line);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0 7;
+  opacity: 0.75;
+  animation: tf-fade 200ms ease-out calc(var(--d) + 180ms) both;
+}
+.tf-trace__casing {
+  fill: none;
+  stroke: rgba(8, 5, 10, 0.7);
+  stroke-width: 6;
+  stroke-linecap: round;
+  animation: tf-fade 200ms ease-out calc(var(--d) + 250ms) both;
+}
+.tf-trace__line {
+  filter: drop-shadow(0 0 4px var(--tf-line));
+  animation: tf-draw 520ms cubic-bezier(0.3, 0.6, 0.2, 1) calc(var(--d) + 250ms) both;
+}
+.tf-trace__end {
+  fill: var(--tf-line);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tf-pop 320ms ease-out calc(var(--d) + 720ms) both;
+}
+@keyframes tf-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+@keyframes tf-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes tf-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  70% {
+    transform: scale(1.7);
+  }
+}
+
+/* ----- Controls ----- */
+.tf__hint {
+  margin: 0 0 2px;
+  font-size: 15px;
+}
+.tf__status {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  color: var(--tf-ink-soft);
+}
+.tf__verdict {
+  margin: 0 0 2px;
+  font-size: 16.5px;
+  font-weight: 500;
+}
+.tf__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+.tf .btn {
+  min-height: 44px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.6);
+}
+.tf .btn--primary {
+  border-color: #ffe2b0;
+  background: var(--tf-warm);
+  color: #1d1210;
+}
+.tf .btn--primary:hover:not(:disabled) {
+  background: #ffd99a;
+}
+.tf .btn--ghost {
+  border-color: rgba(255, 236, 210, 0.6);
+  background: rgba(255, 236, 210, 0.06);
+  color: var(--tf-ink);
+}
+.tf .btn--ghost:hover:not(:disabled) {
+  border-color: var(--tf-ink);
+  background: rgba(255, 236, 210, 0.14);
+}
+.tf .btn--ghost[aria-pressed='true'] {
+  border-color: var(--tf-warm);
+  background: var(--tf-warm);
+  color: #1d1210;
+}
+.tf .btn:disabled {
+  opacity: 0.45;
+}
+.tf .tf-btn--small {
+  min-height: 40px;
+  padding: 4px 12px;
+  font-size: 13px;
+}
+.tf-revise fieldset {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.tf-revise legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 15.5px;
+  font-weight: 500;
+}
+.tf-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1.5px solid rgba(255, 236, 210, 0.25);
+  border-radius: 10px;
+  background: rgba(255, 236, 210, 0.05);
+  font-size: 15px;
+  cursor: pointer;
+}
+.tf-option.is-picked {
+  border-color: var(--tf-warm);
+  background: rgba(255, 201, 119, 0.14);
+}
+.tf-option input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--tf-warm);
+}
+.tf__feedback {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+  font-size: 14.5px;
+  color: #ffd2c6;
+}
+
+@media (max-width: 899px) {
+  .has-scene .sheet--bench {
+    margin-inline: 0;
+    border-radius: 0;
+  }
+  .tf {
+    --tf-gutter: 22px;
+    --tf-pad: 8px;
+    margin: 0 -16px;
+    min-height: 0;
+  }
+  .tf__content {
+    gap: 12px;
+    padding: 12px var(--tf-pad) 16px;
+  }
+  .tf__top,
+  .tf__panel {
+    padding: 10px 12px;
+  }
+  .tf__question {
+    font-size: 15.5px;
+  }
+  .tf__grid {
+    row-gap: 10px;
+  }
+  .tf__side {
+    padding: 5px 7px;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+  }
+  .tf-row {
+    padding: 4px 8px;
+    font-size: 15px;
+    line-height: 2.7;
+  }
+  .tf-phrase {
+    padding: 0.7em 0.2em;
+  }
+  .tf-slot {
+    padding: 10px 9px;
+  }
+  .tf-passage blockquote {
+    font-size: 14.5px;
+  }
+  .tf-passage code {
+    font-size: 10.5px;
+  }
+  .tf-stamp {
+    padding: 2px 8px;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+  }
+  .tf-unverified__why {
+    font-size: 13px;
+  }
+  .tf:not(.tf--predict) .tf__seam::before {
+    width: 60px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tf *,
+  .tf *::before,
+  .tf *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "cases": [
+    {
+      "id": "recorded",
+      "synthetic": false,
+      "note": "Tool results recorded from checkpoint 3 (expected/checkpoint_3.txt). Place notes from places.py.",
+      "question": "Rainy Saturday in Florence with a 4-year-old: what can we do?",
+      "calls": [
+        {
+          "id": "call_01",
+          "query": "Rainy Saturday Florence 4-year-old",
+          "places": ["place:la-specola", "place:leonardo-interactive", "place:palazzo-vecchio"]
+        },
+        {
+          "id": "call_02",
+          "query": "hands-on museums for children",
+          "places": ["place:leonardo-interactive", "place:la-specola"]
+        }
+      ],
+      "itinerary": [
+        "Morning: the Leonardo Interactive Museum has [hands-on wooden models kids can turn and push].",
+        "It [works well for children on a rainy day].",
+        "Afternoon: La Specola shows [every kind of preserved animal], [from insects to a hippo].",
+        "Finish with a [family tour through secret passages] at Palazzo Vecchio."
+      ],
+      "claims": [
+        {
+          "phrase": "hands-on wooden models kids can turn and push",
+          "evidence": { "call": "call_02", "place": "place:leonardo-interactive", "field": "summary", "passage": "hands-on wooden models of Leonardo's machines that kids can turn and push" }
+        },
+        {
+          "phrase": "works well for children on a rainy day",
+          "evidence": { "call": "call_02", "place": "place:leonardo-interactive", "field": "summary", "passage": "it works well for children on a rainy day" }
+        },
+        {
+          "phrase": "every kind of preserved animal",
+          "evidence": null,
+          "closest": { "call": "call_01", "place": "place:la-specola", "field": "summary", "passage": "hundreds of preserved animals" },
+          "differs": { "phrase": "every kind", "passage": "hundreds" },
+          "revisions": [
+            { "text": "hundreds of preserved animals", "correct": true, "why": "That is what the note says." },
+            { "text": "every kind of preserved animal", "correct": false, "why": "That is the original wording. No tool result says every kind." },
+            { "text": "the largest collection of preserved animals", "correct": false, "why": "The note says hundreds. It never says largest." }
+          ]
+        },
+        {
+          "phrase": "from insects to a hippo",
+          "evidence": { "call": "call_01", "place": "place:la-specola", "field": "summary", "passage": "from insects to a hippo" }
+        },
+        {
+          "phrase": "family tour through secret passages",
+          "evidence": { "call": "call_01", "place": "place:palazzo-vecchio", "field": "summary", "passage": "Runs family tours through the painted rooms and secret passages" }
+        }
+      ]
+    },
+    {
+      "id": "synthetic",
+      "synthetic": true,
+      "note": "This listing is invented for this lesson. Museo delle Pozzanghere is not a real place.",
+      "question": "Can we take a 4-year-old to a museum on Saturday?",
+      "calls": [
+        {
+          "id": "call_01",
+          "query": "museum for children Saturday",
+          "places": ["place:synthetic-pozzanghere"]
+        }
+      ],
+      "listings": [
+        {
+          "id": "place:synthetic-pozzanghere",
+          "name": "Museo delle Pozzanghere",
+          "summary": "Children are welcome in every room, and there is a workshop table for drawing.",
+          "hours": "Monday to Friday, 10:00-17:00"
+        }
+      ],
+      "itinerary": [
+        "Museo delle Pozzanghere [admits children] and [is open on Saturday]."
+      ],
+      "claims": [
+        {
+          "phrase": "admits children",
+          "evidence": { "call": "call_01", "place": "place:synthetic-pozzanghere", "field": "summary", "passage": "Children are welcome in every room" }
+        },
+        {
+          "phrase": "is open on Saturday",
+          "evidence": null,
+          "closest": { "call": "call_01", "place": "place:synthetic-pozzanghere", "field": "hours", "passage": "Monday to Friday, 10:00-17:00" },
+          "differs": { "phrase": "on Saturday", "passage": "Monday to Friday" },
+          "revisions": [
+            { "text": "lists hours for Monday to Friday, so check Saturday before you go", "correct": true, "why": "That says only what the listing says." },
+            { "text": "is open on Saturday", "correct": false, "why": "That is the original wording. No passage mentions Saturday." },
+            { "text": "is closed on Saturday", "correct": false, "why": "The listing does not say that either. It only lists Monday to Friday." }
+          ]
+        }
+      ]
+    }
+  ]
+}

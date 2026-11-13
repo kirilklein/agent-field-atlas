@@ -90,6 +90,7 @@ export const LANDMARKS: Landmark[] = [
       { id: 'score-a-replay', title: 'Score a replay', dx: -62, dy: -88, side: 'left' },
       { id: 'trust-the-numbers', title: 'Trust the numbers', dx: 112, dy: 52, side: 'right' },
       { id: 'checkpoint', title: 'Checkpoint 4: run it', dx: 110, dy: -60, side: 'right' },
+      { id: 'two-florences', title: 'Detour: Two Florences', dx: 30, dy: -126, side: 'right', detour: true },
     ],
   },
   {
