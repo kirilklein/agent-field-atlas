@@ -90,7 +90,7 @@ export function Markers({ project, stage, route, focus, revealed, compact, onLan
             ].join(' ')}
             style={{ ...at(p.x, p.y), ['--at' as string]: ms(LANDMARK_AT[l.id]) }}
             aria-current={selected && !route.concept ? 'location' : undefined}
-            aria-label={`${kicker}: ${l.title}. ${l.builds}${l.kind === 'branch' ? ` Optional branch from ${landmarkById[l.from!].title}.` : ''} ${Math.round(progress.share(l.id) * l.concepts.length)} of ${l.concepts.length} lessons visited.`}
+            aria-label={`${kicker}: ${l.title}. ${l.builds}${l.kind === 'branch' ? ` Branch from ${landmarkById[l.from!].title}.` : ''} ${Math.round(progress.share(l.id) * l.concepts.length)} of ${l.concepts.length} lessons visited.`}
             onClick={() => onLandmark(l.id)}
             onMouseEnter={() => onHot(l.id)}
             onMouseLeave={() => onHot(null)}

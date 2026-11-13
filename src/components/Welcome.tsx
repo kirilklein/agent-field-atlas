@@ -1,9 +1,29 @@
 import type { ReactNode } from 'react';
 import { EXAMPLE } from '../data/companion';
-import { LANDMARKS, MAIN_ROUTE } from '../data/map';
+import { LANDMARKS, MAIN_ROUTE, landmarkById } from '../data/map';
+import type { RegionId } from '../data/types';
+import { hrefFor } from '../lib/route';
 import { ThemeToggle } from './ThemeToggle';
 
-const BRANCHES = LANDMARKS.filter((l) => l.kind === 'branch').length;
+const BRANCHES = LANDMARKS.filter((l) => l.kind === 'branch');
+const ROUTE = [...MAIN_ROUTE.map((id) => landmarkById[id]), ...BRANCHES];
+
+const WORDS: { term: string; means: string; at: RegionId }[] = [
+  { term: 'Workflow', means: 'Steps you fixed in code, with model calls inside. An agent chooses its own steps.', at: 'agent-loop' },
+  { term: 'Planning', means: 'The model writes down its steps before it acts. Here: a query plan.', at: 'one-model-call' },
+  { term: 'Function calling', means: 'Another name for tool calling.', at: 'tool-calling' },
+  { term: 'MCP', means: 'A standard way to plug in tools from other programs. The model still sees tool declarations.', at: 'tool-calling' },
+  { term: 'RAG', means: 'Look text up and put it in the message list before the model answers. Here the lookup is a tool.', at: 'tool-calling' },
+  { term: 'Guardrails', means: 'Checks your code runs on every proposal before anything happens.', at: 'tool-calling' },
+  { term: 'Tracing', means: 'A record of every model call and tool run.', at: 'agent-loop' },
+  { term: 'Evals', means: 'Fixed questions you rerun to measure a change.', at: 'evaluation' },
+  { term: 'Prompt injection', means: 'Instructions hidden in data the agent reads.', at: 'permissions' },
+  { term: 'Human in the loop', means: 'A person approves an action before it runs.', at: 'permissions' },
+  { term: 'Sandbox', means: 'A locked-down place to run code an agent writes. Not built here; the same boundary idea.', at: 'permissions' },
+  { term: 'Context window', means: 'The most text a model can read in one call.', at: 'context-memory' },
+  { term: 'Skills', means: 'Instructions kept in files and loaded only when a task needs them. Not built here; a way to save context.', at: 'context-memory' },
+  { term: 'Subagents', means: 'Extra model calls, each with its own job and messages.', at: 'multi-agent' },
+];
 
 const STEPS: { title: string; body: string; glyph: ReactNode }[] = [
   {
@@ -34,7 +54,7 @@ const STEPS: { title: string; body: string; glyph: ReactNode }[] = [
   },
   {
     title: 'Wander, then head back',
-    body: `${BRANCHES} branches are optional side trips. Escape or Back takes you up a level, and the trail you have walked stays inked in.`,
+    body: `${BRANCHES.length} branches leave the trail. Permissions and Context & memory matter for any real agent; Multi-agent is optional. Escape or Back takes you up a level.`,
     glyph: (
       <>
         <path d="M10 42C14 30 20 22 24 6" className="welcome__ink-trail" />
@@ -67,6 +87,18 @@ export function Welcome({ onEnter }: { onEnter: () => void }) {
           Every run is recorded, so you need no API key.
         </p>
 
+        <h2 className="welcome__how">What an agent is</h2>
+        <div className="welcome__what">
+          <p>
+            An agent is a language model in a loop. The model proposes the next step, your code checks it and runs it,
+            and the result goes back to the model. This repeats until the job is done.
+          </p>
+          <p>
+            A single model call answers once. A workflow runs steps you fixed in advance. An agent chooses its own
+            steps, so use one only when you cannot write the steps down beforehand.
+          </p>
+        </div>
+
         <h2 className="welcome__how">What you will build</h2>
         <div className="welcome__example">
           <p className="welcome__question">“{EXAMPLE.question}”</p>
@@ -91,6 +123,21 @@ export function Welcome({ onEnter }: { onEnter: () => void }) {
           </p>
         </div>
 
+        <h2 className="welcome__how">The route</h2>
+        <ol className="welcome__route">
+          {ROUTE.map((l) => (
+            <li key={l.id}>
+              <span>{l.mark}</span>
+              <a href={hrefFor({ region: l.id, concept: null })}>{l.question}</a>
+              <em>{l.title}</em>
+            </li>
+          ))}
+        </ol>
+        <p className="welcome__note welcome__route-note">
+          You need to read Python, nothing more. The seven diagrams take about ten minutes; the lessons and runnable
+          code sit under each one.
+        </p>
+
         <h2 className="welcome__how">How to read the map</h2>
         <ol className="welcome__steps">
           {STEPS.map((s, i) => (
@@ -108,6 +155,20 @@ export function Welcome({ onEnter }: { onEnter: () => void }) {
             </li>
           ))}
         </ol>
+
+        <details className="welcome__words">
+          <summary>Words you may have heard, and where they sit on the map</summary>
+          <dl>
+            {WORDS.map((w) => (
+              <div key={w.term}>
+                <dt>{w.term}</dt>
+                <dd>
+                  {w.means} <a href={hrefFor({ region: w.at, concept: null })}>{landmarkById[w.at].title}</a>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </details>
 
         <button type="button" className="btn btn--primary btn--start welcome__enter" onClick={onEnter}>
           Open the map
