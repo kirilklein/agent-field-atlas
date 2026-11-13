@@ -46,13 +46,15 @@ export default function App() {
   }, [route.region]);
 
   // Lessons with a step-through trace get a wider, two-column workbench on large screens.
-  const lessonHasTrace =
-    route.region && route.concept
-      ? ['trace', 'checkpoint', 'compare'].includes(lessonFor(route.region, route.concept)?.interaction?.kind ?? '')
-      : false;
+  const lessonKind = route.region && route.concept ? (lessonFor(route.region, route.concept)?.interaction?.kind ?? '') : '';
+  const lessonHasTrace = ['trace', 'checkpoint', 'compare'].includes(lessonKind);
+  // A scene lesson takes the whole stage on wide layouts.
+  const lessonIsScene = lessonKind === 'scene';
   const panelW = compact
     ? 0
-    : lessonHasTrace && stage.w >= 1280
+    : lessonIsScene
+      ? Math.max(0, stage.w - 24)
+      : lessonHasTrace && stage.w >= 1280
       ? Math.round(Math.min(980, stage.w - 520))
       : Math.round(Math.min(620, Math.max(440, stage.w * 0.42)));
 
@@ -402,7 +404,7 @@ export default function App() {
 
   return (
     <div
-      className={`app depth-${depth} ${compact ? 'is-compact' : ''} ${lessonHasTrace ? 'has-trace' : ''} ${inking ? 'intro' : ''} ${intro === 'wait' ? 'intro--hold' : ''} ${intro === 'done' ? 'intro-done' : ''}`}
+      className={`app depth-${depth} ${compact ? 'is-compact' : ''} ${lessonHasTrace ? 'has-trace' : ''} ${lessonIsScene ? 'has-scene' : ''} ${inking ? 'intro' : ''} ${intro === 'wait' ? 'intro--hold' : ''} ${intro === 'done' ? 'intro-done' : ''}`}
       style={{ ['--panel-w' as string]: `${panelW}px`, ...(inking ? INTRO_VARS : null) }}
     >
       <a
@@ -454,6 +456,7 @@ export default function App() {
         <div
           className={`stage ${dragging ? 'is-dragging' : ''} ${inRelief ? 'is-relief' : ''}`}
           ref={stageRef}
+          inert={wide && lessonIsScene}
           role="region"
           tabIndex={0}
           onPointerMove={(e) => {

@@ -13,6 +13,7 @@ import { CompareView } from './CompareView';
 import { IntervalView } from './IntervalView';
 import { TokenCostView } from './TokenCostView';
 import { TraceView } from './TraceView';
+import { TwoFlorences } from './TwoFlorences';
 
 type Props = { region: RegionId; concept: string; reduced: boolean; onClose: () => void };
 
@@ -32,8 +33,10 @@ export const Workbench = forwardRef<HTMLHeadingElement, Props>(function Workbenc
   const next = l.concepts[idx + 1];
   const onward = nextLandmark(region);
 
+  const isScene = lesson?.interaction?.kind === 'scene';
+
   return (
-    <article className="workbench" aria-labelledby="wb-title">
+    <article className={`workbench ${isScene ? 'workbench--scene' : ''}`} aria-labelledby="wb-title">
       <header className="wb__head">
         <p className="kicker">
           {l.title} · Concept {idx + 1} of {l.concepts.length}
@@ -53,7 +56,22 @@ export const Workbench = forwardRef<HTMLHeadingElement, Props>(function Workbenc
         </button>
       </header>
 
-      {lesson ? (
+      {lesson && isScene ? (
+        <>
+          <TwoFlorences />
+          <details className="wb__terms tf-about">
+            <summary>About this detour</summary>
+            <p className="wb__why">
+              <strong>Why it matters.</strong> {inlineCode(lesson.why)}
+            </p>
+            <ol className="wb__steps">
+              {lesson.steps.map((st, n) => (
+                <li key={n}>{inlineCode(st)}</li>
+              ))}
+            </ol>
+          </details>
+        </>
+      ) : lesson ? (
         <>
           {!c.detour && <StoryPlayer key={`${region}/${concept}`} region={region} concept={concept} reduced={reduced} />}
           <p className="wb__why">
